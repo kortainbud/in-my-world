@@ -10,6 +10,10 @@ export interface PropSet {
   /** Object the "give" action attaches to the giver's hand. */
   held?: THREE.Object3D;
   update(t: number, sceneT: number): void;
+  /** Multiplier for scene lighting (flickering lights). */
+  light?: (t: number) => number;
+  /** Closer fog for suspense. */
+  fog?: { near: number; far: number };
 }
 
 function textTexture(text: string, w = 512, h = 288, bg = "#101010", fg = "#B9F36A") {
@@ -69,6 +73,42 @@ function glyph(ch: string, color: string) {
   return m;
 }
 
+let halo: THREE.CanvasTexture | null = null;
+function haloTexture() {
+  if (halo) return halo;
+  const cv = document.createElement("canvas");
+  cv.width = cv.height = 128;
+  const g = cv.getContext("2d")!;
+  const grd = g.createRadialGradient(64, 64, 8, 64, 64, 64);
+  grd.addColorStop(0, "rgba(255,250,220,0.9)");
+  grd.addColorStop(1, "rgba(255,250,220,0)");
+  g.fillStyle = grd;
+  g.fillRect(0, 0, 128, 128);
+  halo = new THREE.CanvasTexture(cv);
+  return halo;
+}
+
+let photoTex: THREE.CanvasTexture | null = null;
+function photoTexture() {
+  if (photoTex) return photoTex;
+  const cv = document.createElement("canvas");
+  cv.width = 132;
+  cv.height = 172;
+  const g = cv.getContext("2d")!;
+  g.fillStyle = "#c9b48a";
+  g.fillRect(0, 0, 132, 172);
+  g.fillStyle = "#e6d6b0";
+  g.fillRect(0, 0, 132, 90);
+  g.fillStyle = "#4a3a28";
+  g.fillRect(52, 48, 28, 26);
+  g.fillRect(44, 76, 44, 52);
+  g.fillRect(48, 128, 14, 30);
+  g.fillRect(70, 128, 14, 30);
+  photoTex = new THREE.CanvasTexture(cv);
+  photoTex.colorSpace = THREE.SRGBColorSpace;
+  return photoTex;
+}
+
 function bill(k: Kit) {
   return k.box(0.6, 0.04, 0.3, "#5cbf6a", "plain");
 }
@@ -83,6 +123,8 @@ export function buildProps(
   const r = rng(opts.seed);
   const updates: ((t: number, st: number) => void)[] = [];
   let held: THREE.Object3D | undefined;
+  let light: PropSet["light"];
+  let fog: PropSet["fog"];
   const top = opts.interior ? 9 : 14;
 
   const fallers = (count: number, make: () => THREE.Object3D, speed: number, spread = 16, spin = 2) => {
@@ -162,7 +204,8 @@ export function buildProps(
         const face = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.6), new THREE.MeshBasicMaterial({ map: textTexture(opts.text || "WELCOME", 512, 240, "#e9e4da", "#151515") }));
         face.position.set(0, 3.6, 0.11);
         g.add(face);
-        g.position.set(-5.5, 0, -3);
+        g.position.set(-3.1, 0, -3.2);
+        g.rotation.y = 0.25;
         group.add(g);
         break;
       }
@@ -250,6 +293,107 @@ export function buildProps(
         updates.push((_, st) => (car.position.x = -12 + st * 6));
         break;
       }
+      case "moon": {
+        const moon = style === "minecraft" ? k.box(6, 6, 6, "#f3f0d6", "noise", { emissive: "#f3f0d6", emissiveIntensity: 0.9 }) : new THREE.Mesh(new THREE.SphereGeometry(3.4, 32, 24), new THREE.MeshBasicMaterial({ color: "#f6f2dc" }));
+        moon.position.set(-9, 26, -45);
+        moon.castShadow = false;
+        group.add(moon);
+        const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTexture(), transparent: true, depthWrite: false, opacity: 0.55 }));
+        halo.scale.setScalar(22);
+        halo.position.copy(moon.position);
+        group.add(halo);
+        updates.push((t) => (halo.material.opacity = 0.5 + Math.sin(t * 0.8) * 0.08));
+        break;
+      }
+      case "abandoned_shoes": {
+        for (const [x, z, ry] of [[0.7, 2.6, 0.3], [1.35, 2.4, -0.2]] as const) {
+          const shoe = k.box(0.45, 0.3, 0.8, "#c0392b", "plain");
+          shoe.position.set(x, 0.15, z);
+          shoe.rotation.y = ry;
+          group.add(shoe);
+          const sole = k.box(0.47, 0.08, 0.82, "#f5f3ee", "plain");
+          sole.position.set(x, 0.04, z);
+          sole.rotation.y = ry;
+          group.add(sole);
+        }
+        break;
+      }
+      case "open_door": {
+        const g = new THREE.Group();
+        const frameC = "#3a2a20";
+        const l = k.box(0.35, 4.6, 0.4, frameC, "planks");
+        l.position.set(-1.2, 2.3, 0);
+        const rr = k.box(0.35, 4.6, 0.4, frameC, "planks");
+        rr.position.set(1.2, 2.3, 0);
+        const top = k.box(2.75, 0.35, 0.4, frameC, "planks");
+        top.position.set(0, 4.6, 0);
+        const glow = new THREE.Mesh(new THREE.PlaneGeometry(2.05, 4.4), new THREE.MeshBasicMaterial({ color: "#fff3c4" }));
+        glow.position.set(0, 2.2, -0.05);
+        const pivot = new THREE.Group();
+        pivot.position.set(-1.02, 0, 0.05);
+        const door = k.box(2.05, 4.35, 0.15, "#6b4428", "planks");
+        door.position.set(1.02, 2.18, 0);
+        pivot.add(door);
+        const light = new THREE.PointLight("#fff1c0", 12, 10);
+        light.position.set(0, 2.5, 1.2);
+        g.add(l, rr, top, glow, pivot, light);
+        g.position.set(-4.2, 0, -3.5);
+        g.rotation.y = 0.35;
+        updates.push((_, st) => (pivot.rotation.y = -0.5 - Math.min(1, st / 1.5) * 0.7 - Math.sin(st * 1.3) * 0.05));
+        group.add(g);
+        break;
+      }
+      case "letter": {
+        const g = new THREE.Group();
+        g.add(k.box(0.75, 0.48, 0.03, "#f2ead8", "plain"));
+        const seal = k.box(0.14, 0.14, 0.04, "#b3261e", "plain");
+        seal.position.z = 0.02;
+        g.add(seal);
+        held = held ?? g;
+        break;
+      }
+      case "photo": {
+        const g = new THREE.Group();
+        g.add(k.box(0.8, 1.0, 0.06, "#2a2018", "plain"));
+        const pic = new THREE.Mesh(new THREE.PlaneGeometry(0.66, 0.86), new THREE.MeshBasicMaterial({ map: photoTexture() }));
+        pic.position.z = 0.035;
+        g.add(pic);
+        held = held ?? g;
+        break;
+      }
+      case "fog":
+        fog = { near: 6, far: 34 };
+        break;
+      case "flicker_lights": {
+        const seed = opts.seed;
+        light = (t) => {
+          const n = Math.sin(t * 13.1 + seed) * Math.sin(t * 7.7 + seed * 0.3);
+          return n > 0.55 ? 0.25 : n > 0.4 ? 0.6 : 1;
+        };
+        break;
+      }
+      case "traffic_light": {
+        const g = new THREE.Group();
+        const pole = k.box(0.25, 5, 0.25, "#2a2a2a", "plain");
+        pole.position.y = 2.5;
+        const box = k.box(0.9, 2.2, 0.6, "#1a1a1a", "plain");
+        box.position.y = 5.6;
+        g.add(pole, box);
+        const lamps = ["#ff3b30", "#ffb020", "#34c759"].map((c, i) => {
+          const on = i === 0;
+          const m = new THREE.Mesh(new THREE.CircleGeometry(0.26, 20), new THREE.MeshBasicMaterial({ color: on ? c : "#2a2a2a" }));
+          m.position.set(0, 6.3 - i * 0.7, 0.31);
+          g.add(m);
+          return m;
+        });
+        const glow = new THREE.PointLight("#ff3b30", 10, 9);
+        glow.position.set(0, 6.3, 1);
+        g.add(glow);
+        g.position.set(3.4, 0, -1.6);
+        updates.push((t) => ((lamps[0].material as THREE.MeshBasicMaterial).color.set(Math.sin(t * 2) > -0.9 ? "#ff3b30" : "#7a1a16")));
+        group.add(g);
+        break;
+      }
       case "crowd": {
         const colors = ["#e63946", "#3d7bf2", "#f5c518", "#2a9d8f", "#7a5cfa", "#f2643d", "#f5f3ee"];
         const skins = ["#f2c9a0", "#c68b5e", "#8d5a3b", "#e8b48f", "#6e4630"];
@@ -273,5 +417,5 @@ export function buildProps(
     }
   }
 
-  return { group, held, update: (t, st) => updates.forEach((f) => f(t, st)) };
+  return { group, held, light, fog, update: (t, st) => updates.forEach((f) => f(t, st)) };
 }

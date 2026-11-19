@@ -8,6 +8,9 @@ import { useMe } from "@/lib/client/me";
 import type { ProjectView } from "@/lib/server/views";
 import { btn, Button, LinkButton, Modal, Notice, Spinner, StyleTag, Tag } from "@/components/ui";
 import { useRenderAgent } from "./render-agent";
+import { FORMAT_INFO } from "./create";
+import { ChecklistPanel, MetricsPanel, SeriesStrip, StorySheetPanel } from "./story-panels";
+import { trackShare } from "@/lib/client/track";
 
 const ACTIVE = ["queued", "processing", "awaiting_render", "rendering"];
 const PHASE_LABEL: Record<string, string> = { audio: "Mixing audio", previews: "Rendering scene previews", frames: "Rendering frames", finalizing: "Finalizing MP4", uploading: "Uploading MP4" };
@@ -67,10 +70,16 @@ export function ProjectScreen({ id }: { id: string }) {
             <StyleTag style={p.style} />
             <StatusTag status={p.status} />
             <Tag>{p.durationPreset}s preset</Tag>
+            <Tag>{FORMAT_INFO[p.format].label}{p.episode > 1 || p.series ? ` · Part ${p.episode}` : ""}</Tag>
             {p.visibility === "public" && <Tag tone="accent">Public</Tag>}
           </div>
           <h1 className="text-[28px] font-semibold tracking-[-0.03em]">{p.status === "queued" || (p.status === "processing" && p.title === "Untitled world") ? "Writing your story…" : p.title}</h1>
           <p className="mt-1 max-w-2xl text-[15px] text-fg-2">“{p.prompt}”</p>
+          {p.series && (
+            <div className="mt-3">
+              <SeriesStrip episodes={p.series.episodes} current={p.id} />
+            </div>
+          )}
         </div>
         <p className="text-[12.5px] text-fg-3">Started {timeAgo(p.createdAt)}</p>
       </div>
@@ -229,6 +238,7 @@ function InProgress({ p, onRetry }: { p: ProjectView; onRetry: () => void }) {
             </ol>
           </div>
         )}
+        {p.story?.checklist && <ChecklistPanel items={p.story.checklist} source={p.story.checklistSource} revised={p.story.revised} />}
       </aside>
     </div>
   );
@@ -249,6 +259,7 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
+      trackShare(p.id);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -271,6 +282,24 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
           </a>
           <Button size="lg" onClick={() => (p.visibility === "public" ? void copyLink() : setShareOpen(true))}>
             {copied ? "Link copied" : "Copy share link"}
+          </Button>
+          <Button
+            size="lg"
+            disabled={busy === "next"}
+            onClick={async () => {
+              setBusy("next");
+              setMsg(null);
+              try {
+                const r = await api<{ projectId: string }>(`/api/projects/${p.id}/next-episode`, { method: "POST", json: { idempotencyKey: crypto.randomUUID() } });
+                void refresh();
+                onRegenerate(r.projectId);
+              } catch (e) {
+                setMsg({ tone: "danger", text: e instanceof ApiError ? e.message : "Couldn't start the next episode." });
+                setBusy(null);
+              }
+            }}
+          >
+            {busy === "next" ? "Starting…" : `Make Part ${p.episode + 1}`}
           </Button>
           <LinkButton size="lg" href="/studio">
             Generate another
@@ -365,6 +394,9 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
             </p>
           </div>
         )}
+        {p.metrics && <MetricsPanel m={p.metrics} isPublic={p.visibility === "public"} />}
+        {p.story?.checklist && <ChecklistPanel items={p.story.checklist} source={p.story.checklistSource} revised={p.story.revised} />}
+        {p.story?.sheet && <StorySheetPanel sheet={p.story.sheet} />}
       </div>
 
       <Modal open={shareOpen} onClose={() => setShareOpen(false)} label="Share this video">

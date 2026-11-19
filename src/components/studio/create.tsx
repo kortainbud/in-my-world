@@ -3,7 +3,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { OFFICIAL_CHARACTERS } from "@/lib/engine/characters";
-import { DURATIONS, type DurationPreset, type VisualStyle } from "@/lib/engine/types";
+import { DURATIONS, FORMATS, type DurationPreset, type StoryFormat, type VisualStyle } from "@/lib/engine/types";
+import type { Premise } from "@/lib/engine/premises";
 import { PROMPT_STARTERS, STYLE_LABELS } from "@/config/site";
 import { api, ApiError } from "@/lib/client/api";
 import { useMe } from "@/lib/client/me";
@@ -12,6 +13,12 @@ import { Button, Notice, Spinner, Tag } from "@/components/ui";
 import { CastPicker, useLibrary } from "./cast-picker";
 
 const DRAFT_KEY = "imw:create-draft";
+
+export const FORMAT_INFO: Record<StoryFormat, { label: string; blurb: string }> = {
+  strange_world: { label: "Strange world", blurb: "One strange rule governs a town. Someone breaks it." },
+  mystery_series: { label: "Mystery series", blurb: "Each episode reveals one piece. Ends on a cliffhanger." },
+  impossible_choice: { label: "Impossible choice", blurb: "Two options, both with a cost. The audience decides." },
+};
 const MILO = OFFICIAL_CHARACTERS[0].appearance;
 
 interface Quote {
@@ -35,6 +42,9 @@ export function CreateScreen() {
 
   const [prompt, setPrompt] = useState("");
   const [style, setStyle] = useState<VisualStyle>("roblox");
+  const [format, setFormat] = useState<StoryFormat>("strange_world");
+  const [ideas, setIdeas] = useState<{ list: Premise[]; source: string } | null>(null);
+  const [ideasBusy, setIdeasBusy] = useState(false);
   const [duration, setDuration] = useState<DurationPreset>(30);
   const [cast, setCast] = useState<string[]>([]);
   const [voice, setVoice] = useState<string>("");
@@ -47,7 +57,7 @@ export function CreateScreen() {
   // Initial state: URL params (templates, "cast this character") win over a saved draft.
   useEffect(() => {
     idem.current = crypto.randomUUID();
-    let draft: { prompt?: string; style?: VisualStyle; duration?: DurationPreset } = {};
+    let draft: { prompt?: string; style?: VisualStyle; duration?: DurationPreset; format?: StoryFormat } = {};
     try {
       draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? "{}");
     } catch {}
@@ -57,6 +67,8 @@ export function CreateScreen() {
     setPrompt(p ?? draft.prompt ?? "");
     setStyle(s === "minecraft" || s === "roblox" ? s : (draft.style ?? "roblox"));
     if (draft.duration && DURATIONS.includes(draft.duration)) setDuration(draft.duration);
+    const f = (params.get("format") ?? draft.format) as StoryFormat | null;
+    if (f && FORMATS.includes(f)) setFormat(f);
     if (c) setCast(c.split(",").slice(0, 3));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -67,9 +79,9 @@ export function CreateScreen() {
 
   useEffect(() => {
     try {
-      sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ prompt, style, duration }));
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ prompt, style, duration, format }));
     } catch {}
-  }, [prompt, style, duration]);
+  }, [prompt, style, duration, format]);
 
   useEffect(() => {
     let live = true;
@@ -115,7 +127,7 @@ export function CreateScreen() {
     try {
       const r = await api<{ projectId: string }>("/api/generate", {
         method: "POST",
-        json: { prompt: trimmed, style, duration, castIds: cast, voice: voice || null, idempotencyKey: idem.current },
+        json: { prompt: trimmed, style, duration, format, castIds: cast, voice: voice || null, idempotencyKey: idem.current },
       });
       try {
         sessionStorage.removeItem(DRAFT_KEY);
@@ -175,7 +187,73 @@ export function CreateScreen() {
           ))}
         </div>
 
+        <div className="mt-3">
+          <button
+            type="button"
+            disabled={ideasBusy}
+            onClick={async () => {
+              setIdeasBusy(true);
+              try {
+                const d = await api<{ premises: Premise[]; source: string }>("/api/premises", { method: "POST", json: { avoid: ideas?.list.map((x) => x.premise) ?? [] } });
+                setIdeas({ list: d.premises, source: d.source });
+              } catch (e) {
+                setError({ message: e instanceof ApiError ? e.message : "Couldn't load ideas." });
+              } finally {
+                setIdeasBusy(false);
+              }
+            }}
+            className="text-[13px] text-fg-2 underline decoration-line underline-offset-4 hover:text-fg disabled:opacity-50"
+          >
+            {ideasBusy ? "Finding ideas…" : ideas ? "Show different ideas" : "Need an idea? Show me premises"}
+          </button>
+          {ideas && (
+            <div className="mt-3">
+              <div className="grid gap-2 sm:grid-cols-2">
+                {ideas.list.map((pr) => (
+                  <button
+                    key={pr.premise}
+                    type="button"
+                    onClick={() => {
+                      setPrompt(pr.premise + " " + pr.rule);
+                      setFormat(pr.format);
+                      ta.current?.focus();
+                    }}
+                    className="rounded-[12px] border border-line-soft bg-bg-2 p-3.5 text-left transition-colors hover:border-line"
+                  >
+                    <span className="block text-[14px] font-medium leading-snug">{pr.premise}</span>
+                    <span className="mt-1 block text-[12.5px] leading-snug text-fg-2">{pr.rule}</span>
+                    <span className="mt-2 flex flex-wrap items-center gap-1.5 text-[11.5px] text-fg-3">
+                      <Tag>{FORMAT_INFO[pr.format].label}</Tag> {pr.why}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-[11.5px] text-fg-3">{ideas.source === "anthropic" ? "Generated by Claude for you." : "From the studio's premise library."} Each one comes with a hidden secret the story builds towards.</p>
+            </div>
+          )}
+        </div>
+
         <div className="mt-8 divide-y divide-line-soft rounded-[14px] border border-line bg-bg-2">
+          <Row label="Story format" hint="How the story is shaped and how it ends.">
+            <div role="radiogroup" aria-label="Story format" className="grid gap-2 sm:grid-cols-3">
+              {FORMATS.map((f) => {
+                const on = format === f;
+                return (
+                  <button
+                    key={f}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() => setFormat(f)}
+                    className={`rounded-[10px] border p-2.5 text-left transition-colors ${on ? "border-accent bg-[#161d0f]" : "border-line-soft bg-bg hover:border-line"}`}
+                  >
+                    <span className="block text-[13.5px] font-medium">{FORMAT_INFO[f].label}</span>
+                    <span className="mt-0.5 block text-[11.5px] leading-snug text-fg-2">{FORMAT_INFO[f].blurb}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </Row>
           <Row label="Visual style" hint="Changes the characters, worlds and textures.">
             <div role="radiogroup" aria-label="Visual style" className="grid grid-cols-1 gap-2 min-[480px]:grid-cols-2">
               {(["roblox", "minecraft"] as const).map((s) => {

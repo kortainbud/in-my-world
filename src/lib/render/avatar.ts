@@ -18,6 +18,10 @@ export interface Avatar {
   /** Height of the top of the head in body units (before root scale). */
   topY: number;
   setExpression(e: Expression): void;
+  /** Whether the character casts a shadow (stories about losing your shadow). */
+  setShadow(cast: boolean): void;
+  /** 0–1. Below 1 the character fades (disappearing, ghosts). */
+  setOpacity(a: number): void;
   dispose(): void;
 }
 
@@ -423,6 +427,7 @@ export function buildAvatar(ap: Appearance, style: VisualStyle): Avatar {
   const topY = (legH + torsoH + headS + 0.2) * ap.height;
 
   let currentExpr: Expression = "happy";
+  let ownMaterials = false;
   return {
     root, body, head, armL, armR, legL, legR, cape, hand, topY,
     setExpression(e) {
@@ -430,6 +435,32 @@ export function buildAvatar(ap: Appearance, style: VisualStyle): Avatar {
       currentExpr = e;
       faceMat.map = faceTexture(style, ap.face, e, ap);
       faceMat.needsUpdate = true;
+    },
+    setShadow(cast) {
+      root.traverse((o) => {
+        if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = cast;
+      });
+    },
+    setOpacity(a) {
+      if (a >= 0.999 && !ownMaterials) return;
+      if (!ownMaterials) {
+        // Materials are shared across avatars; clone before changing them.
+        ownMaterials = true;
+        root.traverse((o) => {
+          const m = o as THREE.Mesh;
+          if (!m.isMesh) return;
+          m.material = Array.isArray(m.material) ? m.material.map((x) => x.clone()) : m.material.clone();
+        });
+      }
+      root.traverse((o) => {
+        const m = o as THREE.Mesh;
+        if (!m.isMesh) return;
+        for (const mat of Array.isArray(m.material) ? m.material : [m.material]) {
+          mat.transparent = a < 0.999 || mat === faceMat;
+          mat.opacity = a;
+          mat.depthWrite = a >= 0.999;
+        }
+      });
     },
     dispose() {
       root.traverse((o) => {

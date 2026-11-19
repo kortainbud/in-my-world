@@ -29,7 +29,7 @@ export const POST = route(async (req: Request) => {
   const queued: string[] = [];
   for (const s of SAMPLE_PROMPTS.filter((x) => !only || x.prompt.toLowerCase().includes(only))) {
     const { project } = await createGeneration(sampleUser, {
-      prompt: s.prompt, style: s.style, duration: 30, castIds: [], voice: defaultNarrator(), exportOverride: 720, idempotencyKey: `sample:${s.style}:${s.prompt}:${Date.now()}`,
+      prompt: s.prompt, style: s.style, format: s.format, duration: 30, castIds: [], voice: defaultNarrator(), exportOverride: 720, idempotencyKey: `sample:${s.style}:${s.prompt}:${Date.now()}`,
     });
     queued.push(project.id);
   }

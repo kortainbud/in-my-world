@@ -15,6 +15,8 @@ import type {
 } from "./types";
 
 export const WORDS_PER_SECOND = 2.7;
+export const REVEAL_PAUSE = 0.8;
+const RATE: Record<string, number> = { fast: 1.12, normal: 1, slow: 0.88 };
 const SCENE_PAD = 0.45;
 const MIN_SCENE = 2.4;
 const INTRO = 0.3;
@@ -24,9 +26,9 @@ export interface SceneAudio {
   dialogue?: { url: string; duration: number };
 }
 
-export function estimateSpeech(text: string) {
+export function estimateSpeech(text: string, delivery?: string) {
   const words = text.trim().split(/\s+/).filter(Boolean).length;
-  return Math.max(1.2, words / WORDS_PER_SECOND);
+  return Math.max(1.2, words / (WORDS_PER_SECOND * (RATE[delivery ?? "normal"] ?? 1)));
 }
 
 function captionChunks(text: string, start: number, duration: number): CaptionChunk[] {
@@ -78,29 +80,35 @@ export function compileTimeline(opts: {
 
   opts.plan.scenes.forEach((plan, index) => {
     const a = opts.audio[index] ?? {};
-    const narrDur = a.narration?.duration ?? estimateSpeech(plan.narration);
+    const narrDur = a.narration?.duration ?? estimateSpeech(plan.narration, plan.delivery);
     const dlgDur = plan.dialogue ? (a.dialogue?.duration ?? estimateSpeech(plan.dialogue.line)) : 0;
     const gap = plan.dialogue ? 0.2 : 0;
-    const duration = Math.max(MIN_SCENE, narrDur + gap + dlgDur + SCENE_PAD);
+    // A beat of silence before major revelations.
+    const pause = plan.pauseBefore ? REVEAL_PAUSE : 0;
+    const duration = Math.max(MIN_SCENE, pause + narrDur + gap + dlgDur + SCENE_PAD);
     const start = t;
+    const speak = start + 0.1 + pause;
 
-    if (a.narration) audio.push({ url: a.narration.url, start: start + 0.1, duration: a.narration.duration, kind: "narration" });
-    captions.push(...captionChunks(plan.narration, start + 0.1, narrDur));
+    if (a.narration) audio.push({ url: a.narration.url, start: speak, duration: a.narration.duration, kind: "narration" });
+    captions.push(...captionChunks(plan.narration, speak, narrDur));
 
     let dialogueWindow: TimelineScene["dialogueWindow"];
     if (plan.dialogue) {
-      const ds = start + 0.1 + narrDur + gap;
+      const ds = speak + narrDur + gap;
       dialogueWindow = { start: ds, end: ds + dlgDur + 0.3 };
       if (a.dialogue) audio.push({ url: a.dialogue.url, start: ds, duration: a.dialogue.duration, kind: "dialogue" });
     }
 
-    plan.sfx.forEach((kind, i) => sfx.push({ kind, at: start + 0.15 + i * 0.6 }));
+    // Impacts land with the revelation; other cues open the scene.
+    plan.sfx.forEach((kind, i) => sfx.push({ kind, at: (kind === "impact" ? speak - 0.05 : start + 0.15) + i * 0.6 }));
 
-    scenes.push({ index, start, duration, plan, seed: hashString(plan.narration + index), dialogueWindow });
+    scenes.push({ index, start, duration, plan, seed: hashString(plan.narration + index), dialogueWindow, pause });
     t += duration;
   });
 
-  const duration = Math.ceil((t + 0.6) * fps) / fps;
+  // Open loops cut almost immediately after the last line.
+  const abrupt = opts.plan.sheet?.endingType === "open_loop";
+  const duration = Math.ceil((t + (abrupt ? 0.15 : 0.6)) * fps) / fps;
 
   return {
     version: 1,
@@ -119,6 +127,8 @@ export function compileTimeline(opts: {
     sfx,
     watermark: opts.watermark,
     narrated,
+    // Open loops cut abruptly to black instead of fading out.
+    abruptEnd: abrupt,
   };
 }
 

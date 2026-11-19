@@ -5,8 +5,8 @@ import { canCast, OFFICIAL_CHARACTERS, type CharacterRecord } from "@/lib/engine
 import { compileTimeline, type SceneAudio } from "@/lib/engine/compile";
 import { detectThemes } from "@/lib/engine/devStory";
 import {
-  DURATIONS, STAGES, VISUAL_STYLES,
-  type CharacterSpec, type DurationPreset, type StageKey, type StageState, type VisualStyle,
+  DURATIONS, FORMATS, STAGES, VISUAL_STYLES,
+  type CharacterSpec, type DurationPreset, type StageKey, type StageState, type StoryFormat, type VisualStyle,
 } from "@/lib/engine/types";
 import { HttpError } from "./auth";
 import { MODE, PROVIDERS, providerSummary } from "./config";
@@ -55,6 +55,9 @@ export interface CreateInput {
   parentProjectId?: string;
   /** Internal only (sample seeding): force an export size regardless of plan. */
   exportOverride?: 720 | 1080;
+  format: StoryFormat;
+  /** Continue a series from this (completed) project. */
+  previousProjectId?: string;
 }
 
 export function validateInput(raw: unknown): CreateInput {
@@ -73,7 +76,9 @@ export function validateInput(raw: unknown): CreateInput {
   const voice = typeof b.voice === "string" && voices.includes(b.voice) ? b.voice : defaultNarrator();
   const idempotencyKey = typeof b.idempotencyKey === "string" ? b.idempotencyKey.slice(0, 80) : undefined;
   const parentProjectId = typeof b.parentProjectId === "string" ? b.parentProjectId : undefined;
-  return { prompt, style, duration, castIds, voice, idempotencyKey, parentProjectId };
+  const format = (FORMATS as readonly string[]).includes(String(b.format)) ? (b.format as StoryFormat) : "strange_world";
+  const previousProjectId = typeof b.previousProjectId === "string" ? b.previousProjectId : undefined;
+  return { prompt, style, duration, castIds, voice, idempotencyKey, parentProjectId, format, previousProjectId };
 }
 
 export function quote(db: DB, userId: string, input: Pick<CreateInput, "duration" | "style">) {
@@ -108,6 +113,15 @@ export async function createGeneration(user: User, input: CreateInput) {
       if (!ok.ok) throw new HttpError(403, `${c.name}: ${ok.reason}`, "cast_not_allowed");
     }
 
+    let series: { seriesId: string; episode: number } | undefined;
+    if (input.previousProjectId) {
+      const prev = db.projects.find((x) => x.id === input.previousProjectId && x.userId === user.id);
+      if (!prev || !db.stories.some((x) => x.projectId === prev.id)) throw new HttpError(400, "The previous episode couldn't be found.", "bad_previous");
+      prev.seriesId ??= prev.id;
+      prev.episode ??= 1;
+      series = { seriesId: prev.seriesId, episode: prev.episode + 1 };
+    }
+
     const projectId = id("prj");
     const jobId = id("job");
     const t = now();
@@ -123,6 +137,7 @@ export async function createGeneration(user: User, input: CreateInput) {
       id: projectId, userId: user.id, title: "Untitled world", prompt: input.prompt, style: input.style, durationPreset: input.duration,
       aspect: "9:16", mode: "auto", voice: input.voice, castIds: input.castIds, category: categoryFor(input.prompt), visibility: "private",
       status: "queued", jobId, parentProjectId: input.parentProjectId, views: 0, createdAt: t, updatedAt: t,
+      format: input.format, previousProjectId: input.previousProjectId, seriesId: series?.seriesId, episode: series?.episode,
     };
     db.jobs.push(job);
     db.projects.push(project);
@@ -176,7 +191,8 @@ async function runJob(jobId: string) {
       const p = db.projects.find((x) => x.id === j.projectId)!;
       p.status = "processing";
       p.updatedAt = now();
-      return { job: structuredClone(j), project: structuredClone(p), library: libraryFor(db, j.userId), planId: planFor(db, j.userId).id, story: structuredClone(db.stories.find((s) => s.projectId === p.id)) };
+      const previous = p.previousProjectId ? db.stories.find((s) => s.projectId === p.previousProjectId)?.plan : undefined;
+      return { job: structuredClone(j), project: structuredClone(p), library: libraryFor(db, j.userId), planId: planFor(db, j.userId).id, story: structuredClone(db.stories.find((s) => s.projectId === p.id)), previous: structuredClone(previous) };
     });
     if (!ctx) return;
     const { job, project, library } = ctx;
@@ -190,8 +206,11 @@ async function runJob(jobId: string) {
         current = "story";
         await setStage(jobId, "story", { status: "running", startedAt: now(), detail: job.engine.story });
         const cast = project.castIds.map((cid) => library.find((c) => c.id === cid)).filter(Boolean) as CharacterRecord[];
-        const res = await generateStory({ prompt: project.prompt, duration: project.durationPreset, style: project.style, cast, library: library.filter((c) => canCast(c, { id: project.userId, planId: ctx.planId }).ok || project.castIds.includes(c.id)), seed: jobId });
-        const s: Story = { id: id("sty"), projectId: project.id, source: res.source, model: res.model, plan: res.plan, createdAt: now() };
+        const res = await generateStory({
+          prompt: project.prompt, duration: project.durationPreset, style: project.style, format: project.format ?? "strange_world", previous: ctx.previous,
+          cast, library: library.filter((c) => canCast(c, { id: project.userId, planId: ctx.planId }).ok || project.castIds.includes(c.id)), seed: jobId,
+        });
+        const s: Story = { id: id("sty"), projectId: project.id, source: res.source, model: res.model, plan: res.plan, checklist: res.checklist, checklistSource: res.checklistSource, revised: res.revised, createdAt: now() };
         await tx((db) => {
           db.stories = db.stories.filter((x) => x.projectId !== project.id);
           db.stories.push(s);
@@ -200,7 +219,12 @@ async function runJob(jobId: string) {
           p.title = res.plan.title;
         });
         story = s;
-        await setStage(jobId, "story", { status: "done", endedAt: now(), detail: `${res.plan.scenes.length} scenes · ${res.source === "anthropic" ? `written by ${res.model}` : "template engine (dev mode, not AI)"}` });
+        const passed = res.checklist.filter((c) => c.pass === true).length;
+        const twist = res.plan.sheet?.twistType ? ` · ${res.plan.sheet.twistType.replace(/_/g, " ")} twist` : "";
+        await setStage(jobId, "story", {
+          status: "done", endedAt: now(),
+          detail: `${res.plan.scenes.length} scenes${twist} · ${res.source === "anthropic" ? `written by ${res.model}${res.revised ? ", revised after editor review" : ""}` : "template engine (dev mode, not AI)"} · checklist ${passed}/${res.checklist.length}`,
+        });
       }
       const plan = story.plan;
 
@@ -256,7 +280,7 @@ async function runJob(jobId: string) {
         await setStage(jobId, "narration", { status: "running", startedAt: now(), detail: `Voice: ${project.voice}` });
         for (let i = 0; i < plan.scenes.length; i++) {
           const sc = plan.scenes[i];
-          const n = await synthesize(sc.narration, project.voice, sceneAudioKey(jobId, i, "n"));
+          const n = await synthesize(sc.narration, project.voice, sceneAudioKey(jobId, i, "n"), sc.delivery);
           const entry: (typeof stored)[number] = { scene: i, narration: n };
           const a: SceneAudio = { narration: { url: mediaUrl(n.mediaKey), duration: n.duration } };
           if (sc.dialogue) {

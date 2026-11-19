@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode, type VideoHTMLAttributes } from "react";
+import { useWatchTracking } from "@/lib/client/track";
 import { fmtDuration } from "@/lib/client/api";
 import type { VisualStyle } from "@/lib/engine/types";
 import { btn, Modal, StyleTag, Tag } from "./ui";
@@ -72,6 +73,13 @@ export function PlayIcon({ size = 14 }: { size?: number }) {
   );
 }
 
+/** A <video> that reports real playback for retention metrics. */
+export function TrackedVideo({ target, ...props }: VideoHTMLAttributes<HTMLVideoElement> & { target: string | null }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  useWatchTracking(ref, target);
+  return <video ref={ref} {...props} />;
+}
+
 /** Full player in a modal: native controls, download, title + prompt. */
 export function VideoModal({ item, onClose, actions }: { item: VideoItem | null; onClose: () => void; actions?: ReactNode }) {
   const [counted, setCounted] = useState<string | null>(null);
@@ -80,7 +88,8 @@ export function VideoModal({ item, onClose, actions }: { item: VideoItem | null;
       {item && (
         <div className="flex max-h-[94vh] w-[min(920px,96vw)] flex-col overflow-hidden rounded-[14px] border border-line bg-bg-2 md:flex-row">
           <div className="flex items-center justify-center bg-black md:w-[min(420px,50vh)]">
-            <video
+            <TrackedVideo
+              target={item.id}
               key={item.video}
               src={item.video}
               controls

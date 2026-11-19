@@ -21,6 +21,17 @@ export default function Docs() {
         <li><strong>Final rendering</strong> — every frame is rendered and encoded to MP4.</li>
       </ul>
       <p>The progress screen reflects the real state of your job. If something fails, your credits are refunded automatically and you can try again.</p>
+      <h2>How stories are built</h2>
+      <p>Every story needs a rule, a reason to care, something that threatens the rule, and a twist that changes everything. Scripts follow an eight-part structure — hook, world rule, character, escalation (curiosity → concern → urgency), discovery, twist, cliffhanger and continuation — and every finished video shows its filled-in <strong>story sheet</strong>.</p>
+      <ul>
+        <li><strong>Strange world</strong> — one rule governs a society; someone breaks it.</li>
+        <li><strong>Mystery series</strong> — each episode reveals a piece of a bigger mystery. Use <strong>Make Part 2</strong> on a finished video to continue with the same world and cast.</li>
+        <li><strong>Impossible choice</strong> — the story ends on two options, shown on screen.</li>
+      </ul>
+      <p>Each story uses one primary twist (identity, rule reversal, betrayal, consequence, perspective or loop) and one ending device. Narration speeds up in action and slows down for revelations; the music drops to silence right before the twist, and open-ended stories cut abruptly.</p>
+      <p>The <strong>editorial checklist</strong> on each project checks the story against the studio’s rules. With Claude configured, an AI editor grades it and asks for one rewrite if needed; without it, structural checks run and subjective items are left for you.</p>
+      <h2>Measuring what works</h2>
+      <p>The project page shows views, first-3-second retention, average watch time, completion rate, rewatches, shares and returning viewers — from plays inside In My World only (your own plays don’t count).</p>
       <h2>Visual styles</h2>
       <p>The smooth blocky style uses rounded plastic-like avatars and bright worlds. The voxel style uses cube heads, pixel textures and block terrain. Characters keep their colours and accessories in both.</p>
       <h2>Characters</h2>

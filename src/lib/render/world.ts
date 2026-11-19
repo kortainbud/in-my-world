@@ -276,6 +276,29 @@ export function buildWorld(env: EnvironmentKind, style: VisualStyle, time: TimeO
       for (let i = 0; i < 6; i++) block(group, k, 1 + r.next(), 0.8, 1 + r.next(), "#8a8f96", (r.next() - 0.5) * 30, 0, -3 - r.next() * 10, "stone");
       break;
     }
+    case "store": {
+      interior = true;
+      block(group, k, 40, 0.2, 16, "#e9e4da", 0, -0.2, -2, "tiles");
+      block(group, k, 40, 9, 0.4, "#dfe8e4", 0, 0, -10, "plain");
+      const productColors = ["#e63946", "#f5c518", "#3d7bf2", "#2a9d8f", "#f2643d", "#7a5cfa", "#f5f3ee"];
+      for (const z of [-8.5, -5]) {
+        for (let x = -14; x <= 14; x += 7) {
+          block(group, k, 5.6, 0.2, 1.4, "#c9ced6", x, 0.4, z, "plain");
+          for (const y of [0.6, 1.9, 3.2]) {
+            block(group, k, 5.6, 0.12, 1.4, "#c9ced6", x, y + 1.0, z, "plain");
+            for (let i = 0; i < 7; i++) {
+              const c = productColors[(i + Math.round(x) + Math.round(y * 3)) % productColors.length];
+              block(group, k, 0.6, 0.85, 0.7, c, x - 2.4 + i * 0.8, y + 0.15, z, "plain");
+            }
+          }
+        }
+      }
+      block(group, k, 5, 1.6, 1.6, "#2a2f3a", 9, 0, 1.5, "plain");
+      block(group, k, 1, 0.7, 0.6, "#151515", 8, 1.6, 1.5, "plain");
+      for (let x = -12; x <= 12; x += 6) block(group, k, 3.2, 0.15, 0.6, "#ffffff", x, 8.6, -4, "plain", { emissive: "#ffffff", emissiveIntensity: 1.1 });
+      screenAnchor.set(0, 6.8, -9);
+      break;
+    }
     case "stage": {
       interior = true;
       block(group, k, 60, 0.2, 40, "#1a1a1f", 0, -0.2, 0, "tiles");

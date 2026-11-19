@@ -60,7 +60,10 @@ export interface SpeechClip {
   duration: number;
 }
 
-export async function synthesize(text: string, voice: string, key: string): Promise<SpeechClip> {
+/** Words per minute by delivery: faster for action, slower for revelations. */
+const WPM: Record<string, number> = { fast: 198, normal: 178, slow: 156 };
+
+export async function synthesize(text: string, voice: string, key: string, delivery: string = "normal"): Promise<SpeechClip> {
   if (PROVIDERS.voice !== "macos-say") throw new ProviderError("No voice provider is configured.");
   const installed = await installedSayVoices();
   const v = installed.has(voice) ? voice : "Samantha";
@@ -70,7 +73,7 @@ export async function synthesize(text: string, voice: string, key: string): Prom
   try {
     // Text goes through a file and execFile (no shell), so it can't be read as options.
     await fs.writeFile(txt, text, "utf8");
-    await run("say", ["-v", v, "-r", "178", "--file-format=WAVE", "--data-format=LEI16@24000", "-o", tmp, "-f", txt], { timeout: 60_000 });
+    await run("say", ["-v", v, "-r", String(WPM[delivery] ?? 178), "--file-format=WAVE", "--data-format=LEI16@24000", "-o", tmp, "-f", txt], { timeout: 60_000 });
     const buf = await fs.readFile(tmp);
     const duration = wavDuration(buf);
     await writeMedia(key, buf);

@@ -24,6 +24,7 @@ export const ENVIRONMENTS = [
   "beach",
   "forest",
   "stage",
+  "store",
 ] as const;
 export type EnvironmentKind = (typeof ENVIRONMENTS)[number];
 
@@ -88,6 +89,15 @@ export const PROPS = [
   "car",
   "crowd",
   "sign",
+  // Show-don't-tell props from the storytelling framework.
+  "moon",
+  "abandoned_shoes",
+  "open_door",
+  "letter",
+  "photo",
+  "fog",
+  "flicker_lights",
+  "traffic_light",
 ] as const;
 export type PropKind = (typeof PROPS)[number];
 
@@ -104,11 +114,69 @@ export const SFX = [
   "heartbeat",
   "record_scratch",
   "drumroll",
+  "impact",
+  "knock",
+  "footsteps",
+  "door_creak",
+  "glitch",
 ] as const;
 export type SfxKind = (typeof SFX)[number];
 
 export const MUSIC_MOODS = ["playful", "mysterious", "epic", "chill", "tense"] as const;
 export type MusicMood = (typeof MUSIC_MOODS)[number];
+
+/* ---------- Storytelling framework ---------- */
+
+/** Story formats. A is the foundation; B and C are variations. */
+export const FORMATS = ["strange_world", "mystery_series", "impossible_choice"] as const;
+export type StoryFormat = (typeof FORMATS)[number];
+
+/** The 8-part structure, with escalation split into its three levels. */
+export const BEATS = ["hook", "rule", "character", "escalation_1", "escalation_2", "escalation_3", "discovery", "twist", "cliffhanger", "continuation"] as const;
+export type Beat = (typeof BEATS)[number];
+
+export const TWIST_TYPES = ["identity", "rule_reversal", "betrayal", "consequence", "perspective", "loop"] as const;
+export type TwistType = (typeof TWIST_TYPES)[number];
+
+export const ENDING_DEVICES = ["impossible_decision", "new_revelation", "unexpected_arrival", "new_danger", "missing_information", "time_pressure"] as const;
+export type EndingDevice = (typeof ENDING_DEVICES)[number];
+
+export const ARCHETYPES = ["protagonist", "rule_breaker", "authority", "secret_keeper", "supporting"] as const;
+export type Archetype = (typeof ARCHETYPES)[number];
+
+/** Visual grammar: what a shot is for. */
+export const SHOTS = ["establishing", "character", "suspense", "reveal"] as const;
+export type ShotType = (typeof SHOTS)[number];
+
+export const DELIVERIES = ["normal", "fast", "slow"] as const;
+export type Delivery = (typeof DELIVERIES)[number];
+
+/** The story development sheet (template A–I + the five world questions). */
+export interface StorySheet {
+  premise: string;
+  rule: string;
+  whyObey: string;
+  breakConsequence: string;
+  beneficiary: string;
+  secret: string;
+  protagonist: { name: string; desire: string; vulnerability: string; secret: string };
+  conflict: string;
+  escalation: [string, string, string];
+  mystery: string;
+  twistType: TwistType;
+  twist: string;
+  endingType: "closed_loop" | "open_loop";
+  endingDevice: EndingDevice;
+  ending: string;
+  continuation: string;
+}
+
+export interface ChecklistItem {
+  key: string;
+  label: string;
+  pass: boolean | null;
+  note?: string;
+}
 
 /* ---------- Characters ---------- */
 
@@ -154,6 +222,7 @@ export interface CastMember {
   ref: string;
   name: string;
   role: string;
+  archetype?: Archetype;
   /** Library character to reuse. When absent, `appearance` is used. */
   characterId?: string;
   appearance?: Appearance;
@@ -168,6 +237,9 @@ export interface SceneCharacter {
   label?: string;
   /** Scale multiplier applied at the end of the scene (growth stories). */
   scaleTo?: number;
+  /** Visual consequences: no shadow, or half-faded (disappearing). */
+  noShadow?: boolean;
+  fading?: boolean;
 }
 
 export interface ScenePlan {
@@ -183,9 +255,21 @@ export interface ScenePlan {
   sfx: SfxKind[];
   /** Short description of what happens visually (used for previews/accessibility). */
   description: string;
+  beat?: Beat;
+  shot?: ShotType;
+  /** Narration pacing: faster during action, slower during revelations. */
+  delivery?: Delivery;
+  /** A beat of silence before the narration (used before major revelations). */
+  pauseBefore?: boolean;
+  /** Impossible-choice overlay. */
+  choice?: { question: string; options: [string, string] };
 }
 
 export interface StoryPlan {
+  format?: StoryFormat;
+  sheet?: StorySheet;
+  /** Episode number within a mystery series. */
+  episode?: number;
   title: string;
   premise: string;
   hook: string;
@@ -223,6 +307,8 @@ export interface TimelineScene {
   plan: ScenePlan;
   /** Camera seed for deterministic variation. */
   seed: number;
+  /** Seconds of silence before narration starts (revelation pause). */
+  pause?: number;
   dialogueWindow?: { start: number; end: number };
 }
 
@@ -245,6 +331,8 @@ export interface Timeline {
   watermark: boolean;
   /** True when narration audio exists. */
   narrated: boolean;
+  /** Open-loop stories end on an abrupt cut instead of a fade. */
+  abruptEnd?: boolean;
 }
 
 /* ---------- Pipeline stages ---------- */

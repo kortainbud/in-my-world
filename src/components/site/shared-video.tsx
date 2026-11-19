@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api, ApiError, fmtDuration } from "@/lib/client/api";
 import type { ProjectView } from "@/lib/server/views";
 import { btn, StyleTag } from "@/components/ui";
+import { TrackedVideo } from "@/components/video";
 
 export function SharedVideo({ id }: { id: string }) {
   const [p, setP] = useState<ProjectView | null>(null);
@@ -27,7 +28,8 @@ export function SharedVideo({ id }: { id: string }) {
   if (!p?.video) return <div className="flex min-h-[60vh] items-center justify-center text-[13px] text-fg-3">Loading…</div>;
   return (
     <div className="mx-auto grid max-w-[1000px] gap-10 px-4 py-12 sm:px-6 md:grid-cols-[minmax(0,400px)_1fr]">
-      <video
+      <TrackedVideo
+        target={p.id}
         src={p.video.url}
         poster={p.video.thumb}
         controls

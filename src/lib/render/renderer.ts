@@ -40,6 +40,8 @@ const POS: Record<StagePosition, [number, number]> = {
 };
 
 interface ActiveScene {
+  baseSun: number;
+  baseHemi: number;
   index: number;
   world: World;
   props: PropSet;
@@ -157,6 +159,10 @@ export class TimelineRenderer {
     (this.scene.fog as THREE.Fog).color = world.sky;
     (this.scene.fog as THREE.Fog).near = world.fogNear;
     (this.scene.fog as THREE.Fog).far = world.fogFar;
+    if (props.fog) {
+      (this.scene.fog as THREE.Fog).near = props.fog.near;
+      (this.scene.fog as THREE.Fog).far = props.fog.far;
+    }
     this.sun.color = world.sunColor;
     this.sun.intensity = world.sunIntensity;
     this.hemi.color = world.hemiSky;
@@ -175,6 +181,8 @@ export class TimelineRenderer {
       const base = new THREE.Vector3(px + n * 1.6, 0, pz - n * 0.8);
       if (ch.action === "sleep" && s.plan.environment === "bedroom") base.set(-3.8, 0.6, -3.2);
       av.setExpression(ch.expression);
+      av.setShadow(!ch.noShadow);
+      av.setOpacity(1);
       this.scene.add(av.root);
       placed.push({ ref: ch.ref, av, base, phase: r.next() * 6 });
     }
@@ -186,7 +194,11 @@ export class TimelineRenderer {
         g.av.hand.add(props.held);
       }
     }
-    this.active = { index: s.index, world, props, placed, scale: this.scaleTrack[s.index] ?? {} };
+    // Suspense shots are darker; the overlay adds a vignette on top.
+    const dim = s.plan.shot === "suspense" ? 0.6 : 1;
+    this.sun.intensity *= dim;
+    this.hemi.intensity *= dim;
+    this.active = { index: s.index, world, props, placed, scale: this.scaleTrack[s.index] ?? {}, baseSun: this.sun.intensity, baseHemi: this.hemi.intensity };
   }
 
   private shot(move: CameraMove, u: number, focus: THREE.Vector3, hero: THREE.Vector3, heroTop: number, seed: number) {
@@ -267,6 +279,7 @@ export class TimelineRenderer {
       p.av.root.scale.setScalar(grow + wobble);
       p.av.root.position.set(res.x, res.y, res.z);
       p.av.root.rotation.set(res.rx, res.ry, 0);
+      if (ch.fading) p.av.setOpacity(0.32 + 0.18 * Math.sin(t * 5 + p.phase));
       if (talking) p.av.setExpression(Math.sin(t * 22) > 0 ? "shocked" : ch.expression === "shocked" ? "happy" : ch.expression);
       else p.av.setExpression(ch.expression);
       if (i === 0 || ch.position === "center") {
@@ -283,7 +296,10 @@ export class TimelineRenderer {
     this.sun.target.position.set(focus.x, 0, focus.z);
     this.fill.position.copy(this.camera.position).add(new THREE.Vector3(2, 3, 0));
     this.fill.target.position.set(focus.x, 3, focus.z);
-    this.fill.intensity = s.plan.timeOfDay === "night" ? 1.1 : 0.55;
+    this.fill.intensity = (s.plan.timeOfDay === "night" ? 1.1 : 0.55) * (s.plan.shot === "suspense" ? 0.7 : 1);
+    const flicker = a.props.light ? a.props.light(t) : 1;
+    this.sun.intensity = a.baseSun * flicker;
+    this.hemi.intensity = a.baseHemi * (0.4 + 0.6 * flicker);
 
     this.gl.render(this.scene, this.camera);
 
@@ -322,6 +338,21 @@ export class TimelineRenderer {
       this.bubble(dlg.line, bx, Math.max(H * 0.12, Math.min(by, H * 0.5)), pop);
     }
 
+    // Shot grammar overlays
+    if (s.plan.shot === "suspense") this.vignette(0.75);
+    else this.vignette(0.35);
+    const speak = s.start + 0.1 + (s.pause ?? 0);
+    if (s.plan.shot === "reveal" || s.plan.beat === "twist") {
+      const since = t - speak;
+      if (since >= 0 && since < 0.35) {
+        g.fillStyle = `rgba(245,243,238,${0.75 * (1 - since / 0.35)})`;
+        g.fillRect(0, 0, W, H);
+      }
+    }
+
+    // Impossible choice
+    if (s.plan.choice && lt > s.duration * 0.35) this.choice(s.plan.choice, Math.min(1, (lt - s.duration * 0.35) / 0.25));
+
     // Captions
     const cap = this.tl.captions.find((c) => t >= c.start && t < c.end + 0.05);
     if (cap) this.caption(cap, t);
@@ -347,11 +378,54 @@ export class TimelineRenderer {
     if (t < 0.35) dip = 1 - t / 0.35;
     else if (s.index > 0 && lt < 0.16) dip = 0.7 * (1 - lt / 0.16);
     const tail = this.tl.duration - t;
-    if (tail < 0.5) dip = Math.max(dip, 1 - tail / 0.5);
+    if (tail < 0.5 && !this.tl.abruptEnd) dip = Math.max(dip, 1 - tail / 0.5);
     if (dip > 0) {
       g.fillStyle = `rgba(16,16,16,${dip})`;
       g.fillRect(0, 0, W, H);
     }
+  }
+
+  private vignette(strength: number) {
+    const g = this.ctx;
+    const W = this.canvas.width, H = this.canvas.height;
+    const grd = g.createRadialGradient(W / 2, H * 0.48, W * 0.35, W / 2, H * 0.48, H * 0.75);
+    grd.addColorStop(0, "rgba(0,0,0,0)");
+    grd.addColorStop(1, `rgba(0,0,0,${strength})`);
+    g.fillStyle = grd;
+    g.fillRect(0, 0, W, H);
+  }
+
+  private choice(c: { question: string; options: [string, string] }, k: number) {
+    const g = this.ctx;
+    const W = this.canvas.width;
+    const H = this.canvas.height;
+    const size = W * 0.045;
+    g.save();
+    g.globalAlpha = k;
+    g.font = `900 ${Math.round(size * 1.15)}px ${CAPTION_FONT}, Arial, sans-serif`;
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.lineJoin = "round";
+    g.lineWidth = size * 0.22;
+    g.strokeStyle = "#101010";
+    const qy = H * 0.14;
+    g.strokeText(c.question.toUpperCase(), W / 2, qy, W * 0.9);
+    g.fillStyle = "#F5F3EE";
+    g.fillText(c.question.toUpperCase(), W / 2, qy, W * 0.9);
+    const cw = W * 0.41, ch = size * 3.1, gap = W * 0.04;
+    c.options.forEach((opt, i) => {
+      const x = W / 2 - cw - gap / 2 + i * (cw + gap);
+      const y = qy + size * 1.4 + (1 - k) * size;
+      g.fillStyle = i === 0 ? "rgba(185,243,106,0.95)" : "rgba(245,243,238,0.95)";
+      this.roundRect(x, y, cw, ch, size * 0.45);
+      g.fill();
+      g.fillStyle = "#101010";
+      g.font = `900 ${Math.round(size * 0.75)}px ${CAPTION_FONT}, Arial, sans-serif`;
+      g.fillText(i === 0 ? "A" : "B", x + cw / 2, y + ch * 0.28);
+      g.font = `700 ${Math.round(size * 0.8)}px ${CAPTION_FONT}, Arial, sans-serif`;
+      g.fillText(opt, x + cw / 2, y + ch * 0.66, cw - size * 0.6);
+    });
+    g.restore();
   }
 
   private pill(text: string, x: number, y: number, size: number) {

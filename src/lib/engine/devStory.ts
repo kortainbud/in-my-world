@@ -1,26 +1,22 @@
 /**
  * Development story engine.
  *
- * A deterministic, template-based story writer used when no LLM provider is
- * configured. It is NOT AI: it detects a few themes in the prompt and fills a
- * short-form story arc (hook → setup → escalation → twist → ending) from
- * hand-written beat pools. The UI labels output from this engine as such.
+ * A deterministic template engine used when no LLM provider is configured.
+ * It is NOT AI. It follows the studio's storytelling framework:
+ *   hook → world rule → character → escalation (curiosity → concern → urgency)
+ *   → discovery → twist → cliffhanger → continuation
+ * Prompts that match one of the hand-written story kits use that story;
+ * anything else gets a framework story assembled from beat pools.
  */
 import type { CharacterRecord } from "./characters";
 import { OFFICIAL_CHARACTERS } from "./characters";
+import { KITS, type KitScene, type StoryKit } from "./kits";
 import { hashString, rng } from "./rng";
 import type {
-  Action,
-  CastMember,
-  DurationPreset,
-  EnvironmentKind,
-  MusicMood,
-  PropKind,
-  ScenePlan,
-  SfxKind,
-  StoryPlan,
-  TimeOfDay,
+  Action, Beat, CameraMove, CastMember, Delivery, DurationPreset, EndingDevice, EnvironmentKind, Expression, MusicMood, PropKind,
+  SceneCharacter, ScenePlan, ShotType, StoryFormat, StoryPlan, StorySheet, TimeOfDay, TwistType,
 } from "./types";
+import { ENDING_DEVICES, TWIST_TYPES } from "./types";
 
 type Theme = "money" | "grow" | "numbers" | "dream" | "truth" | "silence" | "discover" | "jump" | "kind" | "generic";
 
@@ -47,469 +43,325 @@ function cleanPrompt(prompt: string) {
   return p.charAt(0).toUpperCase() + p.slice(1);
 }
 
-function titleFrom(prompt: string, themes: Theme[]) {
-  const stripped = prompt
-    .replace(/^(in my world|imagine if|nobody knows that|what if everyone|what if|one day,? i woke up( and)?|pov:? you discover)[,:]?\s*/i, "")
+function ruleClause(prompt: string) {
+  return prompt
+    .replace(/^(in my (world|town|city|school)|imagine if|nobody knows that|what if|one day,? i woke up( and)?|pov:? you discover)[,:]?\s*/i, "")
     .replace(/[.!?…]+$/, "")
     .trim();
+}
+
+function titleFrom(prompt: string) {
+  const stripped = ruleClause(prompt);
   const words = stripped.split(" ").filter(Boolean);
-  if (words.length > 0 && words.length <= 6) return words.join(" ").replace(/^\w/, (c) => c.toUpperCase());
-  // Otherwise use the first clause if it's short ("everyone can fly, but only on Tuesdays" → "Everyone can fly").
+  const cap = (w: string[]) => w.join(" ").replace(/^\w/, (c) => c.toUpperCase());
+  if (words.length > 0 && words.length <= 6) return cap(words);
   const clause = stripped.split(/[,;:—-]/)[0].trim().split(" ").filter(Boolean);
-  if (clause.length >= 2 && clause.length <= 6) return clause.join(" ").replace(/^\w/, (c) => c.toUpperCase());
-  const byTheme: Record<Theme, string> = {
-    money: "The Money Rule",
-    grow: "Growing Up, Literally",
-    numbers: "The Number Above Your Head",
-    dream: "Dream Screen",
-    truth: "No More Lies",
-    silence: "The Quiet Town",
-    discover: "The Hidden Door",
-    jump: "Every Jump Counts",
-    kind: "Kindness Pays",
-    generic: "My World",
-  };
-  return byTheme[themes[0]];
+  if (clause.length >= 2 && clause.length <= 6) return cap(clause);
+  return cap(words.slice(0, 5));
 }
 
-interface Ctx {
-  hero: CastMember;
-  friend: CastMember;
-  rival: CastMember;
-  themes: Theme[];
-  prompt: string;
-  r: ReturnType<typeof rng>;
-  heroScale: number;
-  heroNumber: number;
-  env: EnvironmentKind[];
-  time: TimeOfDay;
+/* ---------------- Visual grammar ---------------- */
+
+const SHOT_FOR: Record<Beat, ShotType> = {
+  hook: "establishing", rule: "establishing", character: "character", escalation_1: "character", escalation_2: "suspense",
+  escalation_3: "suspense", discovery: "character", twist: "reveal", cliffhanger: "suspense", continuation: "reveal",
+};
+const CAMERAS_FOR: Record<ShotType, CameraMove[]> = {
+  establishing: ["dolly_in", "wide", "pan"],
+  character: ["medium", "close_up", "over_shoulder"],
+  suspense: ["low_angle", "top_down", "dolly_in"],
+  reveal: ["orbit", "dolly_in", "close_up"],
+};
+const DELIVERY_FOR: Record<Beat, Delivery> = {
+  hook: "normal", rule: "normal", character: "normal", escalation_1: "fast", escalation_2: "fast", escalation_3: "fast",
+  discovery: "normal", twist: "slow", cliffhanger: "slow", continuation: "slow",
+};
+
+/** Beats included per duration (90s adds extra scenes on top of the 60s set). */
+const BEATS_FOR: Record<DurationPreset, Beat[]> = {
+  30: ["hook", "rule", "escalation_2", "twist", "cliffhanger"],
+  60: ["hook", "rule", "character", "escalation_1", "escalation_2", "escalation_3", "discovery", "twist", "cliffhanger", "continuation"],
+  90: ["hook", "rule", "character", "escalation_1", "escalation_2", "escalation_3", "discovery", "twist", "cliffhanger", "continuation"],
+};
+
+/* ---------------- Casting: the four roles ---------------- */
+
+interface Roles {
+  P: CastMember;
+  F: CastMember;
+  A: CastMember;
+  S: CastMember;
 }
 
-type Beat = (c: Ctx) => ScenePlan;
-
-const has = (c: Ctx, t: Theme) => c.themes.includes(t);
-
-function sceneBase(c: Ctx, partial: Partial<ScenePlan> & Pick<ScenePlan, "narration" | "description">): ScenePlan {
+function castRoles(chosenIn: CharacterRecord[], r: ReturnType<typeof rng>): Roles {
+  const pool = r.shuffle(OFFICIAL_CHARACTERS.filter((c) => c.reusePolicy === "anyone"));
+  const chosen = [...chosenIn];
+  const taken = (id: string) => chosen.some((x) => x.id === id);
+  const authority = ["ch_nova", "ch_rex", "ch_bricks"].map((id) => pool.find((c) => c.id === id)).find((c) => c && !taken(c.id));
+  const keeper = ["ch_sage", "ch_dot"].map((id) => pool.find((c) => c.id === id)).find((c) => c && !taken(c.id) && c.id !== authority?.id);
+  for (const c of pool) {
+    if (chosen.length >= 2) break;
+    if (!taken(c.id) && c.id !== authority?.id && c.id !== keeper?.id) chosen.push(c);
+  }
+  const A = chosen[2] ?? authority ?? pool[2];
+  const S = chosen[3] ?? keeper ?? pool[3];
+  const m = (rec: CharacterRecord, ref: string, role: string, archetype: CastMember["archetype"]): CastMember => ({ ref, name: rec.name, role, archetype, characterId: rec.id });
   return {
-    environment: partial.environment ?? c.env[0],
-    timeOfDay: partial.timeOfDay ?? c.time,
-    camera: partial.camera ?? "medium",
-    characters: partial.characters ?? [],
-    props: partial.props ?? [],
-    sfx: partial.sfx ?? [],
-    ...partial,
+    P: m(chosen[0], "c1", "Narrator", "protagonist"),
+    F: m(chosen[1], "c2", "Rule-breaker", "rule_breaker"),
+    A: m(A, "c3", "Authority", "authority"),
+    S: m(S, "c4", "Secret keeper", "secret_keeper"),
   };
 }
 
-function themeProps(c: Ctx): PropKind[] {
-  if (has(c, "money")) return c.prompt.match(/tree/i) ? ["money_tree"] : ["falling_money"];
-  if (has(c, "dream")) return ["dream_screen"];
-  if (has(c, "truth")) return ["question_marks"];
-  if (has(c, "kind")) return ["hearts"];
-  if (has(c, "discover")) return ["sparkles"];
+/* ---------------- Assembly ---------------- */
+
+const fill = (s: string, R: Roles) => s.replace(/\{P\}/g, R.P.name).replace(/\{F\}/g, R.F.name).replace(/\{A\}/g, R.A.name).replace(/\{S\}/g, R.S.name);
+
+function sceneFrom(k: KitScene, R: Roles, r: ReturnType<typeof rng>, fallbackEnv: EnvironmentKind): ScenePlan {
+  const shot = SHOT_FOR[k.beat];
+  const list = k.cast ?? [{ who: "P" as const }];
+  const characters: SceneCharacter[] = list.map((c, i) => ({
+    ref: R[c.who].ref,
+    action: (c.action ?? "idle") as Action,
+    position: (list.length > 1 ? (i === 0 ? "left" : "right") : "center") as SceneCharacter["position"],
+    expression: (c.expression ?? "neutral") as Expression,
+    label: c.label,
+    noShadow: c.noShadow,
+    fading: c.fading,
+  }));
+  return {
+    beat: k.beat,
+    shot,
+    delivery: DELIVERY_FOR[k.beat],
+    pauseBefore: k.beat === "twist" || k.beat === "continuation",
+    narration: fill(k.line, R),
+    description: fill(k.line, R),
+    environment: k.env ?? fallbackEnv,
+    timeOfDay: k.time ?? (shot === "suspense" ? "night" : "day"),
+    camera: r.pick(CAMERAS_FOR[shot]),
+    characters,
+    props: [...new Set(k.props ?? [])],
+    propText: k.propText,
+    dialogue: k.dialogue ? { ref: R[k.dialogue.who].ref, line: fill(k.dialogue.line, R) } : undefined,
+    sfx: k.sfx ?? (k.beat === "twist" ? ["impact"] : []),
+    choice: k.choice,
+  };
+}
+
+function fromKit(kit: StoryKit, duration: DurationPreset, R: Roles, r: ReturnType<typeof rng>, format: StoryFormat): StoryPlan {
+  const list: KitScene[] = (duration === 30 ? kit.scenes.filter((s) => s.core) : kit.scenes).map((s) => ({ ...s }));
+  if (duration === 90) {
+    for (const ex of kit.extras) {
+      const i = list.map((s) => s.beat).lastIndexOf(ex.after);
+      list.splice(i + 1, 0, { ...ex });
+    }
+  }
+  if (format === "impossible_choice" && !list.some((s) => s.choice)) {
+    const cl = [...list].reverse().find((s) => s.beat === "cliffhanger") ?? list[list.length - 1];
+    cl.choice = { question: "What do I do now?", options: ["Run", "Stay and find out"] };
+  }
+  const scenes = list.map((k) => sceneFrom(k, R, r, "town_street"));
+  const sheet: StorySheet = {
+    ...kit.sheet,
+    beneficiary: fill(kit.sheet.beneficiary, R),
+    secret: fill(kit.sheet.secret, R),
+    conflict: fill(kit.sheet.conflict, R),
+    escalation: kit.sheet.escalation.map((e) => fill(e, R)) as StorySheet["escalation"],
+    twist: fill(kit.sheet.twist, R),
+    protagonist: { name: R.P.name, ...kit.sheet.protagonist },
+    endingDevice: format === "impossible_choice" ? "impossible_decision" : kit.sheet.endingDevice,
+  };
+  return { format, sheet, episode: 1, title: kit.title, premise: kit.sheet.premise, hook: scenes[0].narration, ending: scenes[scenes.length - 1].narration, musicMood: kit.mood, cast: [R.P, R.F, R.A, R.S], scenes };
+}
+
+/* ---------------- Generic framework story ---------------- */
+
+const DESIRES: [string, string][] = [
+  ["get my brother back", "he's the only family I have left"],
+  ["prove my dad was innocent", "everyone in town thinks he broke the rule"],
+  ["get out of this town", "I'm running out of time to leave"],
+  ["keep my best friend safe", "she has already broken the rule once"],
+];
+
+const TWISTS: Record<TwistType, string> = {
+  identity: "{S} wasn't a stranger. {S} was the first person ever to break the rule. And {S} is family.",
+  rule_reversal: "The rule wasn't keeping us safe from the world outside. It was keeping the world safe from us.",
+  betrayal: "{A} wasn't enforcing the rule. {A} was choosing who broke it.",
+  consequence: "I broke the rule to save {F}. It worked. But the rule was holding something back. And now it's loose.",
+  perspective: "We thought the rule kept us trapped in here. It was the only thing keeping everyone else out.",
+  loop: "The voice warning me all along was mine. From the night all of this ends.",
+};
+
+const CLIFF: Record<EndingDevice, { line: string; choice?: [string, string] }> = {
+  impossible_decision: { line: "Two doors opened at the same time. One leads to {F}. One leads home.", choice: ["Find {F}", "Go home"] },
+  new_revelation: { line: "Then I realised the rule started the day I was born." },
+  unexpected_arrival: { line: "Then someone knocked on my window. It was me." },
+  new_danger: { line: "And tonight, the rule is changing. Nobody knows what to." },
+  missing_information: { line: "But I still don't know who wrote the first rule." },
+  time_pressure: { line: "Whatever happens, it happens at midnight. I have six minutes." },
+};
+
+const CONTINUATIONS = [
+  "Then my phone buzzed. A message from {F}: don't trust {A}.",
+  "And {A} was standing right behind me. Smiling.",
+  "The next morning, the rule had a new line. With my name in it.",
+  "But the letter in my pocket had already started rewriting itself.",
+];
+
+function themeProps(themes: Theme[]): PropKind[] {
+  if (themes.includes("money")) return ["falling_money"];
+  if (themes.includes("dream")) return ["dream_screen"];
+  if (themes.includes("truth")) return ["question_marks"];
+  if (themes.includes("discover")) return ["sparkles"];
   return [];
 }
 
-function themeSfx(c: Ctx): SfxKind[] {
-  if (has(c, "money")) return ["coins"];
-  if (has(c, "grow")) return ["boing"];
-  if (has(c, "dream")) return ["magic"];
-  if (has(c, "numbers")) return ["ding"];
-  if (has(c, "jump")) return ["boing"];
-  return ["pop"];
+function generic(opts: { prompt: string; duration: DurationPreset; R: Roles; r: ReturnType<typeof rng>; format: StoryFormat; themes: Theme[]; previous?: StoryPlan }): StoryPlan {
+  const { R, r, themes, prompt, format, previous } = opts;
+  const rule = ruleClause(previous?.sheet?.premise ?? prompt);
+  const prevP = previous?.sheet?.protagonist;
+  // Continuations keep the protagonist's original stakes.
+  const [desire, vuln] = prevP
+    ? [prevP.desire.replace(/^to\s+/i, "").replace(/\.$/, ""), prevP.vulnerability.replace(/\.$/, "").replace(/^\w/, (c) => c.toLowerCase())]
+    : r.pick(DESIRES);
+  const twistType = r.pick(TWIST_TYPES.filter((t) => t !== previous?.sheet?.twistType));
+  const endingDevice: EndingDevice = format === "impossible_choice" ? "impossible_decision" : r.pick(ENDING_DEVICES.filter((d) => d !== "impossible_decision"));
+  const endingType = format === "strange_world" && !previous && r.next() < 0.4 ? "closed_loop" : "open_loop";
+  const env: EnvironmentKind[] = themes.includes("dream")
+    ? ["bedroom", "town_street", "school_hall"]
+    : themes.includes("money")
+      ? ["city_plaza", "store", "office"]
+      : r.shuffle(["town_street", "school_hall", "city_plaza", "park", "forest"] as EnvironmentKind[]);
+  const tp = themeProps(themes);
+  const numbers = themes.includes("numbers");
+  const grow = themes.includes("grow");
+
+  const lines: Record<Beat, string> = {
+    hook: previous ? `Last time: ${previous.sheet?.continuation ?? previous.ending}` : cleanPrompt(prompt),
+    rule: previous
+      ? `You know the rule. ${previous.sheet?.premise ?? ""}`.trim()
+      : r.pick(["Nobody questions it. {A} says it keeps us safe.", "Everyone follows the rule. The ones who don't are never quite the same.", "There's one thing everyone here agrees on. You don't break the rule."]),
+    character: previous ? `All I ever wanted was to ${desire}. And ${vuln}.` : `My name is {P}. All I want is to ${desire}. Because ${vuln}.`,
+    escalation_1: r.pick(["Then it started happening to people on my street. {F} first.", "It started small. One house. Then the next."]),
+    escalation_2: r.pick(["Last night, it happened to me.", "This morning, it was my turn."]),
+    escalation_3: r.pick(["But when I checked the cameras, the person breaking the rule was me.", "And the town records said it had happened to me before. Three times."]),
+    discovery: r.pick(["Then I found a letter in {S}'s coat. It had my name on it. And a date from before I was born.", "{S} kept a box of photos. Everyone who ever broke the rule. The last one was me. Dated tomorrow."]),
+    twist: TWISTS[twistType],
+    cliffhanger: endingType === "closed_loop" ? "So I fixed it. Everything went back to normal." : CLIFF[endingDevice].line,
+    continuation: endingType === "closed_loop" ? "But the next morning, the sun didn't come up." : r.pick(CONTINUATIONS),
+  };
+
+  const castFor = (b: Beat): KitScene["cast"] => {
+    switch (b) {
+      case "hook": return [{ who: "P", action: "wave", expression: "neutral", label: numbers ? "7" : undefined }];
+      case "rule": return [{ who: "A", action: "point", expression: "angry", label: numbers ? "999" : undefined }];
+      case "character": return [{ who: "P", action: "sad", expression: "sad" }, { who: "F", action: "idle", expression: "happy" }];
+      case "escalation_1": return [{ who: "F", action: "shocked", expression: "shocked", fading: !grow && !numbers }, { who: "P", action: "idle", expression: "shocked" }];
+      case "escalation_2": return [{ who: "P", action: grow ? "grow" : "shocked", expression: "shocked", label: numbers ? "0" : undefined }];
+      case "escalation_3": return [{ who: "P", action: "look_up", expression: "shocked" }, { who: "A", action: "idle", expression: "smug" }];
+      case "discovery": return [{ who: "S", action: "give", expression: "neutral" }, { who: "P", action: "shocked", expression: "shocked" }];
+      case "twist": return [{ who: twistType === "identity" ? "S" : twistType === "betrayal" ? "A" : "P", action: twistType === "betrayal" ? "point" : "look_up", expression: twistType === "betrayal" ? "smug" : "shocked" }];
+      case "cliffhanger": return [{ who: "P", action: "shocked", expression: "shocked" }];
+      default: return [{ who: "P", action: "idle", expression: "shocked" }];
+    }
+  };
+  const propsFor = (b: Beat): PropKind[] => {
+    if (b === "hook") return tp;
+    if (b === "rule") return ["sign", ...tp];
+    if (b === "escalation_1") return ["crowd"];
+    if (b === "escalation_2") return ["flicker_lights", ...tp];
+    if (b === "escalation_3") return ["fog"];
+    if (b === "discovery") return [r.pick(["letter", "photo"] as PropKind[])];
+    if (b === "twist") return ["sparkles"];
+    if (b === "cliffhanger") return endingDevice === "unexpected_arrival" || endingDevice === "impossible_decision" ? ["open_door"] : ["fog"];
+    return [];
+  };
+  const sfxFor: Partial<Record<Beat, KitScene["sfx"]>> = {
+    hook: ["whoosh"], escalation_2: ["heartbeat"], escalation_3: ["glitch"], twist: ["impact"],
+    cliffhanger: endingDevice === "unexpected_arrival" ? ["knock"] : endingDevice === "time_pressure" ? ["alarm"] : ["door_creak"], continuation: ["heartbeat"],
+  };
+  const timeFor = (b: Beat): TimeOfDay => (SHOT_FOR[b] === "suspense" || b === "twist" || b === "continuation" ? "night" : b === "discovery" ? "sunset" : "day");
+  const envFor = (b: Beat, i: number): EnvironmentKind => (b === "discovery" ? (env.includes("office") ? "office" : "bedroom") : env[i % env.length]);
+
+  const beats = [...BEATS_FOR[opts.duration]];
+  if (opts.duration === 30 && format === "mystery_series") beats[beats.length - 1] = "continuation";
+  const scenes = beats.map((b, i) =>
+    sceneFrom(
+      {
+        beat: b, line: lines[b], env: envFor(b, i), time: timeFor(b), props: propsFor(b), sfx: sfxFor[b], cast: castFor(b),
+        propText: b === "rule" ? rule.split(" ").slice(0, 5).join(" ").toUpperCase() : undefined,
+        choice:
+          b === "cliffhanger" && CLIFF[endingDevice].choice && endingType === "open_loop"
+            ? { question: "Which door do I open?", options: CLIFF[endingDevice].choice!.map((o) => fill(o, R)) as [string, string] }
+            : undefined,
+        dialogue: b === "rule" ? { who: "A", line: "Rules are rules." } : b === "escalation_1" ? { who: "F", line: "I'm fine. I promise." } : undefined,
+      },
+      R, r, env[0],
+    ),
+  );
+  if (opts.duration === 90) {
+    const extra = (after: Beat, line: string, c: KitScene["cast"]) => {
+      const i = scenes.findIndex((s) => s.beat === after);
+      scenes.splice(i + 1, 0, sceneFrom({ beat: after, line, env: scenes[i].environment, time: scenes[i].timeOfDay, cast: c }, R, r, env[0]));
+    };
+    extra("character", "Everyone says I worry too much. They haven't seen what I've seen.", [{ who: "P", action: "shrug", expression: "sad" }]);
+    extra("escalation_2", "Nobody else noticed. Or they were pretending not to.", [{ who: "P", action: "walk_across", expression: "shocked" }]);
+    extra("discovery", "Whoever wrote it knew exactly where I'd be standing when I read it.", [{ who: "P", action: "look_up", expression: "shocked" }]);
+  }
+  if (grow) {
+    let s = 1;
+    for (const sc of scenes) if (sc.beat?.startsWith("escalation")) for (const c of sc.characters) if (c.ref === R.P.ref) c.scaleTo = s = Math.min(2.2, s + 0.35);
+  }
+
+  const sheet: StorySheet = {
+    premise: cleanPrompt(previous?.sheet?.premise ?? prompt),
+    rule: previous?.sheet?.rule ?? `Everyone lives by it: ${rule}.`,
+    whyObey: previous?.sheet?.whyObey ?? `${R.A.name} says it keeps everyone safe.`,
+    breakConsequence: previous?.sheet?.breakConsequence ?? "People who break it are never quite the same again.",
+    beneficiary: previous?.sheet?.beneficiary ?? `${R.A.name}, who enforces it.`,
+    secret: fill(TWISTS[twistType], R),
+    protagonist: { name: R.P.name, desire: `To ${desire}.`, vulnerability: vuln.charAt(0).toUpperCase() + vuln.slice(1) + ".", secret: prevP?.secret ?? "I've seen it happen before." },
+    conflict: fill(lines.escalation_1, R),
+    escalation: [fill(lines.escalation_1, R), fill(lines.escalation_2, R), fill(lines.escalation_3, R)],
+    mystery: fill(lines.discovery, R),
+    twistType,
+    twist: fill(lines.twist, R),
+    endingType,
+    endingDevice,
+    ending: fill(lines.cliffhanger, R),
+    continuation: fill(lines.continuation, R),
+  };
+  const episode = (previous?.episode ?? 0) + 1;
+  const baseTitle = previous ? previous.title.replace(/ · Part \d+$/, "") : titleFrom(prompt);
+  const mood: MusicMood = endingType === "closed_loop" ? "mysterious" : r.pick(["mysterious", "tense"] as const);
+  return {
+    format, sheet, episode, title: episode > 1 ? `${baseTitle} · Part ${episode}` : baseTitle, premise: sheet.premise,
+    hook: scenes[0].narration, ending: scenes[scenes.length - 1].narration, musicMood: mood, cast: [R.P, R.F, R.A, R.S], scenes,
+  };
 }
-
-function themeAction(c: Ctx): Action {
-  if (has(c, "grow")) return "grow";
-  if (has(c, "jump")) return "jump";
-  if (has(c, "kind")) return "give";
-  if (has(c, "money")) return "celebrate";
-  if (has(c, "dream")) return "look_up";
-  return "point";
-}
-
-function label(c: Ctx, who: "hero" | "friend" | "rival"): string | undefined {
-  if (!has(c, "numbers")) return undefined;
-  if (who === "hero") return String(c.heroNumber);
-  if (who === "friend") return "42";
-  return "999";
-}
-
-const HOOK: Beat = (c) =>
-  sceneBase(c, {
-    narration: cleanPrompt(c.prompt),
-    description: `${c.hero.name} stands in the middle of the world, looking straight at us.`,
-    camera: "dolly_in",
-    characters: [{ ref: c.hero.ref, action: "wave", position: "center", expression: "happy", label: label(c, "hero") }],
-    props: themeProps(c),
-    sfx: ["whoosh"],
-    propText: has(c, "dream") ? "ZZZ…" : undefined,
-  });
-
-const SETUP: Beat[] = [
-  (c) =>
-    sceneBase(c, {
-      narration: `Here, that's completely normal. Nobody even questions it anymore. Except ${c.hero.name}.`,
-      description: `People pass by as ${c.hero.name} watches, unconvinced.`,
-      camera: "wide",
-      environment: c.env[1],
-      characters: [
-        { ref: c.friend.ref, action: "walk_across", position: "back_left", expression: "neutral", label: label(c, "friend") },
-        { ref: c.hero.ref, action: "shrug", position: "center", expression: "smug", label: label(c, "hero") },
-      ],
-      props: has(c, "money") ? ["money_tree"] : themeProps(c),
-      sfx: ["pop"],
-    }),
-  (c) =>
-    sceneBase(c, {
-      narration: `My best friend ${c.friend.name} says the rule is the only thing that keeps this place fair.`,
-      description: `${c.friend.name} explains the rule with big hand gestures.`,
-      camera: "over_shoulder",
-      environment: c.env[1],
-      characters: [
-        { ref: c.friend.ref, action: "talk", position: "left", expression: "happy", label: label(c, "friend") },
-        { ref: c.hero.ref, action: "idle", position: "right", expression: "neutral", label: label(c, "hero") },
-      ],
-      dialogue: { ref: c.friend.ref, line: "Trust me. It's fair." },
-      sfx: ["pop"],
-    }),
-];
-
-const DEMO: Beat[] = [
-  (c) => {
-    c.heroScale = Math.min(1.9, c.heroScale + 0.25);
-    c.heroNumber += 13;
-    return sceneBase(c, {
-      narration: `So the first time it happened to me, I didn't believe it. Then it happened again.`,
-      description: `The rule visibly kicks in on ${c.hero.name}.`,
-      camera: "low_angle",
-      environment: c.env[2],
-      characters: [
-        { ref: c.hero.ref, action: themeAction(c), position: "center", expression: "shocked", label: label(c, "hero"), scaleTo: has(c, "grow") ? c.heroScale : undefined },
-      ],
-      props: [...themeProps(c), "sparkles"],
-      sfx: themeSfx(c),
-    });
-  },
-  (c) => {
-    c.heroScale = Math.min(1.9, c.heroScale + 0.2);
-    c.heroNumber += 21;
-    return sceneBase(c, {
-      narration: `By lunchtime the whole street was watching. ${c.friend.name} couldn't stop laughing.`,
-      description: `${c.friend.name} doubles over laughing as a crowd gathers.`,
-      camera: "orbit",
-      environment: c.env[2],
-      characters: [
-        { ref: c.hero.ref, action: themeAction(c), position: "center", expression: "happy", label: label(c, "hero"), scaleTo: has(c, "grow") ? c.heroScale : undefined },
-        { ref: c.friend.ref, action: "celebrate", position: "left", expression: "happy", label: label(c, "friend") },
-      ],
-      props: ["crowd", ...themeProps(c)],
-      sfx: ["cheer", ...themeSfx(c)],
-    });
-  },
-  (c) =>
-    sceneBase(c, {
-      narration: has(c, "dream")
-        ? `Every night the screen showed what I really wanted. And every morning, the neighbours had already seen it.`
-        : `Everyone had a strategy. Mine was simple: do it more than anyone else.`,
-      description: `${c.hero.name} gets to work, determined.`,
-      camera: "pan",
-      environment: has(c, "dream") ? "bedroom" : c.env[0],
-      timeOfDay: has(c, "dream") ? "night" : c.time,
-      characters: [{ ref: c.hero.ref, action: has(c, "dream") ? "sleep" : "run", position: "center", expression: "determined" as never, label: label(c, "hero") }],
-      props: themeProps(c),
-      propText: has(c, "dream") ? "A GIANT TROPHY" : undefined,
-      sfx: ["whoosh"],
-    }),
-];
-
-const COMPLICATION: Beat[] = [
-  (c) =>
-    sceneBase(c, {
-      narration: `Then ${c.rival.name} showed up. ${c.rival.name} had figured out how to game the rule.`,
-      description: `${c.rival.name} struts in, smug, and the music changes.`,
-      camera: "low_angle",
-      environment: "city_plaza",
-      characters: [
-        { ref: c.rival.ref, action: "walk_in_right", position: "right", expression: "smug", label: label(c, "rival"), scaleTo: has(c, "grow") ? 2.1 : undefined },
-        { ref: c.hero.ref, action: "shocked", position: "left", expression: "shocked", label: label(c, "hero") },
-      ],
-      dialogue: { ref: c.rival.ref, line: "Rules are for beginners." },
-      props: themeProps(c),
-      sfx: ["record_scratch"],
-    }),
-  (c) =>
-    sceneBase(c, {
-      narration: `Overnight, ${c.rival.name} was the most famous person in town. And I was nobody.`,
-      description: `${c.rival.name} celebrates on a stage while ${c.hero.name} sulks.`,
-      camera: "wide",
-      environment: "stage",
-      timeOfDay: "night",
-      characters: [
-        { ref: c.rival.ref, action: "dance", position: "center", expression: "smug", label: label(c, "rival") },
-        { ref: c.hero.ref, action: "sad", position: "back_left", expression: "sad", label: label(c, "hero") },
-      ],
-      props: ["confetti", "crowd"],
-      sfx: ["cheer"],
-    }),
-];
-
-const ESCALATION: Beat[] = [
-  (c) =>
-    sceneBase(c, {
-      narration: `So I tried harder. Way harder. It got ridiculous.`,
-      description: `${c.hero.name} attempts the rule over and over in a quick montage.`,
-      camera: "dolly_in",
-      environment: c.env[3],
-      characters: [{ ref: c.hero.ref, action: has(c, "jump") ? "jump" : "run", position: "center", expression: "determined" as never, label: label(c, "hero") }],
-      props: themeProps(c),
-      sfx: ["drumroll"],
-    }),
-  (c) =>
-    sceneBase(c, {
-      narration: `${c.friend.name} tried to warn me. I didn't listen.`,
-      description: `${c.friend.name} grabs ${c.hero.name}'s arm, pleading.`,
-      camera: "over_shoulder",
-      environment: c.env[3],
-      characters: [
-        { ref: c.friend.ref, action: "talk", position: "left", expression: "sad", label: label(c, "friend") },
-        { ref: c.hero.ref, action: "idle", position: "right", expression: "angry", label: label(c, "hero") },
-      ],
-      dialogue: { ref: c.friend.ref, line: "This isn't you." },
-      sfx: ["heartbeat"],
-    }),
-  (c) =>
-    sceneBase(c, {
-      narration: `And then the whole town found out what the rule actually costs.`,
-      description: `Alarms, chaos — everyone stops and looks up.`,
-      camera: "top_down",
-      environment: "town_street",
-      characters: [
-        { ref: c.hero.ref, action: "look_up", position: "center", expression: "shocked", label: label(c, "hero") },
-        { ref: c.rival.ref, action: "shocked", position: "right", expression: "shocked", label: label(c, "rival") },
-        { ref: c.friend.ref, action: "shocked", position: "left", expression: "shocked", label: label(c, "friend") },
-      ],
-      props: ["rain", "question_marks"],
-      timeOfDay: "sunset",
-      sfx: ["alarm"],
-    }),
-];
-
-const TWIST: Beat[] = [
-  (c) =>
-    sceneBase(c, {
-      narration: `Turns out ${c.rival.name} was faking it the whole time. The rule only works if you mean it.`,
-      description: `${c.rival.name}'s act falls apart in front of everyone.`,
-      camera: "close_up",
-      environment: "city_plaza",
-      characters: [
-        { ref: c.rival.ref, action: "sad", position: "center", expression: "sad", label: has(c, "numbers") ? "0" : undefined, scaleTo: has(c, "grow") ? 0.9 : undefined },
-      ],
-      props: ["question_marks"],
-      sfx: ["thud"],
-    }),
-  (c) =>
-    sceneBase(c, {
-      narration: `So I stopped trying to win. I just did the thing for ${c.friend.name}. Once. For real.`,
-      description: `${c.hero.name} quietly helps ${c.friend.name}.`,
-      camera: "medium",
-      environment: "park",
-      timeOfDay: "sunset",
-      characters: [
-        { ref: c.hero.ref, action: "give", position: "left", expression: "happy", label: label(c, "hero") },
-        { ref: c.friend.ref, action: "celebrate", position: "right", expression: "happy", label: label(c, "friend") },
-      ],
-      props: ["gift_box", "hearts"],
-      sfx: ["magic"],
-    }),
-];
-
-const ENDING: Beat[] = [
-  (c) => {
-    c.heroScale = Math.min(2.4, c.heroScale + 0.5);
-    c.heroNumber = 1000;
-    return sceneBase(c, {
-      narration: `And that one time counted more than everything else combined. Anyway. That's my world. What's yours?`,
-      description: `${c.hero.name} and ${c.friend.name} celebrate as confetti falls.`,
-      camera: "orbit",
-      environment: "park",
-      timeOfDay: "sunset",
-      characters: [
-        { ref: c.hero.ref, action: "celebrate", position: "center", expression: "happy", label: label(c, "hero"), scaleTo: has(c, "grow") ? c.heroScale : undefined },
-        { ref: c.friend.ref, action: "dance", position: "left", expression: "happy", label: label(c, "friend") },
-      ],
-      props: ["confetti", ...themeProps(c)],
-      sfx: ["cheer"],
-    });
-  },
-];
-
-const ARC_BY_DURATION: Record<DurationPreset, (Beat | Beat[])[]> = {
-  30: [HOOK, SETUP, DEMO, COMPLICATION, ENDING],
-  60: [HOOK, SETUP, DEMO, DEMO, DEMO, COMPLICATION, ESCALATION, ESCALATION, TWIST, ENDING],
-  90: [HOOK, SETUP, SETUP, DEMO, DEMO, DEMO, COMPLICATION, COMPLICATION, ESCALATION, ESCALATION, ESCALATION, TWIST, TWIST, ENDING],
-};
-
-const MOOD: Record<Theme, MusicMood> = {
-  money: "epic",
-  grow: "playful",
-  numbers: "mysterious",
-  dream: "chill",
-  truth: "playful",
-  silence: "mysterious",
-  discover: "mysterious",
-  jump: "playful",
-  kind: "chill",
-  generic: "playful",
-};
-
-function castFrom(rec: CharacterRecord, ref: string, role: string): CastMember {
-  return { ref, name: rec.name, role, characterId: rec.id };
-}
-
-type Role = "setup" | "demo1" | "demo2" | "complication" | "escalation" | "twist" | "ending";
-type Pack = Partial<Record<Role, (h: string, f: string, r: string) => string>>;
-
-/** Theme-specific narration. Visual staging still comes from the beat; only the words change. */
-const PACKS: Record<string, Pack> = {
-  liarMoney: {
-    setup: () => "Every lie drops a coin in your pocket. Small lie, small coin. Big lie? Big coin.",
-    demo1: (h) => `${h} told one tiny lie about breakfast and bought a bike before lunch.`,
-    demo2: (_h, f) => `By noon, ${f} had lied about owning a dog and moved into a mansion.`,
-    complication: (_h, _f, r) => `Then ${r} told the biggest lie in history. The bank ran out of coins.`,
-    escalation: () => "Everyone started lying about everything. Nobody knew what was real anymore.",
-    twist: () => "But every coin remembers the lie it came from. And they all started talking at once.",
-    ending: () => "Now the truth is the rarest thing in town. Guess who's rich now. That's my world. What's yours?",
-  },
-  money: {
-    setup: () => "Here, nobody goes to work. You just water your money and wait.",
-    demo1: (h) => `${h} planted one coin on Monday. By Friday, it was a whole forest.`,
-    demo2: (_h, f) => `The whole street showed up with buckets. ${f} brought a ladder.`,
-    complication: (_h, _f, r) => `Then ${r} bought every single tree in town. Every one.`,
-    escalation: (_h, _f, r) => `Prices went crazy. A sandwich cost a tree. ${r} charged rent for shade.`,
-    twist: (_h, _f, r) => `But money from a tree is still just leaves. ${r} had a mountain and nobody would trade.`,
-    ending: () => "So we planted something else. Turns out friends grow faster. That's my world. What's yours?",
-  },
-  numbers: {
-    setup: () => "Nobody knows what the number means. Not even the people with big ones.",
-    demo1: () => "Mine said seven. Every time I did something brave, it went up.",
-    demo2: (_h, f) => `${f} had forty-two and refused to tell anyone why.`,
-    complication: (_h, _f, r) => `Then ${r} showed up with nine hundred and ninety-nine. People followed him everywhere.`,
-    escalation: () => "Everyone started chasing numbers. Nobody was actually having fun.",
-    twist: () => "Turns out the number isn't a score. It's how many people you made smile today.",
-    ending: (_h, _f, r) => `${r} hit zero by lunch. I hit a thousand. All I did was say thank you. That's my world.`,
-  },
-  grow: {
-    setup: () => "Help someone carry their bags? You grow an inch. Hold a door? Another inch.",
-    demo1: (h) => `${h} helped one old lady cross the road and shot up like a rocket.`,
-    demo2: (h) => `By lunchtime, ${h} needed a ladder just to high-five anyone.`,
-    complication: (_h, _f, r) => `Then ${r} started helping people just to get taller. Fake helping. For clout.`,
-    escalation: () => "Doorways got taller. Ceilings got taller. Buses had sunroofs now.",
-    twist: (_h, _f, r) => `But fake kindness doesn't count. ${r} shrank right back down in front of everyone.`,
-    ending: () => "Now the tallest person in town is the one who never asks for anything back. That's my world.",
-  },
-  dream: {
-    setup: () => "Every night, a screen lights up over your bed and shows exactly what you're dreaming.",
-    demo1: () => "My neighbours watch mine like a TV show. Last night it was a giant trophy.",
-    demo2: (_h, f) => `${f}'s dreams are always about pizza. Every. Single. Night.`,
-    complication: (_h, _f, r) => `Then ${r}'s screen started showing everyone else's secrets.`,
-    escalation: () => "Nobody wanted to fall asleep anymore. The whole town was yawning.",
-    twist: () => "Turns out the screens only show what you're too scared to say out loud.",
-    ending: () => "So I said mine out loud. The screen went quiet. Best sleep of my life. That's my world.",
-  },
-  truth: {
-    setup: () => "Try to lie and your mouth just says the truth instead. Loudly.",
-    demo1: () => "My teacher asked if I did my homework. My mouth said: no, I played games for six hours.",
-    demo2: (_h, f) => `${f} tried to say she liked my haircut. It came out as: it looks like a broom.`,
-    complication: (_h, _f, r) => `Then ${r} found a loophole. If you never talk, you never get caught.`,
-    escalation: () => "The whole town went silent. Just people nodding at each other all day.",
-    twist: (_h, _f, r) => `But silence is the loudest answer. Everyone knew exactly what ${r} meant.`,
-    ending: () => "So now we just say the nice true stuff first. It works surprisingly well. That's my world.",
-  },
-};
-
-function packFor(prompt: string, themes: Theme[]): Pack | null {
-  if (themes.includes("truth") && themes.includes("money")) return PACKS.liarMoney;
-  for (const t of themes) if (PACKS[t]) return PACKS[t];
-  return null;
-}
-
-const ROLES: Record<DurationPreset, (Role | "hook")[]> = {
-  30: ["hook", "setup", "demo1", "complication", "ending"],
-  60: ["hook", "setup", "demo1", "demo2", "demo1", "complication", "escalation", "escalation", "twist", "ending"],
-  90: ["hook", "setup", "setup", "demo1", "demo2", "demo1", "complication", "complication", "escalation", "escalation", "escalation", "twist", "twist", "ending"],
-};
 
 export function generateDevStory(opts: {
   prompt: string;
   duration: DurationPreset;
-  /** Characters the user chose to cast. The first becomes the hero. */
+  /** Characters the user chose to cast. The first becomes the protagonist. */
   cast: CharacterRecord[];
   seed?: string;
+  format?: StoryFormat;
+  /** Previous episode, for series continuations. */
+  previous?: StoryPlan;
 }): StoryPlan {
-  const themes = detectThemes(opts.prompt);
-  const r = rng(hashString((opts.seed ?? "") + opts.prompt + opts.duration));
-  const pool = r.shuffle(OFFICIAL_CHARACTERS.filter((c) => c.reusePolicy === "anyone"));
-  const chosen = [...opts.cast];
-  for (const c of pool) {
-    if (chosen.length >= 3) break;
-    if (!chosen.some((x) => x.id === c.id)) chosen.push(c);
+  const format = opts.format ?? "strange_world";
+  const r = rng(hashString((opts.seed ?? "") + opts.prompt + opts.duration + format));
+  const R = castRoles(opts.cast, r);
+  if (opts.previous) {
+    // Same cast across episodes.
+    for (const [k, ref] of [["P", "c1"], ["F", "c2"], ["A", "c3"], ["S", "c4"]] as const) {
+      const m = opts.previous.cast.find((c) => c.ref === ref);
+      if (m) R[k] = { ...m };
+    }
   }
-  const hero = castFrom(chosen[0], "c1", "Narrator and hero");
-  const friend = castFrom(chosen[1], "c2", "Best friend");
-  const rival = castFrom(chosen[2], "c3", "Rival");
-
-  const envs: EnvironmentKind[] = has0(themes, "dream")
-    ? ["bedroom", "town_street", "school_hall", "park"]
-    : has0(themes, "money")
-      ? ["city_plaza", "park", "town_street", "office"]
-      : has0(themes, "discover")
-        ? ["town_street", "forest", "forest", "school_hall"]
-        : r.shuffle(["town_street", "park", "school_hall", "city_plaza", "beach"] as EnvironmentKind[]);
-
-  const ctx: Ctx = {
-    hero, friend, rival, themes, prompt: opts.prompt, r,
-    heroScale: 1, heroNumber: 7, env: envs,
-    time: has0(themes, "dream") ? "night" : "day",
-  };
-
-  const used = new Set<Beat>();
-  const scenes = ARC_BY_DURATION[opts.duration].map((slot) => {
-    if (typeof slot === "function") return slot(ctx);
-    const options = slot.filter((b) => !used.has(b));
-    const beat = options.length ? r.pick(options) : r.pick(slot);
-    used.add(beat);
-    return beat(ctx);
-  });
-
-  // Swap in theme-specific narration where we have it (once per role, so 90s stories don't repeat lines).
-  const pack = packFor(opts.prompt, themes);
-  if (pack) {
-    const usedRoles = new Set<string>();
-    ROLES[opts.duration].forEach((role, i) => {
-      if (role === "hook" || !scenes[i]) return;
-      const line = pack[role];
-      if (line && !usedRoles.has(role)) {
-        scenes[i].narration = line(hero.name, friend.name, rival.name);
-        usedRoles.add(role);
-      }
-    });
-  }
-
-  // Normalise any non-vocabulary expression we used for flavour.
-  for (const s of scenes) for (const ch of s.characters) if ((ch.expression as string) === "determined") ch.expression = "neutral";
-
-  return {
-    title: titleFrom(opts.prompt, themes),
-    premise: cleanPrompt(opts.prompt),
-    hook: scenes[0].narration,
-    ending: scenes[scenes.length - 1].narration,
-    musicMood: MOOD[themes[0]],
-    cast: [hero, friend, rival],
-    scenes,
-  };
-}
-
-function has0(themes: Theme[], t: Theme) {
-  return themes.includes(t);
+  const kit = opts.previous ? undefined : KITS.find((k) => k.match.test(opts.prompt));
+  if (kit) return fromKit(kit, opts.duration, R, r, format);
+  return generic({ prompt: opts.prompt, duration: opts.duration, R, r, format, themes: detectThemes(opts.prompt), previous: opts.previous });
 }

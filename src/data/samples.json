@@ -1,63 +1,129 @@
 [
   {
-    "id": "sample-roblox-money-grows-on-trees",
-    "title": "Money grows on trees",
-    "prompt": "In my world, money grows on trees.",
-    "style": "roblox",
-    "category": "Money",
-    "durationSec": 24,
+    "id": "sample-minecraft-nobody-can-move-when-the-traffic-lights-",
+    "title": "Red Light City",
+    "prompt": "In my city, nobody can move when the traffic lights turn red. Not even inside their homes.",
+    "style": "minecraft",
+    "category": "Strange",
+    "durationSec": 23.2,
     "width": 720,
     "height": 1280,
-    "video": "/samples/sample-roblox-money-grows-on-trees.mp4",
-    "thumb": "/samples/sample-roblox-money-grows-on-trees.jpg",
-    "createdAt": "2026-11-19T02:48:01.612Z",
+    "video": "/samples/sample-minecraft-nobody-can-move-when-the-traffic-lights-.mp4",
+    "thumb": "/samples/sample-minecraft-nobody-can-move-when-the-traffic-lights-.jpg",
+    "createdAt": "2026-11-19T03:34:17.289Z",
+    "format": "mystery_series",
     "story": {
       "source": "dev-template",
+      "sheet": {
+        "premise": "In my city, nobody can move when the traffic lights turn red. Not even inside their homes.",
+        "rule": "Everyone freezes on red, otherwise the lights find you.",
+        "whyObey": "Nobody chooses to freeze. Your body just stops.",
+        "breakConsequence": "People who move on red are never seen again.",
+        "beneficiary": "Nova, the city controller, who sets the lights.",
+        "secret": "The lights don't stop people. They stop time — for everyone except the controller.",
+        "protagonist": {
+          "name": "Bricks",
+          "desire": "To get my sister to the hospital in time.",
+          "vulnerability": "Her medicine runs out tonight.",
+          "secret": "I can move on red. I've never told anyone."
+        },
+        "conflict": "The lights turned red for an entire hour.",
+        "escalation": [
+          "Everyone froze mid-step. Except me.",
+          "Then I saw someone else moving.",
+          "It was Nova, walking between the frozen people, taking things."
+        ],
+        "mystery": "Why can I move when nobody else can?",
+        "twistType": "identity",
+        "endingDevice": "time_pressure",
+        "twist": "I can move on red because I'm the controller's daughter. He froze my mum the day I was born.",
+        "endingType": "open_loop",
+        "ending": "He turned and looked straight at me. And smiled.",
+        "continuation": "The light is about to turn green. I have ten seconds."
+      },
       "scenes": [
         {
-          "narration": "In my world, money grows on trees.",
-          "description": "Pixel stands in the middle of the world, looking straight at us.",
-          "environment": "city_plaza"
-        },
-        {
-          "narration": "Here, nobody goes to work. You just water your money and wait.",
-          "description": "Sage explains the rule with big hand gestures.",
-          "environment": "park"
-        },
-        {
-          "narration": "Pixel planted one coin on Monday. By Friday, it was a whole forest.",
-          "description": "The rule visibly kicks in on Pixel.",
+          "narration": "In my city, nobody can move when the traffic lights turn red.",
+          "description": "In my city, nobody can move when the traffic lights turn red.",
           "environment": "town_street"
         },
         {
-          "narration": "Then Juno bought every single tree in town. Every one.",
-          "description": "Juno celebrates on a stage while Pixel sulks.",
-          "environment": "stage"
+          "narration": "Not on the road. Not even inside your home. Your body just stops.",
+          "description": "Not on the road. Not even inside your home. Your body just stops.",
+          "environment": "bedroom"
         },
         {
-          "narration": "So we planted something else. Turns out friends grow faster. That's my world. What's yours?",
-          "description": "Pixel and Sage celebrate as confetti falls.",
-          "environment": "park"
+          "narration": "Tonight, every light in the city turned red. For an hour.",
+          "description": "Tonight, every light in the city turned red. For an hour.",
+          "environment": "city_plaza"
+        },
+        {
+          "narration": "I can move on red because I'm his daughter. He froze my mum the day I was born.",
+          "description": "I can move on red because I'm his daughter. He froze my mum the day I was born.",
+          "environment": "city_plaza"
+        },
+        {
+          "narration": "He turned around and looked straight at me. And smiled.",
+          "description": "He turned around and looked straight at me. And smiled.",
+          "environment": "city_plaza"
         }
       ],
       "cast": [
         {
-          "id": "ch_pixel",
-          "name": "Pixel",
+          "id": "ch_bricks",
+          "name": "Bricks",
           "appearance": {
-            "skin": "#FFD7B0",
-            "hair": "spiky",
-            "hairColor": "#B9F36A",
-            "top": "#151515",
-            "topAccent": "#B9F36A",
-            "bottoms": "#151515",
+            "skin": "#C68B5E",
+            "hair": "none",
+            "hairColor": "#3B2A20",
+            "top": "#F5C518",
+            "topAccent": "#F2F2F2",
+            "bottoms": "#365A9E",
             "shoes": "#1A1A1A",
-            "hat": "none",
-            "hatColor": "#B9F36A",
-            "accessory": "shades",
+            "hat": "helmet",
+            "hatColor": "#FF9F1C",
+            "accessory": "none",
             "accessoryColor": "#111111",
-            "face": "grin",
-            "height": 0.88
+            "face": "determined",
+            "height": 1.12
+          }
+        },
+        {
+          "id": "ch_dot",
+          "name": "Dot",
+          "appearance": {
+            "skin": "#A86B4C",
+            "hair": "short",
+            "hairColor": "#2A1B12",
+            "top": "#2A9D8F",
+            "topAccent": "#E9C46A",
+            "bottoms": "#264653",
+            "shoes": "#1A1A1A",
+            "hat": "beanie",
+            "hatColor": "#E76F51",
+            "accessory": "backpack",
+            "accessoryColor": "#E9C46A",
+            "face": "smile",
+            "height": 0.95
+          }
+        },
+        {
+          "id": "ch_nova",
+          "name": "Nova",
+          "appearance": {
+            "skin": "#F5D0B5",
+            "hair": "curly",
+            "hairColor": "#C2410C",
+            "top": "#14213D",
+            "topAccent": "#FCA311",
+            "bottoms": "#14213D",
+            "shoes": "#1A1A1A",
+            "hat": "crown",
+            "hatColor": "#FCA311",
+            "accessory": "cape",
+            "accessoryColor": "#9D0208",
+            "face": "determined",
+            "height": 1
           }
         },
         {
@@ -78,184 +144,240 @@
             "face": "calm",
             "height": 1.06
           }
-        },
-        {
-          "id": "ch_juno",
-          "name": "Juno",
-          "appearance": {
-            "skin": "#8D5A3B",
-            "hair": "bun",
-            "hairColor": "#16110E",
-            "top": "#7A5CFA",
-            "topAccent": "#EDE6FF",
-            "bottoms": "#E9E4DA",
-            "shoes": "#1A1A1A",
-            "hat": "none",
-            "hatColor": "#B9F36A",
-            "accessory": "none",
-            "accessoryColor": "#111111",
-            "face": "cheeky",
-            "height": 1
-          }
         }
       ]
     },
     "previews": [
-      "/samples/sample-roblox-money-grows-on-trees-scene-0.jpg",
-      "/samples/sample-roblox-money-grows-on-trees-scene-1.jpg",
-      "/samples/sample-roblox-money-grows-on-trees-scene-2.jpg",
-      "/samples/sample-roblox-money-grows-on-trees-scene-3.jpg",
-      "/samples/sample-roblox-money-grows-on-trees-scene-4.jpg"
+      "/samples/sample-minecraft-nobody-can-move-when-the-traffic-lights--scene-0.jpg",
+      "/samples/sample-minecraft-nobody-can-move-when-the-traffic-lights--scene-1.jpg",
+      "/samples/sample-minecraft-nobody-can-move-when-the-traffic-lights--scene-2.jpg",
+      "/samples/sample-minecraft-nobody-can-move-when-the-traffic-lights--scene-3.jpg",
+      "/samples/sample-minecraft-nobody-can-move-when-the-traffic-lights--scene-4.jpg"
     ]
   },
   {
-    "id": "sample-minecraft-everyone-gets-richer-every-time-they-tel",
-    "title": "The Money Rule",
-    "prompt": "In my world, everyone gets richer every time they tell a lie.",
-    "style": "minecraft",
-    "category": "Money",
-    "durationSec": 29,
-    "width": 720,
-    "height": 1280,
-    "video": "/samples/sample-minecraft-everyone-gets-richer-every-time-they-tel.mp4",
-    "thumb": "/samples/sample-minecraft-everyone-gets-richer-every-time-they-tel.jpg",
-    "createdAt": "2026-11-19T02:46:14.509Z",
-    "story": {
-      "source": "dev-template",
-      "scenes": [
-        {
-          "narration": "In my world, everyone gets richer every time they tell a lie.",
-          "description": "Dot stands in the middle of the world, looking straight at us.",
-          "environment": "city_plaza"
-        },
-        {
-          "narration": "Every lie drops a coin in your pocket. Small lie, small coin. Big lie? Big coin.",
-          "description": "Rex explains the rule with big hand gestures.",
-          "environment": "park"
-        },
-        {
-          "narration": "Dot told one tiny lie about breakfast and bought a bike before lunch.",
-          "description": "Rex doubles over laughing as a crowd gathers.",
-          "environment": "town_street"
-        },
-        {
-          "narration": "Then Milo told the biggest lie in history. The bank ran out of coins.",
-          "description": "Milo struts in, smug, and the music changes.",
-          "environment": "city_plaza"
-        },
-        {
-          "narration": "Now the truth is the rarest thing in town. Guess who's rich now. That's my world. What's yours?",
-          "description": "Dot and Rex celebrate as confetti falls.",
-          "environment": "park"
-        }
-      ],
-      "cast": [
-        {
-          "id": "ch_dot",
-          "name": "Dot",
-          "appearance": {
-            "skin": "#A86B4C",
-            "hair": "short",
-            "hairColor": "#2A1B12",
-            "top": "#2A9D8F",
-            "topAccent": "#E9C46A",
-            "bottoms": "#264653",
-            "shoes": "#1A1A1A",
-            "hat": "beanie",
-            "hatColor": "#E76F51",
-            "accessory": "backpack",
-            "accessoryColor": "#E9C46A",
-            "face": "smile",
-            "height": 0.95
-          }
-        },
-        {
-          "id": "ch_rex",
-          "name": "Rex",
-          "appearance": {
-            "skin": "#6E4630",
-            "hair": "short",
-            "hairColor": "#0E0B09",
-            "top": "#FFFFFF",
-            "topAccent": "#E63946",
-            "bottoms": "#1D3557",
-            "shoes": "#1A1A1A",
-            "hat": "cap",
-            "hatColor": "#E63946",
-            "accessory": "chain",
-            "accessoryColor": "#F2C14E",
-            "face": "cheeky",
-            "height": 1
-          }
-        },
-        {
-          "id": "ch_milo",
-          "name": "Milo",
-          "appearance": {
-            "skin": "#F2C9A0",
-            "hair": "short",
-            "hairColor": "#3B2A20",
-            "top": "#F2643D",
-            "topAccent": "#FFD9C7",
-            "bottoms": "#2B2F3A",
-            "shoes": "#1A1A1A",
-            "hat": "headphones",
-            "hatColor": "#202020",
-            "accessory": "none",
-            "accessoryColor": "#111111",
-            "face": "grin",
-            "height": 1
-          }
-        }
-      ]
-    },
-    "previews": [
-      "/samples/sample-minecraft-everyone-gets-richer-every-time-they-tel-scene-0.jpg",
-      "/samples/sample-minecraft-everyone-gets-richer-every-time-they-tel-scene-1.jpg",
-      "/samples/sample-minecraft-everyone-gets-richer-every-time-they-tel-scene-2.jpg",
-      "/samples/sample-minecraft-everyone-gets-richer-every-time-they-tel-scene-3.jpg",
-      "/samples/sample-minecraft-everyone-gets-richer-every-time-they-tel-scene-4.jpg"
-    ]
-  },
-  {
-    "id": "sample-roblox-your-dreams-appear-on-a-screen-above-you",
-    "title": "Dream Screen",
-    "prompt": "In my world, your dreams appear on a screen above your bed.",
+    "id": "sample-roblox-everything-in-the-supermarket-is-free-bu",
+    "title": "Everything Is Free",
+    "prompt": "In my town, everything in the supermarket is free. But every item you take removes one memory.",
     "style": "roblox",
     "category": "Strange",
-    "durationSec": 23.5,
+    "durationSec": 21.2,
     "width": 720,
     "height": 1280,
-    "video": "/samples/sample-roblox-your-dreams-appear-on-a-screen-above-you.mp4",
-    "thumb": "/samples/sample-roblox-your-dreams-appear-on-a-screen-above-you.jpg",
-    "createdAt": "2026-11-19T02:46:14.496Z",
+    "video": "/samples/sample-roblox-everything-in-the-supermarket-is-free-bu.mp4",
+    "thumb": "/samples/sample-roblox-everything-in-the-supermarket-is-free-bu.jpg",
+    "createdAt": "2026-11-19T03:34:17.252Z",
+    "format": "strange_world",
     "story": {
       "source": "dev-template",
+      "sheet": {
+        "premise": "In my town, everything in the supermarket is free.",
+        "rule": "Everyone can take whatever they want, but every item takes away one memory.",
+        "whyObey": "It's the only food in town. Everyone pays eventually.",
+        "breakConsequence": "Take too much and you forget who you are.",
+        "beneficiary": "Nova, the store manager, who remembers everything.",
+        "secret": "The memories aren't destroyed. They're being stocked on a shelf at the back.",
+        "protagonist": {
+          "name": "Bricks",
+          "desire": "To feed my little sister.",
+          "vulnerability": "I'm running out of memories of our mum.",
+          "secret": "I've been paying for both of us."
+        },
+        "conflict": "I can't remember my mum's voice anymore.",
+        "escalation": [
+          "I forgot her birthday.",
+          "Then I forgot her face.",
+          "Then my sister forgot me."
+        ],
+        "mystery": "Why does the back aisle hum when I walk past it?",
+        "twistType": "consequence",
+        "endingDevice": "new_danger",
+        "twist": "I broke into the back aisle and took my memories back. But they weren't all mine.",
+        "endingType": "open_loop",
+        "ending": "I remember things that never happened to me. Things the manager did.",
+        "continuation": "And now he knows exactly what I remember."
+      },
       "scenes": [
         {
-          "narration": "In my world, your dreams appear on a screen above your bed.",
-          "description": "Juno stands in the middle of the world, looking straight at us.",
+          "narration": "In my town, everything in the supermarket is free.",
+          "description": "In my town, everything in the supermarket is free.",
+          "environment": "store"
+        },
+        {
+          "narration": "But every item you take removes one memory.",
+          "description": "But every item you take removes one memory.",
+          "environment": "store"
+        },
+        {
+          "narration": "Last week, I forgot my mum's birthday. This week, her voice.",
+          "description": "Last week, I forgot my mum's birthday. This week, her voice.",
           "environment": "bedroom"
         },
         {
-          "narration": "Every night, a screen lights up over your bed and shows exactly what you're dreaming.",
-          "description": "People pass by as Juno watches, unconvinced.",
-          "environment": "town_street"
+          "narration": "I took my memories back. But I took the wrong jar. Now I remember everything the manager did.",
+          "description": "I took my memories back. But I took the wrong jar. Now I remember everything the manager did.",
+          "environment": "store"
         },
         {
-          "narration": "My neighbours watch mine like a TV show. Last night it was a giant trophy.",
-          "description": "Milo doubles over laughing as a crowd gathers.",
+          "narration": "The lights came on. The manager was standing in the aisle.",
+          "description": "The lights came on. The manager was standing in the aisle.",
+          "environment": "store"
+        }
+      ],
+      "cast": [
+        {
+          "id": "ch_bricks",
+          "name": "Bricks",
+          "appearance": {
+            "skin": "#C68B5E",
+            "hair": "none",
+            "hairColor": "#3B2A20",
+            "top": "#F5C518",
+            "topAccent": "#F2F2F2",
+            "bottoms": "#365A9E",
+            "shoes": "#1A1A1A",
+            "hat": "helmet",
+            "hatColor": "#FF9F1C",
+            "accessory": "none",
+            "accessoryColor": "#111111",
+            "face": "determined",
+            "height": 1.12
+          }
+        },
+        {
+          "id": "ch_milo",
+          "name": "Milo",
+          "appearance": {
+            "skin": "#F2C9A0",
+            "hair": "short",
+            "hairColor": "#3B2A20",
+            "top": "#F2643D",
+            "topAccent": "#FFD9C7",
+            "bottoms": "#2B2F3A",
+            "shoes": "#1A1A1A",
+            "hat": "headphones",
+            "hatColor": "#202020",
+            "accessory": "none",
+            "accessoryColor": "#111111",
+            "face": "grin",
+            "height": 1
+          }
+        },
+        {
+          "id": "ch_nova",
+          "name": "Nova",
+          "appearance": {
+            "skin": "#F5D0B5",
+            "hair": "curly",
+            "hairColor": "#C2410C",
+            "top": "#14213D",
+            "topAccent": "#FCA311",
+            "bottoms": "#14213D",
+            "shoes": "#1A1A1A",
+            "hat": "crown",
+            "hatColor": "#FCA311",
+            "accessory": "cape",
+            "accessoryColor": "#9D0208",
+            "face": "determined",
+            "height": 1
+          }
+        },
+        {
+          "id": "ch_sage",
+          "name": "Sage",
+          "appearance": {
+            "skin": "#E8B48F",
+            "hair": "long",
+            "hairColor": "#D8D3CC",
+            "top": "#2F4F46",
+            "topAccent": "#C9B67A",
+            "bottoms": "#22302B",
+            "shoes": "#1A1A1A",
+            "hat": "none",
+            "hatColor": "#B9F36A",
+            "accessory": "glasses",
+            "accessoryColor": "#C9B67A",
+            "face": "calm",
+            "height": 1.06
+          }
+        }
+      ]
+    },
+    "previews": [
+      "/samples/sample-roblox-everything-in-the-supermarket-is-free-bu-scene-0.jpg",
+      "/samples/sample-roblox-everything-in-the-supermarket-is-free-bu-scene-1.jpg",
+      "/samples/sample-roblox-everything-in-the-supermarket-is-free-bu-scene-2.jpg",
+      "/samples/sample-roblox-everything-in-the-supermarket-is-free-bu-scene-3.jpg",
+      "/samples/sample-roblox-everything-in-the-supermarket-is-free-bu-scene-4.jpg"
+    ]
+  },
+  {
+    "id": "sample-minecraft-every-classroom-in-my-school-has-a-numbe",
+    "title": "Classroom 13",
+    "prompt": "Every classroom in my school has a number. Except classroom 13.",
+    "style": "minecraft",
+    "category": "Mystery",
+    "durationSec": 21.3,
+    "width": 720,
+    "height": 1280,
+    "video": "/samples/sample-minecraft-every-classroom-in-my-school-has-a-numbe.mp4",
+    "thumb": "/samples/sample-minecraft-every-classroom-in-my-school-has-a-numbe.jpg",
+    "createdAt": "2026-11-19T03:34:17.228Z",
+    "format": "strange_world",
+    "story": {
+      "source": "dev-template",
+      "sheet": {
+        "premise": "Every classroom in my school has a number. Except one.",
+        "rule": "Everyone must ignore the unnumbered door, otherwise they stop existing in photographs.",
+        "whyObey": "Old yearbooks are full of empty spaces where kids used to be.",
+        "breakConsequence": "You vanish from every photo. Then people start forgetting you.",
+        "beneficiary": "Nova, the principal, who has worked here for sixty years and never aged.",
+        "secret": "Classroom 13 isn't erasing students. It's keeping them.",
+        "protagonist": {
+          "name": "Juno",
+          "desire": "To prove my best friend was real.",
+          "vulnerability": "I'm the only one who still remembers him.",
+          "secret": "I have the last photo he's still in."
+        },
+        "conflict": "My best friend found the door.",
+        "escalation": [
+          "He vanished from the class photo.",
+          "Then from his family's photos.",
+          "Then his mum asked me who I was talking about."
+        ],
+        "mystery": "Why is the principal in every yearbook since 1960, looking exactly the same?",
+        "twistType": "loop",
+        "endingDevice": "time_pressure",
+        "twist": "The principal isn't guarding Classroom 13. He's its first student — and he's been looking for a replacement.",
+        "endingType": "open_loop",
+        "ending": "The door has my number on it now. 13.",
+        "continuation": "And my photo is starting to fade."
+      },
+      "scenes": [
+        {
+          "narration": "Every classroom in my school has a number. Except one.",
+          "description": "Every classroom in my school has a number. Except one.",
           "environment": "school_hall"
         },
         {
-          "narration": "Then Dot's screen started showing everyone else's secrets.",
-          "description": "Dot celebrates on a stage while Juno sulks.",
-          "environment": "stage"
+          "narration": "Students who find classroom 13 stop existing in photographs.",
+          "description": "Students who find classroom 13 stop existing in photographs.",
+          "environment": "school_hall"
         },
         {
-          "narration": "So I said mine out loud. The screen went quiet. Best sleep of my life. That's my world.",
-          "description": "Juno and Milo celebrate as confetti falls.",
-          "environment": "park"
+          "narration": "The next morning, he was missing from the class photo.",
+          "description": "The next morning, he was missing from the class photo.",
+          "environment": "school_hall"
+        },
+        {
+          "narration": "He isn't guarding classroom 13. He was its first student. And he needs a replacement.",
+          "description": "He isn't guarding classroom 13. He was its first student. And he needs a replacement.",
+          "environment": "school_hall"
+        },
+        {
+          "narration": "This morning, the door had a number on it. Mine.",
+          "description": "This morning, the door had a number on it. Mine.",
+          "environment": "school_hall"
         }
       ],
       "cast": [
@@ -276,224 +398,6 @@
             "accessoryColor": "#111111",
             "face": "cheeky",
             "height": 1
-          }
-        },
-        {
-          "id": "ch_milo",
-          "name": "Milo",
-          "appearance": {
-            "skin": "#F2C9A0",
-            "hair": "short",
-            "hairColor": "#3B2A20",
-            "top": "#F2643D",
-            "topAccent": "#FFD9C7",
-            "bottoms": "#2B2F3A",
-            "shoes": "#1A1A1A",
-            "hat": "headphones",
-            "hatColor": "#202020",
-            "accessory": "none",
-            "accessoryColor": "#111111",
-            "face": "grin",
-            "height": 1
-          }
-        },
-        {
-          "id": "ch_dot",
-          "name": "Dot",
-          "appearance": {
-            "skin": "#A86B4C",
-            "hair": "short",
-            "hairColor": "#2A1B12",
-            "top": "#2A9D8F",
-            "topAccent": "#E9C46A",
-            "bottoms": "#264653",
-            "shoes": "#1A1A1A",
-            "hat": "beanie",
-            "hatColor": "#E76F51",
-            "accessory": "backpack",
-            "accessoryColor": "#E9C46A",
-            "face": "smile",
-            "height": 0.95
-          }
-        }
-      ]
-    },
-    "previews": [
-      "/samples/sample-roblox-your-dreams-appear-on-a-screen-above-you-scene-0.jpg",
-      "/samples/sample-roblox-your-dreams-appear-on-a-screen-above-you-scene-1.jpg",
-      "/samples/sample-roblox-your-dreams-appear-on-a-screen-above-you-scene-2.jpg",
-      "/samples/sample-roblox-your-dreams-appear-on-a-screen-above-you-scene-3.jpg",
-      "/samples/sample-roblox-your-dreams-appear-on-a-screen-above-you-scene-4.jpg"
-    ]
-  },
-  {
-    "id": "sample-minecraft-nobody-can-tell-a-lie",
-    "title": "Nobody can tell a lie",
-    "prompt": "In my world, nobody can tell a lie.",
-    "style": "minecraft",
-    "category": "Funny",
-    "durationSec": 24.3,
-    "width": 720,
-    "height": 1280,
-    "video": "/samples/sample-minecraft-nobody-can-tell-a-lie.mp4",
-    "thumb": "/samples/sample-minecraft-nobody-can-tell-a-lie.jpg",
-    "createdAt": "2026-11-19T02:46:14.484Z",
-    "story": {
-      "source": "dev-template",
-      "scenes": [
-        {
-          "narration": "In my world, nobody can tell a lie.",
-          "description": "Pixel stands in the middle of the world, looking straight at us.",
-          "environment": "school_hall"
-        },
-        {
-          "narration": "Try to lie and your mouth just says the truth instead. Loudly.",
-          "description": "People pass by as Pixel watches, unconvinced.",
-          "environment": "park"
-        },
-        {
-          "narration": "My teacher asked if I did my homework. My mouth said: no, I played games for six hours.",
-          "description": "The rule visibly kicks in on Pixel.",
-          "environment": "city_plaza"
-        },
-        {
-          "narration": "Then Dot found a loophole. If you never talk, you never get caught.",
-          "description": "Dot celebrates on a stage while Pixel sulks.",
-          "environment": "stage"
-        },
-        {
-          "narration": "So now we just say the nice true stuff first. It works surprisingly well. That's my world.",
-          "description": "Pixel and Milo celebrate as confetti falls.",
-          "environment": "park"
-        }
-      ],
-      "cast": [
-        {
-          "id": "ch_pixel",
-          "name": "Pixel",
-          "appearance": {
-            "skin": "#FFD7B0",
-            "hair": "spiky",
-            "hairColor": "#B9F36A",
-            "top": "#151515",
-            "topAccent": "#B9F36A",
-            "bottoms": "#151515",
-            "shoes": "#1A1A1A",
-            "hat": "none",
-            "hatColor": "#B9F36A",
-            "accessory": "shades",
-            "accessoryColor": "#111111",
-            "face": "grin",
-            "height": 0.88
-          }
-        },
-        {
-          "id": "ch_milo",
-          "name": "Milo",
-          "appearance": {
-            "skin": "#F2C9A0",
-            "hair": "short",
-            "hairColor": "#3B2A20",
-            "top": "#F2643D",
-            "topAccent": "#FFD9C7",
-            "bottoms": "#2B2F3A",
-            "shoes": "#1A1A1A",
-            "hat": "headphones",
-            "hatColor": "#202020",
-            "accessory": "none",
-            "accessoryColor": "#111111",
-            "face": "grin",
-            "height": 1
-          }
-        },
-        {
-          "id": "ch_dot",
-          "name": "Dot",
-          "appearance": {
-            "skin": "#A86B4C",
-            "hair": "short",
-            "hairColor": "#2A1B12",
-            "top": "#2A9D8F",
-            "topAccent": "#E9C46A",
-            "bottoms": "#264653",
-            "shoes": "#1A1A1A",
-            "hat": "beanie",
-            "hatColor": "#E76F51",
-            "accessory": "backpack",
-            "accessoryColor": "#E9C46A",
-            "face": "smile",
-            "height": 0.95
-          }
-        }
-      ]
-    },
-    "previews": [
-      "/samples/sample-minecraft-nobody-can-tell-a-lie-scene-0.jpg",
-      "/samples/sample-minecraft-nobody-can-tell-a-lie-scene-1.jpg",
-      "/samples/sample-minecraft-nobody-can-tell-a-lie-scene-2.jpg",
-      "/samples/sample-minecraft-nobody-can-tell-a-lie-scene-3.jpg",
-      "/samples/sample-minecraft-nobody-can-tell-a-lie-scene-4.jpg"
-    ]
-  },
-  {
-    "id": "sample-minecraft-everyone-has-a-number-above-their-head",
-    "title": "The Number Above Your Head",
-    "prompt": "In my world, everyone has a number above their head.",
-    "style": "minecraft",
-    "category": "Mystery",
-    "durationSec": 27.4,
-    "width": 720,
-    "height": 1280,
-    "video": "/samples/sample-minecraft-everyone-has-a-number-above-their-head.mp4",
-    "thumb": "/samples/sample-minecraft-everyone-has-a-number-above-their-head.jpg",
-    "createdAt": "2026-11-19T02:46:14.468Z",
-    "story": {
-      "source": "dev-template",
-      "scenes": [
-        {
-          "narration": "In my world, everyone has a number above their head.",
-          "description": "Dot stands in the middle of the world, looking straight at us.",
-          "environment": "park"
-        },
-        {
-          "narration": "Nobody knows what the number means. Not even the people with big ones.",
-          "description": "Rex explains the rule with big hand gestures.",
-          "environment": "school_hall"
-        },
-        {
-          "narration": "Mine said seven. Every time I did something brave, it went up.",
-          "description": "The rule visibly kicks in on Dot.",
-          "environment": "beach"
-        },
-        {
-          "narration": "Then Nova showed up with nine hundred and ninety-nine. People followed him everywhere.",
-          "description": "Nova struts in, smug, and the music changes.",
-          "environment": "city_plaza"
-        },
-        {
-          "narration": "Nova hit zero by lunch. I hit a thousand. All I did was say thank you. That's my world.",
-          "description": "Dot and Rex celebrate as confetti falls.",
-          "environment": "park"
-        }
-      ],
-      "cast": [
-        {
-          "id": "ch_dot",
-          "name": "Dot",
-          "appearance": {
-            "skin": "#A86B4C",
-            "hair": "short",
-            "hairColor": "#2A1B12",
-            "top": "#2A9D8F",
-            "topAccent": "#E9C46A",
-            "bottoms": "#264653",
-            "shoes": "#1A1A1A",
-            "hat": "beanie",
-            "hatColor": "#E76F51",
-            "accessory": "backpack",
-            "accessoryColor": "#E9C46A",
-            "face": "smile",
-            "height": 0.95
           }
         },
         {
@@ -533,56 +437,264 @@
             "face": "determined",
             "height": 1
           }
+        },
+        {
+          "id": "ch_sage",
+          "name": "Sage",
+          "appearance": {
+            "skin": "#E8B48F",
+            "hair": "long",
+            "hairColor": "#D8D3CC",
+            "top": "#2F4F46",
+            "topAccent": "#C9B67A",
+            "bottoms": "#22302B",
+            "shoes": "#1A1A1A",
+            "hat": "none",
+            "hatColor": "#B9F36A",
+            "accessory": "glasses",
+            "accessoryColor": "#C9B67A",
+            "face": "calm",
+            "height": 1.06
+          }
         }
       ]
     },
     "previews": [
-      "/samples/sample-minecraft-everyone-has-a-number-above-their-head-scene-0.jpg",
-      "/samples/sample-minecraft-everyone-has-a-number-above-their-head-scene-1.jpg",
-      "/samples/sample-minecraft-everyone-has-a-number-above-their-head-scene-2.jpg",
-      "/samples/sample-minecraft-everyone-has-a-number-above-their-head-scene-3.jpg",
-      "/samples/sample-minecraft-everyone-has-a-number-above-their-head-scene-4.jpg"
+      "/samples/sample-minecraft-every-classroom-in-my-school-has-a-numbe-scene-0.jpg",
+      "/samples/sample-minecraft-every-classroom-in-my-school-has-a-numbe-scene-1.jpg",
+      "/samples/sample-minecraft-every-classroom-in-my-school-has-a-numbe-scene-2.jpg",
+      "/samples/sample-minecraft-every-classroom-in-my-school-has-a-numbe-scene-3.jpg",
+      "/samples/sample-minecraft-every-classroom-in-my-school-has-a-numbe-scene-4.jpg"
     ]
   },
   {
-    "id": "sample-roblox-everyone-grows-taller-every-time-they-he",
-    "title": "Growing Up, Literally",
-    "prompt": "In my world, everyone grows taller every time they help someone.",
+    "id": "sample-roblox-nobody-is-allowed-to-sleep-before-9-pm",
+    "title": "Lights Out at Nine",
+    "prompt": "In my town, nobody is allowed to sleep before 9 PM.",
     "style": "roblox",
-    "category": "Wholesome",
-    "durationSec": 26.3,
+    "category": "Strange",
+    "durationSec": 23.1,
     "width": 720,
     "height": 1280,
-    "video": "/samples/sample-roblox-everyone-grows-taller-every-time-they-he.mp4",
-    "thumb": "/samples/sample-roblox-everyone-grows-taller-every-time-they-he.jpg",
-    "createdAt": "2026-11-19T02:46:14.465Z",
+    "video": "/samples/sample-roblox-nobody-is-allowed-to-sleep-before-9-pm.mp4",
+    "thumb": "/samples/sample-roblox-nobody-is-allowed-to-sleep-before-9-pm.jpg",
+    "createdAt": "2026-11-19T03:34:17.209Z",
+    "format": "impossible_choice",
     "story": {
       "source": "dev-template",
+      "sheet": {
+        "premise": "In my town, nobody is allowed to sleep before 9 PM.",
+        "rule": "Everyone must stay awake until nine, otherwise they wake up in someone else's body.",
+        "whyObey": "Nobody wants to wake up as a stranger.",
+        "breakConsequence": "You wake up in a random body. Someone else wakes up in yours.",
+        "beneficiary": "Sage, who runs the only all-night café and knows everyone's sleeping habits.",
+        "secret": "The swaps aren't random. Someone has been choosing them.",
+        "protagonist": {
+          "name": "Dot",
+          "desire": "To get my own body back.",
+          "vulnerability": "Nobody believes I'm really me.",
+          "secret": "I fell asleep on purpose."
+        },
+        "conflict": "I fell asleep at 8:59.",
+        "escalation": [
+          "I woke up as Nova, the town's strictest teacher.",
+          "My real body was walking to school without me.",
+          "And it was being nicer to my friends than I ever was."
+        ],
+        "mystery": "Why did it feel like the swap was waiting for me?",
+        "twistType": "perspective",
+        "endingDevice": "impossible_decision",
+        "twist": "Nobody stole my body. The person in it is who I'd be if I stopped being afraid.",
+        "endingType": "open_loop",
+        "ending": "Tonight at nine, I can switch back. Or I can let them stay.",
+        "continuation": "Which one of us should wake up tomorrow?"
+      },
       "scenes": [
         {
-          "narration": "In my world, everyone grows taller every time they help someone.",
-          "description": "Bricks stands in the middle of the world, looking straight at us.",
+          "narration": "In my town, nobody is allowed to sleep before 9 PM.",
+          "description": "In my town, nobody is allowed to sleep before 9 PM.",
           "environment": "town_street"
         },
         {
-          "narration": "Help someone carry their bags? You grow an inch. Hold a door? Another inch.",
-          "description": "People pass by as Bricks watches, unconvinced.",
-          "environment": "beach"
+          "narration": "If you do, you wake up in someone else's body.",
+          "description": "If you do, you wake up in someone else's body.",
+          "environment": "bedroom"
         },
         {
-          "narration": "Bricks helped one old lady cross the road and shot up like a rocket.",
-          "description": "Bricks gets to work, determined.",
+          "narration": "So I fell asleep at 8:59. I woke up as Nova. The strictest teacher in town.",
+          "description": "So I fell asleep at 8:59. I woke up as Nova. The strictest teacher in town.",
+          "environment": "bedroom"
+        },
+        {
+          "narration": "Nobody stole my body. The person in it is who I'd be if I stopped being scared.",
+          "description": "Nobody stole my body. The person in it is who I'd be if I stopped being scared.",
+          "environment": "school_hall"
+        },
+        {
+          "narration": "Tonight at nine, I can switch back. Or I can let them stay.",
+          "description": "Tonight at nine, I can switch back. Or I can let them stay.",
+          "environment": "bedroom"
+        }
+      ],
+      "cast": [
+        {
+          "id": "ch_dot",
+          "name": "Dot",
+          "appearance": {
+            "skin": "#A86B4C",
+            "hair": "short",
+            "hairColor": "#2A1B12",
+            "top": "#2A9D8F",
+            "topAccent": "#E9C46A",
+            "bottoms": "#264653",
+            "shoes": "#1A1A1A",
+            "hat": "beanie",
+            "hatColor": "#E76F51",
+            "accessory": "backpack",
+            "accessoryColor": "#E9C46A",
+            "face": "smile",
+            "height": 0.95
+          }
+        },
+        {
+          "id": "ch_juno",
+          "name": "Juno",
+          "appearance": {
+            "skin": "#8D5A3B",
+            "hair": "bun",
+            "hairColor": "#16110E",
+            "top": "#7A5CFA",
+            "topAccent": "#EDE6FF",
+            "bottoms": "#E9E4DA",
+            "shoes": "#1A1A1A",
+            "hat": "none",
+            "hatColor": "#B9F36A",
+            "accessory": "none",
+            "accessoryColor": "#111111",
+            "face": "cheeky",
+            "height": 1
+          }
+        },
+        {
+          "id": "ch_nova",
+          "name": "Nova",
+          "appearance": {
+            "skin": "#F5D0B5",
+            "hair": "curly",
+            "hairColor": "#C2410C",
+            "top": "#14213D",
+            "topAccent": "#FCA311",
+            "bottoms": "#14213D",
+            "shoes": "#1A1A1A",
+            "hat": "crown",
+            "hatColor": "#FCA311",
+            "accessory": "cape",
+            "accessoryColor": "#9D0208",
+            "face": "determined",
+            "height": 1
+          }
+        },
+        {
+          "id": "ch_sage",
+          "name": "Sage",
+          "appearance": {
+            "skin": "#E8B48F",
+            "hair": "long",
+            "hairColor": "#D8D3CC",
+            "top": "#2F4F46",
+            "topAccent": "#C9B67A",
+            "bottoms": "#22302B",
+            "shoes": "#1A1A1A",
+            "hat": "none",
+            "hatColor": "#B9F36A",
+            "accessory": "glasses",
+            "accessoryColor": "#C9B67A",
+            "face": "calm",
+            "height": 1.06
+          }
+        }
+      ]
+    },
+    "previews": [
+      "/samples/sample-roblox-nobody-is-allowed-to-sleep-before-9-pm-scene-0.jpg",
+      "/samples/sample-roblox-nobody-is-allowed-to-sleep-before-9-pm-scene-1.jpg",
+      "/samples/sample-roblox-nobody-is-allowed-to-sleep-before-9-pm-scene-2.jpg",
+      "/samples/sample-roblox-nobody-is-allowed-to-sleep-before-9-pm-scene-3.jpg",
+      "/samples/sample-roblox-nobody-is-allowed-to-sleep-before-9-pm-scene-4.jpg"
+    ]
+  },
+  {
+    "id": "sample-minecraft-lying-is-impossible-the-moment-you-tell-",
+    "title": "The Shadow Thief",
+    "prompt": "In my town, lying is impossible. The moment you tell a lie, your shadow disappears.",
+    "style": "minecraft",
+    "category": "Funny",
+    "durationSec": 32.6,
+    "width": 720,
+    "height": 1280,
+    "video": "/samples/sample-minecraft-lying-is-impossible-the-moment-you-tell-.mp4",
+    "thumb": "/samples/sample-minecraft-lying-is-impossible-the-moment-you-tell-.jpg",
+    "createdAt": "2026-11-19T03:34:17.196Z",
+    "format": "mystery_series",
+    "story": {
+      "source": "dev-template",
+      "sheet": {
+        "premise": "In my town, lying is impossible. The moment you tell a lie, your shadow disappears.",
+        "rule": "Everyone must tell the truth, otherwise their shadow vanishes — and seven days later, so do they.",
+        "whyObey": "Everyone has watched someone fade away.",
+        "breakConsequence": "No shadow, then invisible to everyone after seven days.",
+        "beneficiary": "Nova, the mayor, who has never lost his shadow.",
+        "secret": "Nova isn't immune. He steals other people's shadows to hide his own lies.",
+        "protagonist": {
+          "name": "Bricks",
+          "desire": "To find out what happened to my dad.",
+          "vulnerability": "If I'm wrong about him, I lose the last good thing I believe.",
+          "secret": "I don't believe my dad ever lied."
+        },
+        "conflict": "My best friend lost her shadow. She swears she didn't lie.",
+        "escalation": [
+          "Pixel lost her shadow, and she swears she never lied.",
+          "Then I noticed the mayor's shadow moves a second late.",
+          "Everyone in town says Nova has never told a lie. Not once."
+        ],
+        "mystery": "How can a man who's never lied have the wrong shadow?",
+        "twistType": "betrayal",
+        "endingDevice": "new_revelation",
+        "twist": "The mayor isn't immune. He's been stealing other people's shadows to hide his own lies.",
+        "endingType": "open_loop",
+        "ending": "I asked him where my dad was. He said: your father is the reason this town has a truth rule.",
+        "continuation": "Then I looked down. My shadow was gone."
+      },
+      "scenes": [
+        {
+          "narration": "In my town, lying is impossible. The moment you tell a lie, your shadow disappears.",
+          "description": "In my town, lying is impossible. The moment you tell a lie, your shadow disappears.",
           "environment": "town_street"
         },
         {
-          "narration": "Then Rex started helping people just to get taller. Fake helping. For clout.",
-          "description": "Rex struts in, smug, and the music changes.",
+          "narration": "Seven days later, nobody can see you at all.",
+          "description": "Seven days later, nobody can see you at all.",
           "environment": "city_plaza"
         },
         {
-          "narration": "Now the tallest person in town is the one who never asks for anything back. That's my world.",
-          "description": "Bricks and Sage celebrate as confetti falls.",
-          "environment": "park"
+          "narration": "Then my best friend lost her shadow. She swears she didn't lie.",
+          "description": "Then my best friend lost her shadow. She swears she didn't lie.",
+          "environment": "school_hall"
+        },
+        {
+          "narration": "The mayor wasn't immune. He was stealing our shadows to hide his own lies.",
+          "description": "The mayor wasn't immune. He was stealing our shadows to hide his own lies.",
+          "environment": "office"
+        },
+        {
+          "narration": "I asked him where my dad was. He said my dad is the reason this town has a truth rule.",
+          "description": "I asked him where my dad was. He said my dad is the reason this town has a truth rule.",
+          "environment": "office"
+        },
+        {
+          "narration": "Then I looked down. My shadow was gone.",
+          "description": "Then I looked down. My shadow was gone.",
+          "environment": "office"
         }
       ],
       "cast": [
@@ -606,6 +718,44 @@
           }
         },
         {
+          "id": "ch_pixel",
+          "name": "Pixel",
+          "appearance": {
+            "skin": "#FFD7B0",
+            "hair": "spiky",
+            "hairColor": "#B9F36A",
+            "top": "#151515",
+            "topAccent": "#B9F36A",
+            "bottoms": "#151515",
+            "shoes": "#1A1A1A",
+            "hat": "none",
+            "hatColor": "#B9F36A",
+            "accessory": "shades",
+            "accessoryColor": "#111111",
+            "face": "grin",
+            "height": 0.88
+          }
+        },
+        {
+          "id": "ch_nova",
+          "name": "Nova",
+          "appearance": {
+            "skin": "#F5D0B5",
+            "hair": "curly",
+            "hairColor": "#C2410C",
+            "top": "#14213D",
+            "topAccent": "#FCA311",
+            "bottoms": "#14213D",
+            "shoes": "#1A1A1A",
+            "hat": "crown",
+            "hatColor": "#FCA311",
+            "accessory": "cape",
+            "accessoryColor": "#9D0208",
+            "face": "determined",
+            "height": 1
+          }
+        },
+        {
           "id": "ch_sage",
           "name": "Sage",
           "appearance": {
@@ -622,6 +772,106 @@
             "accessoryColor": "#C9B67A",
             "face": "calm",
             "height": 1.06
+          }
+        }
+      ]
+    },
+    "previews": [
+      "/samples/sample-minecraft-lying-is-impossible-the-moment-you-tell--scene-0.jpg",
+      "/samples/sample-minecraft-lying-is-impossible-the-moment-you-tell--scene-1.jpg",
+      "/samples/sample-minecraft-lying-is-impossible-the-moment-you-tell--scene-2.jpg",
+      "/samples/sample-minecraft-lying-is-impossible-the-moment-you-tell--scene-3.jpg",
+      "/samples/sample-minecraft-lying-is-impossible-the-moment-you-tell--scene-4.jpg",
+      "/samples/sample-minecraft-lying-is-impossible-the-moment-you-tell--scene-5.jpg"
+    ]
+  },
+  {
+    "id": "sample-roblox-nobody-is-allowed-to-look-at-the-moon",
+    "title": "Don't Look at the Moon",
+    "prompt": "In my town, nobody is allowed to look at the moon.",
+    "style": "roblox",
+    "category": "Strange",
+    "durationSec": 22,
+    "width": 720,
+    "height": 1280,
+    "video": "/samples/sample-roblox-nobody-is-allowed-to-look-at-the-moon.mp4",
+    "thumb": "/samples/sample-roblox-nobody-is-allowed-to-look-at-the-moon.jpg",
+    "createdAt": "2026-11-19T03:34:17.189Z",
+    "format": "mystery_series",
+    "story": {
+      "source": "dev-template",
+      "sheet": {
+        "premise": "In my town, nobody is allowed to look at the moon.",
+        "rule": "Everyone must keep their eyes down at night, otherwise they disappear before sunrise.",
+        "whyObey": "Every family has lost someone who looked.",
+        "breakConsequence": "You're gone before sunrise. No body, no trace.",
+        "beneficiary": "Nova, who keeps the town's curtains closed and the streets dark.",
+        "secret": "The moon isn't taking people. It's calling them home.",
+        "protagonist": {
+          "name": "Pixel",
+          "desire": "To keep my little brother safe.",
+          "vulnerability": "He's all the family I have left.",
+          "secret": "I've seen him drawing the moon every night."
+        },
+        "conflict": "My little brother has been drawing the moon every night.",
+        "escalation": [
+          "His drawings started appearing on everyone's windows.",
+          "Last night, they appeared on ours — from the outside.",
+          "Every drawing showed the same thing: our mother, standing on the moon."
+        ],
+        "mystery": "Why does my brother know what our mother looked like? He was a baby when she left.",
+        "twistType": "rule_reversal",
+        "endingDevice": "unexpected_arrival",
+        "twist": "The moon wasn't making people disappear. It was calling them home.",
+        "endingType": "open_loop",
+        "ending": "Then my mother knocked on the window. She was outside, pointing up.",
+        "continuation": "But my mother has been gone for twelve years."
+      },
+      "scenes": [
+        {
+          "narration": "In my town, nobody is allowed to look at the moon.",
+          "description": "In my town, nobody is allowed to look at the moon.",
+          "environment": "town_street"
+        },
+        {
+          "narration": "Anyone who looks at it disappears before sunrise. No body. No goodbye.",
+          "description": "Anyone who looks at it disappears before sunrise. No body. No goodbye.",
+          "environment": "town_street"
+        },
+        {
+          "narration": "Last night, one appeared on ours. Drawn from the outside.",
+          "description": "Last night, one appeared on ours. Drawn from the outside.",
+          "environment": "bedroom"
+        },
+        {
+          "narration": "The moon wasn't making people disappear. It was calling them home.",
+          "description": "The moon wasn't making people disappear. It was calling them home.",
+          "environment": "town_street"
+        },
+        {
+          "narration": "Then someone knocked on the window. It was my mother. She was pointing up.",
+          "description": "Then someone knocked on the window. It was my mother. She was pointing up.",
+          "environment": "bedroom"
+        }
+      ],
+      "cast": [
+        {
+          "id": "ch_pixel",
+          "name": "Pixel",
+          "appearance": {
+            "skin": "#FFD7B0",
+            "hair": "spiky",
+            "hairColor": "#B9F36A",
+            "top": "#151515",
+            "topAccent": "#B9F36A",
+            "bottoms": "#151515",
+            "shoes": "#1A1A1A",
+            "hat": "none",
+            "hatColor": "#B9F36A",
+            "accessory": "shades",
+            "accessoryColor": "#111111",
+            "face": "grin",
+            "height": 0.88
           }
         },
         {
@@ -642,15 +892,53 @@
             "face": "cheeky",
             "height": 1
           }
+        },
+        {
+          "id": "ch_nova",
+          "name": "Nova",
+          "appearance": {
+            "skin": "#F5D0B5",
+            "hair": "curly",
+            "hairColor": "#C2410C",
+            "top": "#14213D",
+            "topAccent": "#FCA311",
+            "bottoms": "#14213D",
+            "shoes": "#1A1A1A",
+            "hat": "crown",
+            "hatColor": "#FCA311",
+            "accessory": "cape",
+            "accessoryColor": "#9D0208",
+            "face": "determined",
+            "height": 1
+          }
+        },
+        {
+          "id": "ch_sage",
+          "name": "Sage",
+          "appearance": {
+            "skin": "#E8B48F",
+            "hair": "long",
+            "hairColor": "#D8D3CC",
+            "top": "#2F4F46",
+            "topAccent": "#C9B67A",
+            "bottoms": "#22302B",
+            "shoes": "#1A1A1A",
+            "hat": "none",
+            "hatColor": "#B9F36A",
+            "accessory": "glasses",
+            "accessoryColor": "#C9B67A",
+            "face": "calm",
+            "height": 1.06
+          }
         }
       ]
     },
     "previews": [
-      "/samples/sample-roblox-everyone-grows-taller-every-time-they-he-scene-0.jpg",
-      "/samples/sample-roblox-everyone-grows-taller-every-time-they-he-scene-1.jpg",
-      "/samples/sample-roblox-everyone-grows-taller-every-time-they-he-scene-2.jpg",
-      "/samples/sample-roblox-everyone-grows-taller-every-time-they-he-scene-3.jpg",
-      "/samples/sample-roblox-everyone-grows-taller-every-time-they-he-scene-4.jpg"
+      "/samples/sample-roblox-nobody-is-allowed-to-look-at-the-moon-scene-0.jpg",
+      "/samples/sample-roblox-nobody-is-allowed-to-look-at-the-moon-scene-1.jpg",
+      "/samples/sample-roblox-nobody-is-allowed-to-look-at-the-moon-scene-2.jpg",
+      "/samples/sample-roblox-nobody-is-allowed-to-look-at-the-moon-scene-3.jpg",
+      "/samples/sample-roblox-nobody-is-allowed-to-look-at-the-moon-scene-4.jpg"
     ]
   }
 ]

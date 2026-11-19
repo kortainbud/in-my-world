@@ -171,6 +171,12 @@ export function ProductDemo({ sample }: { sample?: SampleEntry }) {
           <div className="rise">
             <p className="eyebrow">Script · {sample.story.scenes.length} scenes</p>
             <h3 className="mt-3 text-[22px] font-semibold tracking-[-0.02em]">{sample.title}</h3>
+            {sample.story.sheet && (
+              <dl className="mt-3 grid gap-2 text-[12.5px] sm:grid-cols-2">
+                <div className="rounded-[8px] border border-line-soft bg-bg px-3 py-2"><dt className="text-fg-3">The rule</dt><dd className="mt-0.5 text-fg-2">{sample.story.sheet.rule}</dd></div>
+                <div className="rounded-[8px] border border-line-soft bg-bg px-3 py-2"><dt className="text-fg-3">The secret · {sample.story.sheet.twistType.replace(/_/g, " ")} twist</dt><dd className="mt-0.5 text-fg-2">{sample.story.sheet.secret}</dd></div>
+              </dl>
+            )}
             <ol className="mt-5 space-y-3">
               {sample.story.scenes.map((sc, k) => (
                 <li key={k} className="flex gap-3 text-[14px]">

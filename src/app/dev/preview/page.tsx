@@ -16,7 +16,7 @@ export default function Preview() {
     const q = new URLSearchParams(location.search);
     const prompt = q.get("p") ?? "In my world, everyone grows taller every time they help someone.";
     const style = (q.get("s") ?? "roblox") as VisualStyle;
-    const plan = generateDevStory({ prompt, duration: 60, cast: [] });
+    const plan = generateDevStory({ prompt, duration: 60, cast: [], format: (q.get("f") ?? "strange_world") as never });
     const cast = plan.cast.map((c) => { const rec = OFFICIAL_CHARACTERS.find((o) => o.id === c.characterId)!; return { id: rec.id, name: rec.name, appearance: rec.appearance }; });
     const refs = Object.fromEntries(plan.cast.map((c) => [c.ref, c.characterId!]));
     const timeline = compileTimeline({ plan, style, cast, refs, audio: [], width: 540, height: 960, watermark: true, targetDuration: 60 });
