@@ -13,8 +13,11 @@ export type Table =
   | "users" | "profiles" | "sessions" | "subscriptions" | "credits" | "projects" | "stories" | "jobs"
   | "videos" | "characters" | "payments" | "wallets" | "wallet_nonces" | "viewer_stats" | "sample_views";
 
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Read at request time (not build time), and accept the common names, so a
+// key added in the host's dashboard works without depending on the build.
+const env = (k: string) => (process.env[k] ?? "").trim();
+const supabaseUrl = () => env("SUPABASE_URL") || env("NEXT_PUBLIC_SUPABASE_URL");
+const serviceKey = () => env("SUPABASE_SERVICE_ROLE_KEY") || env("SUPABASE_SECRET_KEY") || env("SUPABASE_SERVICE_KEY");
 
 // The schema is JSON documents, so the client is untyped; documents are typed at each call.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,9 +26,16 @@ type G = { __imwSb?: Client };
 const g = globalThis as G;
 
 export function sb(): Client {
-  if (!URL || !KEY) throw new HttpError(503, "The database isn't configured (NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).");
+  if (g.__imwSb) return g.__imwSb;
+  const url = supabaseUrl();
+  const key = serviceKey();
+  const missing = [!url && "SUPABASE_URL", !key && "SUPABASE_SERVICE_ROLE_KEY"].filter(Boolean);
+  if (missing.length) {
+    console.error(`[data] missing environment variable(s): ${missing.join(", ")}`);
+    throw new HttpError(503, `The database isn't configured: ${missing.join(" and ")} ${missing.length > 1 ? "are" : "is"} missing on the server.`);
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  g.__imwSb ??= createClient<any>(URL, KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  g.__imwSb ??= createClient<any>(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
   return g.__imwSb;
 }
 
