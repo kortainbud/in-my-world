@@ -42,7 +42,7 @@ export function StorySheetPanel({ sheet }: { sheet: StorySheet }) {
   return (
     <section className="rounded-[12px] border border-line-soft bg-bg-2">
       <div className="flex items-center justify-between border-b border-line-soft px-4 py-3">
-        <h2 className="text-[14px] font-semibold">Story sheet</h2>
+        <h2 className="text-body font-semibold">Story sheet</h2>
         <Button
           size="sm"
           variant="ghost"
@@ -57,8 +57,8 @@ export function StorySheetPanel({ sheet }: { sheet: StorySheet }) {
       </div>
       <dl className="divide-y divide-line-soft">
         {rows.map(([letter, k, v]) => (
-          <div key={k} className="grid grid-cols-[22px_120px_1fr] gap-2 px-4 py-2.5 text-[13px]">
-            <dt className="font-mono text-[11px] leading-5 text-accent">{letter}</dt>
+          <div key={k} className="grid grid-cols-[22px_120px_1fr] gap-2 px-4 py-2.5 text-small">
+            <dt className="font-mono text-micro leading-5 text-accent">{letter}</dt>
             <dt className="leading-5 text-fg-3">{k}</dt>
             <dd className="whitespace-pre-line leading-5 text-fg-2">{v}</dd>
           </div>
@@ -73,17 +73,17 @@ export function ChecklistPanel({ items, source, revised }: { items: ChecklistIte
   return (
     <section className="rounded-[12px] border border-line-soft bg-bg-2">
       <div className="flex items-center justify-between border-b border-line-soft px-4 py-3">
-        <h2 className="text-[14px] font-semibold">Editorial checklist</h2>
-        <span className="text-[12px] text-fg-3">
+        <h2 className="text-body font-semibold">Editorial checklist</h2>
+        <span className="text-caption text-fg-3">
           {passed}/{items.length} · {source === "editor" ? `AI editor${revised ? ", revised once" : ""}` : "structure checks"}
         </span>
       </div>
       <ul className="divide-y divide-line-soft">
         {items.map((i) => (
-          <li key={i.key} className="flex gap-3 px-4 py-2.5 text-[13px]">
+          <li key={i.key} className="flex gap-3 px-4 py-2.5 text-small">
             <span
               aria-label={i.pass === true ? "Pass" : i.pass === false ? "Needs work" : "Needs a human read"}
-              className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${i.pass === true ? "bg-accent text-accent-ink" : i.pass === false ? "bg-danger text-bg" : "border border-line text-fg-3"}`}
+              className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-micro font-bold ${i.pass === true ? "bg-accent text-accent-ink" : i.pass === false ? "bg-danger text-bg" : "border border-line text-fg-3"}`}
             >
               {i.pass === true ? "✓" : i.pass === false ? "!" : "?"}
             </span>
@@ -94,7 +94,7 @@ export function ChecklistPanel({ items, source, revised }: { items: ChecklistIte
           </li>
         ))}
       </ul>
-      {source !== "editor" && <p className="border-t border-line-soft px-4 py-2.5 text-[11.5px] text-fg-3">Structure checks confirm the shape of the story. Items marked ? need an editor — configure Claude to have them graded automatically.</p>}
+      {source !== "editor" && <p className="border-t border-line-soft px-4 py-2.5 text-micro text-fg-3">Structure checks confirm the shape of the story. Items marked ? need an editor — configure Claude to have them graded automatically.</p>}
     </section>
   );
 }
@@ -115,23 +115,23 @@ export function MetricsPanel({ m, isPublic }: { m: Metrics; isPublic: boolean })
   return (
     <section className="rounded-[12px] border border-line-soft bg-bg-2">
       <div className="border-b border-line-soft px-4 py-3">
-        <h2 className="text-[14px] font-semibold">Performance</h2>
-        <p className="mt-0.5 text-[12px] text-fg-3">Plays inside In My World (share page and Explore). Your own plays and plays on other platforms aren’t counted.</p>
+        <h2 className="text-body font-semibold">Performance</h2>
+        <p className="mt-0.5 text-caption text-fg-3">Plays inside In My World (share page and Explore). Your own plays and plays on other platforms aren’t counted.</p>
       </div>
       <dl className="grid grid-cols-2 gap-px bg-line-soft sm:grid-cols-3">
         {rows.map(([k, v, hint]) => (
           <div key={k} className="bg-bg-2 px-4 py-3">
-            <dt className="text-[11.5px] text-fg-3">{k}</dt>
-            <dd className="mt-0.5 text-[20px] font-semibold tracking-[-0.02em]">{v}</dd>
-            <dd className="text-[11px] text-fg-3">{hint}</dd>
+            <dt className="text-micro text-fg-3">{k}</dt>
+            <dd className="mt-0.5 text-title font-semibold tracking-[-0.02em]">{v}</dd>
+            <dd className="text-micro text-fg-3">{hint}</dd>
           </div>
         ))}
         <div className="bg-bg-2 px-4 py-3">
-          <dt className="text-[11.5px] text-fg-3">Comments</dt>
-          <dd className="mt-1 text-[12px] leading-snug text-fg-3">Not available — there are no comments yet.</dd>
+          <dt className="text-micro text-fg-3">Comments</dt>
+          <dd className="mt-1 text-caption leading-snug text-fg-3">Not available — there are no comments yet.</dd>
         </div>
       </dl>
-      {!isPublic && m.views === 0 && <p className="border-t border-line-soft px-4 py-2.5 text-[12px] text-fg-3">Share the video to start collecting audience data.</p>}
+      {!isPublic && m.views === 0 && <p className="border-t border-line-soft px-4 py-2.5 text-caption text-fg-3">Share the video to start collecting audience data.</p>}
     </section>
   );
 }
@@ -145,7 +145,7 @@ export function SeriesStrip({ episodes, current }: { episodes: { id: string; epi
           key={e.id}
           href={`/studio/projects/${e.id}`}
           aria-current={e.id === current ? "page" : undefined}
-          className={`inline-flex h-8 items-center gap-1.5 rounded-[8px] border px-2.5 text-[12.5px] ${e.id === current ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
+          className={`inline-flex h-8 items-center gap-1.5 rounded-[8px] border px-2.5 text-caption ${e.id === current ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
         >
           Part {e.episode}
           {e.status !== "completed" && <Tag>{e.status === "failed" ? "failed" : "in progress"}</Tag>}

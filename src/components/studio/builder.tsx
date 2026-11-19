@@ -39,7 +39,7 @@ function Chips<T extends string>({ value, onChange, options, name }: { value: T;
           role="radio"
           aria-checked={value === o}
           onClick={() => onChange(o)}
-          className={`h-8 rounded-[7px] border px-2.5 text-[12.5px] transition-colors ${value === o ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
+          className={`h-8 rounded-[7px] border px-2.5 text-caption transition-colors ${value === o ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
         >
           {label(o)}
         </button>
@@ -105,14 +105,14 @@ export function Builder({ id }: { id?: string }) {
     }
   };
 
-  if (!loaded) return <div className="flex min-h-[50vh] items-center justify-center text-[13px] text-fg-3">Loading…</div>;
+  if (!loaded) return <div className="flex min-h-[50vh] items-center justify-center text-small text-fg-3">Loading…</div>;
 
   return (
-    <div className="mx-auto w-full max-w-[1180px] px-4 pb-24 pt-6 sm:px-6 lg:pt-10">
-      <Link href="/studio/characters" className="text-[13px] text-fg-2 hover:text-fg">
+    <div className="mx-auto w-full max-w-[1080px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
+      <Link href="/studio/characters" className="text-small text-fg-2 hover:text-fg">
         ← Characters
       </Link>
-      <h1 className="mt-3 text-[26px] font-semibold tracking-[-0.03em]">{id ? `Edit ${name || "character"}` : "New character"}</h1>
+      <h1 className="mt-3 text-page font-semibold">{id ? `Edit ${name || "character"}` : "New character"}</h1>
       <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,420px)_1fr]">
         <div className="lg:sticky lg:top-6 lg:self-start">
           <div className="relative aspect-[4/5] overflow-hidden rounded-[14px] border border-line bg-bg-2">
@@ -120,7 +120,7 @@ export function Builder({ id }: { id?: string }) {
             <div className="absolute left-3 top-3">
               <Segmented label="Preview style" value={preview} onChange={setPreview} options={[{ value: "roblox", label: "Roblox" }, { value: "minecraft", label: "Minecraft" }]} />
             </div>
-            <p className="pointer-events-none absolute bottom-3 left-0 right-0 text-center text-[11.5px] text-fg-3">Drag to rotate · works in both styles</p>
+            <p className="pointer-events-none absolute bottom-3 left-0 right-0 text-center text-micro text-fg-3">Drag to rotate · works in both styles</p>
           </div>
           <Button className="mt-3 w-full" onClick={randomize}>
             Randomize look
@@ -152,7 +152,7 @@ export function Builder({ id }: { id?: string }) {
           </Section>
           <Section title="Top">
             <Swatches name="Top colour" value={ap.top} onChange={(v) => set("top", v)} colors={BUILDER.colors} />
-            <p className="text-[12px] text-fg-3">Stripe & badge</p>
+            <p className="text-caption text-fg-3">Stripe & badge</p>
             <Swatches name="Accent colour" value={ap.topAccent} onChange={(v) => set("topAccent", v)} colors={BUILDER.colors} />
           </Section>
           <Section title="Bottoms & shoes">
@@ -175,7 +175,7 @@ export function Builder({ id }: { id?: string }) {
             {visibility === "public" && (
               <Segmented label="Who can cast" value={reuse} onChange={setReuse} options={[{ value: "owner_only", label: "Only me" }, { value: "anyone", label: "Anyone can cast" }]} />
             )}
-            <p className="text-[12px] text-fg-3">Public characters appear in the community library. Only you can edit them.</p>
+            <p className="text-caption text-fg-3">Public characters appear in the community library. Only you can edit them.</p>
           </Section>
 
           {error && <Notice tone="danger">{error}</Notice>}
@@ -196,7 +196,7 @@ export function Builder({ id }: { id?: string }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-2.5 border-t border-line-soft pt-5">
-      <h2 className="text-[13.5px] font-medium">{title}</h2>
+      <h2 className="text-small font-medium">{title}</h2>
       {children}
     </section>
   );

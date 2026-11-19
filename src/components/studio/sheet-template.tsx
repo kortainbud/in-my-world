@@ -42,8 +42,8 @@ export function SheetTemplate() {
     <div className="rounded-[12px] border border-line-soft bg-bg-2">
       <div className="flex items-center justify-between border-b border-line-soft px-4 py-3">
         <div>
-          <h2 className="text-[15px] font-semibold">Story development sheet</h2>
-          <p className="text-[12.5px] text-fg-2">The template every story is built on. Every finished video shows its own filled-in sheet.</p>
+          <h2 className="text-body font-semibold">Story development sheet</h2>
+          <p className="text-caption text-fg-2">The template every story is built on. Every finished video shows its own filled-in sheet.</p>
         </div>
         <Button
           size="sm"
@@ -56,7 +56,7 @@ export function SheetTemplate() {
           {copied ? "Copied" : "Copy template"}
         </Button>
       </div>
-      <pre className="max-h-[360px] overflow-auto whitespace-pre-wrap px-4 py-3 font-mono text-[12.5px] leading-relaxed text-fg-2">{SHEET_TEMPLATE}</pre>
+      <pre className="max-h-[360px] overflow-auto whitespace-pre-wrap px-4 py-3 font-mono text-caption leading-relaxed text-fg-2">{SHEET_TEMPLATE}</pre>
     </div>
   );
 }

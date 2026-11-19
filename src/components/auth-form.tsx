@@ -45,8 +45,8 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       </header>
       <div className="flex flex-1 items-center justify-center pb-20">
         <div className="w-full max-w-[380px]">
-          <h1 className="display text-[40px]">{mode === "sign-in" ? "welcome back." : "start your world."}</h1>
-          <p className="mt-3 text-[14px] text-fg-2">{mode === "sign-in" ? "Sign in to your studio." : "Free plan includes monthly credits. No card needed."}</p>
+          <h1 className="display text-display-sm">{mode === "sign-in" ? "welcome back." : "start your world."}</h1>
+          <p className="mt-3 text-body text-fg-2">{mode === "sign-in" ? "Sign in to your studio." : "Free plan includes monthly credits. No card needed."}</p>
           <form onSubmit={submit} className="mt-8 space-y-4">
             {mode === "sign-up" && (
               <Field label="Name">
@@ -64,12 +64,12 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
               {busy && <Spinner />} {mode === "sign-in" ? "Sign in" : "Create account"}
             </Button>
           </form>
-          <div className="my-6 flex items-center gap-3 text-[12px] text-fg-3">
+          <div className="my-6 flex items-center gap-3 text-caption text-fg-3">
             <span className="h-px flex-1 bg-line-soft" /> or continue with a wallet <span className="h-px flex-1 bg-line-soft" />
           </div>
           <WalletButtons purpose="signin" onDone={() => { router.replace(next); router.refresh(); }} />
-          <p className="mt-3 text-[11.5px] leading-relaxed text-fg-3">Optional. Signing proves you own the wallet — it never moves funds, and we never ask for seed phrases or private keys.</p>
-          <p className="mt-8 text-[13.5px] text-fg-2">
+          <p className="mt-3 text-micro leading-relaxed text-fg-3">Optional. Signing proves you own the wallet — it never moves funds, and we never ask for seed phrases or private keys.</p>
+          <p className="mt-8 text-small text-fg-2">
             {mode === "sign-in" ? "New here? " : "Already have an account? "}
             <Link href={`${other}${params.get("next") ? `?next=${encodeURIComponent(next)}` : ""}`} className="text-fg underline decoration-line underline-offset-4">
               {mode === "sign-in" ? "Create an account" : "Sign in"}

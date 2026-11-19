@@ -139,7 +139,7 @@ export function HeroTV() {
           >
             <span aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.12]" style={{ backgroundImage: "repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 3px)" }} />
             <span aria-hidden className="pointer-events-none absolute -left-10 -top-10 h-40 w-56 rotate-[-20deg] rounded-full bg-white/[0.06] blur-xl" />
-            <label htmlFor="hero-prompt" className="relative block font-mono text-[11.5px] text-[#9ef0a8]">
+            <label htmlFor="hero-prompt" className="relative block font-mono text-micro text-[#9ef0a8]">
               ● ch. 01 — what happens in your world?
             </label>
             <textarea
@@ -155,13 +155,13 @@ export function HeroTV() {
               rows={3}
               maxLength={600}
               placeholder={IDEAS[idea]}
-              className="relative mt-2 block w-full resize-none bg-transparent text-[19px] font-medium leading-snug text-white outline-none placeholder:text-white/40 sm:text-[21px]"
+              className="relative mt-2 block w-full resize-none bg-transparent text-title font-medium leading-snug text-white outline-none placeholder:text-white/40 sm:text-title"
             />
             <div className="relative mt-3 flex items-center justify-between gap-2">
-              <button type="button" onClick={() => setValue(IDEAS[idea])} className="truncate font-mono text-[11.5px] text-white/50 hover:text-white/80">
+              <button type="button" onClick={() => setValue(IDEAS[idea])} className="truncate font-mono text-micro text-white/50 hover:text-white/80">
                 use this idea ↵
               </button>
-              <button type="submit" className="inline-flex h-10 shrink-0 items-center rounded-full bg-[#b9f36a] px-4 text-[14.5px] font-semibold text-[#101010] transition-colors hover:bg-[#c9f88a]">
+              <button type="submit" className="inline-flex h-10 shrink-0 items-center rounded-full bg-[#b9f36a] px-4 text-body font-semibold text-[#101010] transition-colors hover:bg-[#c9f88a]">
                 create video
               </button>
             </div>

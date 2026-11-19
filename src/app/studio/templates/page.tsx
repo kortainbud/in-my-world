@@ -10,9 +10,9 @@ const FORMAT_LABEL = { strange_world: "Strange world", mystery_series: "Mystery 
 
 export default function TemplatesPage() {
   return (
-    <div className="mx-auto w-full max-w-[1100px] px-4 pb-20 pt-6 sm:px-6 lg:pt-10">
-      <h1 className="text-[26px] font-semibold tracking-[-0.03em]">Templates</h1>
-      <p className="mt-1 max-w-2xl text-[14px] text-fg-2">
+    <div className="mx-auto w-full max-w-[1080px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
+      <h1 className="text-page font-semibold">Templates</h1>
+      <p className="mt-1 max-w-2xl text-body text-fg-2">
         Every story needs a rule, a reason to care, something that threatens the rule, and a twist that changes everything.
       </p>
 
@@ -20,16 +20,16 @@ export default function TemplatesPage() {
         <SheetTemplate />
         <div className="space-y-4">
           <section className="rounded-[12px] border border-line-soft bg-bg-2 p-4">
-            <h2 className="text-[15px] font-semibold">Three formats</h2>
-            <dl className="mt-3 space-y-3 text-[13px]">
-              <div><dt className="font-medium">A · Strange world <span className="text-[11px] font-normal text-fg-3">foundation</span></dt><dd className="text-fg-2">One strange rule governs a society. Someone breaks it, and consequences follow. Best for standalone, shareable premises.</dd></div>
+            <h2 className="text-body font-semibold">Three formats</h2>
+            <dl className="mt-3 space-y-3 text-small">
+              <div><dt className="font-medium">A · Strange world <span className="text-micro font-normal text-fg-3">foundation</span></dt><dd className="text-fg-2">One strange rule governs a society. Someone breaks it, and consequences follow. Best for standalone, shareable premises.</dd></div>
               <div><dt className="font-medium">B · Mystery series</dt><dd className="text-fg-2">Every episode reveals another piece of a larger mystery and ends open. Use “Make Part 2” on a finished video.</dd></div>
               <div><dt className="font-medium">C · Impossible choice</dt><dd className="text-fg-2">Two options, each with a cost. The video ends on the choice, shown on screen.</dd></div>
             </dl>
           </section>
           <section className="rounded-[12px] border border-line-soft bg-bg-2 p-4">
-            <h2 className="text-[15px] font-semibold">Editorial checklist</h2>
-            <ul className="mt-3 space-y-1.5 text-[13px] text-fg-2">
+            <h2 className="text-body font-semibold">Editorial checklist</h2>
+            <ul className="mt-3 space-y-1.5 text-small text-fg-2">
               {CHECKLIST.map((c) => (
                 <li key={c.key} className="flex gap-2"><span className="text-accent">□</span>{c.label}</li>
               ))}
@@ -55,11 +55,11 @@ export default function TemplatesPage() {
                     className="group flex items-center justify-between gap-4 rounded-[12px] border border-line-soft bg-bg-2 p-4 transition-colors hover:border-line"
                   >
                     <span className="min-w-0">
-                      <span className="block text-[15px] font-medium">{t.title}</span>
-                      <span className="mt-1 block text-[13px] leading-snug text-fg-2">{t.prompt}</span>
-                      {t.format && <span className="mt-2 inline-block text-[11.5px] text-fg-3">{FORMAT_LABEL[t.format]}</span>}
+                      <span className="block text-body font-medium">{t.title}</span>
+                      <span className="mt-1 block text-small leading-snug text-fg-2">{t.prompt}</span>
+                      {t.format && <span className="mt-2 inline-block text-micro text-fg-3">{FORMAT_LABEL[t.format]}</span>}
                     </span>
-                    <span className="shrink-0 rounded-[7px] border border-line px-2.5 py-1 text-[12.5px] text-fg-2 transition-colors group-hover:border-accent group-hover:text-fg">Use</span>
+                    <span className="shrink-0 rounded-[7px] border border-line px-2.5 py-1 text-caption text-fg-2 transition-colors group-hover:border-accent group-hover:text-fg">Use</span>
                   </Link>
                 ))}
               </div>

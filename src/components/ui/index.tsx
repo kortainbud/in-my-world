@@ -32,7 +32,7 @@ export function Logo({ className = "" }: { className?: string }) {
 
 export function StyleTag({ style, className = "" }: { style: VisualStyle; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-[5px] bg-black/60 px-1.5 py-0.5 font-mono text-[10.5px] uppercase tracking-wide text-white backdrop-blur ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-[5px] bg-black/60 px-1.5 py-0.5 font-mono text-micro uppercase tracking-wide text-white backdrop-blur ${className}`}>
       <span className={`h-1.5 w-1.5 ${style === "minecraft" ? "bg-[#7FC34A]" : "rounded-full bg-accent"}`} />
       {STYLE_LABELS[style].label}
     </span>
@@ -46,7 +46,7 @@ export function Tag({ children, tone = "default", className = "" }: { children: 
     warn: "border-[var(--warn-line)] text-warn bg-[var(--warn-bg)]",
     danger: "border-[var(--danger-line)] text-danger bg-[var(--danger-bg)]",
   };
-  return <span className={`inline-flex items-center gap-1 rounded-[5px] border px-1.5 py-0.5 text-[11px] font-medium ${tones[tone]} ${className}`}>{children}</span>;
+  return <span className={`inline-flex items-center gap-1 rounded-[5px] border px-1.5 py-0.5 text-micro font-medium ${tones[tone]} ${className}`}>{children}</span>;
 }
 
 export function Spinner({ className = "" }: { className?: string }) {
@@ -60,7 +60,7 @@ export function Notice({ tone = "default", children, className = "" }: { tone?: 
     warn: "border-[var(--warn-line)] bg-[var(--warn-bg)] text-[var(--warn-fg)]",
     accent: "border-[var(--accent-line)] bg-[var(--accent-soft)] text-[var(--accent-text)]",
   };
-  return <div role={tone === "danger" ? "alert" : undefined} className={`rounded-[10px] border px-3.5 py-2.5 text-[13px] leading-relaxed ${tones[tone]} ${className}`}>{children}</div>;
+  return <div role={tone === "danger" ? "alert" : undefined} className={`rounded-[10px] border px-3.5 py-2.5 text-small leading-relaxed ${tones[tone]} ${className}`}>{children}</div>;
 }
 
 export function Segmented<T extends string | number>({
@@ -85,7 +85,7 @@ export function Segmented<T extends string | number>({
             disabled={o.disabled}
             title={o.hint}
             onClick={() => onChange(o.value)}
-            className={`h-8 rounded-[7px] px-3 text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${on ? "bg-fg text-bg" : "text-fg-2 hover:text-fg"}`}
+            className={`h-8 rounded-[7px] px-3 text-small font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${on ? "bg-fg text-bg" : "text-fg-2 hover:text-fg"}`}
           >
             {o.label}
           </button>
@@ -119,8 +119,8 @@ export function Modal({ open, onClose, children, label, className = "" }: { open
 export function Empty({ title, body, action }: { title: string; body?: ReactNode; action?: ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-[12px] border border-dashed border-line px-6 py-16 text-center">
-      <p className="text-[15px] font-medium">{title}</p>
-      {body && <p className="mt-1.5 max-w-sm text-[13px] text-fg-2">{body}</p>}
+      <p className="text-body font-medium">{title}</p>
+      {body && <p className="mt-1.5 max-w-sm text-small text-fg-2">{body}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   );
@@ -129,9 +129,9 @@ export function Empty({ title, body, action }: { title: string; body?: ReactNode
 export function Field({ label, hint, children }: { label: string; hint?: ReactNode; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[13px] font-medium text-fg">{label}</span>
+      <span className="mb-1.5 block text-small font-medium text-fg">{label}</span>
       {children}
-      {hint && <span className="mt-1.5 block text-[12px] text-fg-3">{hint}</span>}
+      {hint && <span className="mt-1.5 block text-caption text-fg-3">{hint}</span>}
     </label>
   );
 }

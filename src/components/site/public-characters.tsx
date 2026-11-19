@@ -18,13 +18,13 @@ export function PublicCharacters() {
         <Link key={c.id} href={`/sign-up?next=${encodeURIComponent(`/studio?cast=${c.id}`)}`} className="rounded-[12px] border border-line-soft bg-bg-2 p-3 transition-colors hover:border-line">
           <Portrait appearance={c.appearance} full className="mx-auto h-36 w-28" alt={c.name} />
           <div className="mt-2 flex items-center justify-between gap-1">
-            <span className="truncate text-[14px] font-medium">{c.name}</span>
+            <span className="truncate text-body font-medium">{c.name}</span>
           </div>
           <div className="mt-1.5">
             <CharacterSourceTag source={c.source} />
           </div>
-          <p className="mt-2 line-clamp-2 text-[12px] leading-snug text-fg-2">{c.personality}</p>
-          <p className="mt-2 text-[11px] text-fg-3">{REUSE_LABELS[c.reusePolicy]}</p>
+          <p className="mt-2 line-clamp-2 text-caption leading-snug text-fg-2">{c.personality}</p>
+          <p className="mt-2 text-micro text-fg-3">{REUSE_LABELS[c.reusePolicy]}</p>
         </Link>
       ))}
     </div>

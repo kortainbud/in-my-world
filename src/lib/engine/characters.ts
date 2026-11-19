@@ -119,7 +119,7 @@ export const OFFICIAL_CHARACTERS: CharacterRecord[] = [
     id: "ch_odysseyyy", ownerId: null, name: "Odysseyyy", style: "any",
     description: "Sample featured personality. Mohawk, shades, mid-adventure at all times.",
     personality: "Fearless storyteller who turns every errand into an epic.",
-    appearance: a({ skin: "#D9A47C", hair: "mohawk", hairColor: "#B9F36A", top: "#101010", topAccent: "#B9F36A", bottoms: "#303030", shoes: "#B9F36A", accessory: "shades", accessoryColor: "#0A0A0A", face: "determined", height: 1.08 }),
+    appearance: a({ skin: "#4A2E1F", hair: "mohawk", hairColor: "#B9F36A", top: "#101010", topAccent: "#B9F36A", bottoms: "#303030", shoes: "#B9F36A", accessory: "shades", accessoryColor: "#0A0A0A", face: "determined", height: 1.08 }),
     voice: "Daniel", visibility: "public", source: "featured_personality", featured: true, reusePolicy: "paid_plans",
     permissionNote: "Sample featured personality for demonstration. Real featured personalities appear only with the person's permission.",
     createdAt: T, uses: 0,

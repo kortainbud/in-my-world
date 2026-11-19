@@ -36,7 +36,7 @@ export function CharactersScreen() {
   const mineCount = chars && tab === "mine" ? chars.length : null;
 
   return (
-    <div className="mx-auto w-full max-w-[1280px] px-4 pb-20 pt-6 sm:px-6 lg:pt-10">
+    <div className="mx-auto w-full max-w-[1200px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
       <PageHeader
         title="Characters"
         sub="Cast a character once and reuse it in every story. Looks, outfit and personality stay consistent."
@@ -49,7 +49,7 @@ export function CharactersScreen() {
             role="tab"
             aria-selected={tab === t.id}
             onClick={() => router.replace(t.id === "library" ? pathname : `${pathname}?tab=${t.id}`, { scroll: false })}
-            className={`-mb-px h-10 border-b-2 px-3 text-[14px] transition-colors ${tab === t.id ? "border-accent text-fg" : "border-transparent text-fg-2 hover:text-fg"}`}
+            className={`-mb-px h-10 border-b-2 px-3 text-body transition-colors ${tab === t.id ? "border-accent text-fg" : "border-transparent text-fg-2 hover:text-fg"}`}
           >
             {t.label}
           </button>
@@ -57,7 +57,7 @@ export function CharactersScreen() {
       </div>
       {notice && <Notice tone={notice.tone} className="mb-4">{notice.text}</Notice>}
       {tab === "mine" && me && mineCount !== null && (
-        <p className="mb-4 text-[12.5px] text-fg-3">
+        <p className="mb-4 text-caption text-fg-3">
           {mineCount} of {me.plan.privateCharacters} saved characters on the {me.plan.name} plan.
         </p>
       )}
@@ -77,10 +77,10 @@ export function CharactersScreen() {
                 <Portrait appearance={c.appearance} full pose="wave" className="mx-auto h-44 w-36" alt={c.name} />
                 <span className="absolute left-2 top-2">{c.isMine ? <Tag>{c.visibility === "public" ? "Yours · public" : "Yours · private"}</Tag> : <CharacterSourceTag source={c.source} />}</span>
               </div>
-              <h3 className="mt-3 text-[15px] font-semibold tracking-[-0.01em]">{c.name}</h3>
-              <p className="mt-1 line-clamp-2 text-[12.5px] leading-snug text-fg-2">{c.description || c.personality || "No description."}</p>
-              {c.permissionNote && <p className="mt-2 text-[11.5px] leading-snug text-fg-3">{c.permissionNote}</p>}
-              <p className="mt-2 text-[11.5px] text-fg-3">
+              <h3 className="mt-3 text-body font-semibold tracking-[-0.01em]">{c.name}</h3>
+              <p className="mt-1 line-clamp-2 text-caption leading-snug text-fg-2">{c.description || c.personality || "No description."}</p>
+              {c.permissionNote && <p className="mt-2 text-micro leading-snug text-fg-3">{c.permissionNote}</p>}
+              <p className="mt-2 text-micro text-fg-3">
                 {REUSE_LABELS[c.reusePolicy]} · {c.uses} {c.uses === 1 ? "story" : "stories"}
               </p>
               <div className="mt-auto flex gap-1.5 pt-3">
@@ -89,7 +89,7 @@ export function CharactersScreen() {
                     Cast in a story
                   </LinkButton>
                 ) : (
-                  <span className="flex h-8 flex-1 items-center justify-center rounded-[7px] border border-dashed border-line px-2 text-center text-[11.5px] leading-tight text-fg-3" title={c.cast.reason}>
+                  <span className="flex h-8 flex-1 items-center justify-center rounded-[7px] border border-dashed border-line px-2 text-center text-micro leading-tight text-fg-3" title={c.cast.reason}>
                     {c.reusePolicy === "paid_plans" ? (
                       <Link href="/studio/billing" className="hover:text-fg">
                         Creator & Pro
@@ -118,7 +118,7 @@ export function CharactersScreen() {
         {del && (
           <div className="w-[min(420px,92vw)] rounded-[14px] border border-line bg-bg-2 p-5">
             <h2 className="text-lg font-semibold tracking-[-0.02em]">Delete {del.name}?</h2>
-            <p className="mt-2 text-[13.5px] text-fg-2">Videos already made with {del.name} stay as they are. You just won’t be able to cast them again.</p>
+            <p className="mt-2 text-small text-fg-2">Videos already made with {del.name} stay as they are. You just won’t be able to cast them again.</p>
             <div className="mt-5 flex justify-end gap-2">
               <Button onClick={() => setDel(null)}>Cancel</Button>
               <Button

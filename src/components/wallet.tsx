@@ -93,7 +93,7 @@ export function WalletButtons({ purpose, onDone }: { purpose: "signin" | "link";
               href={w === "phantom" ? "https://phantom.com/download" : "https://metamask.io/download/"}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex h-10 items-center justify-center rounded-[8px] border border-dashed border-line text-[13px] text-fg-3 hover:text-fg-2"
+              className="inline-flex h-10 items-center justify-center rounded-[8px] border border-dashed border-line text-small text-fg-3 hover:text-fg-2"
               title={`${label} isn't installed in this browser`}
             >
               Get {label}

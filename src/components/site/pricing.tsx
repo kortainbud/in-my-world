@@ -24,22 +24,22 @@ export function Pricing() {
             </div>
             <div className="flex flex-1 flex-col px-3.5 pb-3.5 pt-5">
               <div className="flex items-center gap-2">
-                <h3 className="text-[22px] font-semibold tracking-[-0.03em]">{p.name.toLowerCase()}</h3>
-                {p.highlighted && <span className="rounded-full bg-[var(--card)] px-2 py-0.5 font-mono text-[11px] text-fg-2">most popular</span>}
+                <h3 className="text-title font-semibold tracking-[-0.03em]">{p.name.toLowerCase()}</h3>
+                {p.highlighted && <span className="rounded-full bg-[var(--card)] px-2 py-0.5 font-mono text-micro text-fg-2">most popular</span>}
               </div>
-              <p className="mt-1 text-[15px] text-fg-2">{p.tagline.toLowerCase()}</p>
+              <p className="mt-1 text-body text-fg-2">{p.tagline.toLowerCase()}</p>
               <p className="mt-6 flex items-baseline gap-2">
-                <span className="text-[44px] font-semibold leading-none tracking-[-0.05em]">{formatPrice(p.priceMonthlyCents)}</span>
-                <span className="text-[14px] text-fg-2">a month</span>
+                <span className="text-display-sm font-semibold leading-none tracking-[-0.05em]">{formatPrice(p.priceMonthlyCents)}</span>
+                <span className="text-body text-fg-2">a month</span>
               </p>
-              <p className="mt-2 text-[14px] font-medium">{p.monthlyCredits} credits every month</p>
+              <p className="mt-2 text-body font-medium">{p.monthlyCredits} credits every month</p>
               <Link
                 href={`/sign-up?next=${encodeURIComponent(p.id === "free" ? "/studio" : "/studio/billing")}`}
-                className={`mt-5 inline-flex h-11 items-center justify-center rounded-full text-[15px] font-medium transition-colors ${p.highlighted ? "bg-[var(--pill-bg)] text-[var(--pill-fg)] hover:bg-[var(--pill-hover)]" : "bg-[var(--card)] text-fg hover:bg-bg-3"}`}
+                className={`mt-5 inline-flex h-11 items-center justify-center rounded-full text-body font-medium transition-colors ${p.highlighted ? "bg-[var(--pill-bg)] text-[var(--pill-fg)] hover:bg-[var(--pill-hover)]" : "bg-[var(--card)] text-fg hover:bg-bg-3"}`}
               >
                 {p.id === "free" ? "start free" : `choose ${p.name.toLowerCase()}`}
               </Link>
-              <ul className="mt-5 space-y-2 text-[14px] text-fg-2">
+              <ul className="mt-5 space-y-2 text-body text-fg-2">
                 {p.features.map((f) => (
                   <li key={f} className="flex gap-2">
                     <svg width="14" height="14" viewBox="0 0 14 14" className="mt-[4px] shrink-0" aria-hidden><path d="M2.5 7.2l2.7 2.6 6.3-6.3" stroke="currentColor" strokeWidth="1.8" fill="none" /></svg>
@@ -51,13 +51,13 @@ export function Pricing() {
           </div>
         ))}
       </div>
-      <p className="mt-4 text-[13px] text-fg-3">
+      <p className="mt-4 text-small text-fg-3">
         prices are placeholder configuration and will be finalised before launch. one-off packs: {CREDIT_PACKS.map((c) => `${c.credits} credits for ${formatPrice(c.priceCents)}`).join(", ")}.
       </p>
       <div id="credits" className="mt-16 grid scroll-mt-24 gap-10 lg:grid-cols-[1fr_1.6fr]">
         <div>
-          <h3 className="text-[28px] font-semibold tracking-[-0.04em]">how credits work.</h3>
-          <dl className="mt-5 space-y-4 text-[15px]">
+          <h3 className="text-page font-semibold tracking-[-0.04em]">how credits work.</h3>
+          <dl className="mt-5 space-y-4 text-body">
             <div>
               <dt className="font-semibold">monthly allowance</dt>
               <dd className="mt-1 text-fg-2">every plan includes credits that refresh each billing period. unused allowance doesn’t roll over.</dd>
@@ -98,13 +98,13 @@ export function FAQ() {
     <div className="space-y-2.5">
       {FAQS.map((f) => (
         <details key={f.q} className="group rounded-[18px] bg-bg-2 px-5 py-4 [&_summary::-webkit-details-marker]:hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[16px] font-semibold tracking-[-0.01em]">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lead font-semibold tracking-[-0.01em]">
             {f.q.toLowerCase()}
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--card)] text-[17px] text-fg transition-transform group-open:rotate-45" aria-hidden>
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--card)] text-lead text-fg transition-transform group-open:rotate-45" aria-hidden>
               +
             </span>
           </summary>
-          <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-fg-2">{f.a}</p>
+          <p className="mt-3 max-w-2xl text-body leading-relaxed text-fg-2">{f.a}</p>
         </details>
       ))}
     </div>

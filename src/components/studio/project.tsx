@@ -51,17 +51,17 @@ export function ProjectScreen({ id }: { id: string }) {
   if (error && !p)
     return (
       <div className="mx-auto max-w-xl px-6 py-20 text-center">
-        <p className="text-[15px]">{error}</p>
+        <p className="text-body">{error}</p>
         <LinkButton href="/studio/projects" className="mt-6">
           Back to My Studio
         </LinkButton>
       </div>
     );
-  if (!p) return <div className="flex min-h-[50vh] items-center justify-center text-[13px] text-fg-3">Loading…</div>;
+  if (!p) return <div className="flex min-h-[50vh] items-center justify-center text-small text-fg-3">Loading…</div>;
 
   return (
-    <div className="mx-auto w-full max-w-[1180px] px-4 pb-20 pt-6 sm:px-6 lg:pt-10">
-      <Link href="/studio/projects" className="text-[13px] text-fg-2 hover:text-fg">
+    <div className="mx-auto w-full max-w-[1080px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
+      <Link href="/studio/projects" className="text-small text-fg-2 hover:text-fg">
         ← My Studio
       </Link>
       <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
@@ -73,15 +73,15 @@ export function ProjectScreen({ id }: { id: string }) {
             <Tag>{FORMAT_INFO[p.format].label}{p.episode > 1 || p.series ? ` · Part ${p.episode}` : ""}</Tag>
             {p.visibility === "public" && <Tag tone="accent">Public</Tag>}
           </div>
-          <h1 className="text-[28px] font-semibold tracking-[-0.03em]">{p.status === "queued" || (p.status === "processing" && p.title === "Untitled world") ? "Writing your story…" : p.title}</h1>
-          <p className="mt-1 max-w-2xl text-[15px] text-fg-2">“{p.prompt}”</p>
+          <h1 className="text-page font-semibold">{p.status === "queued" || (p.status === "processing" && p.title === "Untitled world") ? "Writing your story…" : p.title}</h1>
+          <p className="mt-1 max-w-2xl text-body text-fg-2">“{p.prompt}”</p>
           {p.series && (
             <div className="mt-3">
               <SeriesStrip episodes={p.series.episodes} current={p.id} />
             </div>
           )}
         </div>
-        <p className="text-[12.5px] text-fg-3">Started {timeAgo(p.createdAt)}</p>
+        <p className="text-caption text-fg-3">Started {timeAgo(p.createdAt)}</p>
       </div>
 
       {p.status === "completed" && p.video ? (
@@ -112,7 +112,7 @@ function StageIcon({ status }: { status: string }) {
       </span>
     );
   if (status === "running") return <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-accent"><span className="pulse-dot h-2 w-2 rounded-full bg-accent" /></span>;
-  if (status === "failed") return <span className="flex h-6 w-6 items-center justify-center rounded-full bg-danger text-[12px] font-bold text-bg">!</span>;
+  if (status === "failed") return <span className="flex h-6 w-6 items-center justify-center rounded-full bg-danger text-caption font-bold text-bg">!</span>;
   if (status === "skipped") return <span className="flex h-6 w-6 items-center justify-center rounded-full border border-line text-fg-3">–</span>;
   return <span className="h-6 w-6 rounded-full border border-line" />;
 }
@@ -138,12 +138,12 @@ function InProgress({ p, onRetry }: { p: ProjectView; onRetry: () => void }) {
               {i < job.stages.length - 1 && <span aria-hidden className={`absolute left-[11px] top-7 h-[calc(100%-28px)] w-px ${s.status === "done" || s.status === "skipped" ? "bg-[var(--accent-line)]" : "bg-line"}`} />}
               <StageIcon status={s.status} />
               <div className="min-w-0 flex-1 pt-0.5">
-                <p className={`text-[15px] font-medium ${s.status === "pending" ? "text-fg-3" : "text-fg"}`}>
+                <p className={`text-body font-medium ${s.status === "pending" ? "text-fg-3" : "text-fg"}`}>
                   {s.label}
-                  {s.status === "skipped" && <span className="ml-2 text-[12px] font-normal text-fg-3">skipped</span>}
+                  {s.status === "skipped" && <span className="ml-2 text-caption font-normal text-fg-3">skipped</span>}
                 </p>
                 {s.detail && (
-                  <p className={`mt-0.5 text-[13px] ${s.status === "failed" ? "text-[var(--danger-fg)]" : "text-fg-2"}`}>
+                  <p className={`mt-0.5 text-small ${s.status === "failed" ? "text-[var(--danger-fg)]" : "text-fg-2"}`}>
                     {s.key === "render" && s.status === "running" && renderingHere && agent.phase ? PHASE_LABEL[agent.phase] ?? s.detail : s.detail}
                   </p>
                 )}
@@ -152,7 +152,7 @@ function InProgress({ p, onRetry }: { p: ProjectView; onRetry: () => void }) {
                     <div className="h-1.5 overflow-hidden rounded-full bg-bg-3">
                       <div className="h-full bg-accent transition-[width] duration-300" style={{ width: `${(framesDone / framesTotal) * 100}%` }} />
                     </div>
-                    <p className="mt-1.5 font-mono text-[11.5px] text-fg-3">
+                    <p className="mt-1.5 font-mono text-micro text-fg-3">
                       frame {framesDone} of {framesTotal}
                     </p>
                   </div>
@@ -162,12 +162,12 @@ function InProgress({ p, onRetry }: { p: ProjectView; onRetry: () => void }) {
                     {agent.supported === false ? (
                       <Notice tone="warn">This browser can’t encode video (WebCodecs missing). Open In My World in a recent Chrome, Edge or Safari to render it.</Notice>
                     ) : (
-                      <p className="text-[12.5px] text-fg-3">The renderer in this tab will pick it up in a moment.</p>
+                      <p className="text-caption text-fg-3">The renderer in this tab will pick it up in a moment.</p>
                     )}
                   </div>
                 )}
                 {s.key === "render" && s.status === "running" && (
-                  <p className="mt-1.5 text-[12px] text-fg-3">{renderingHere ? "Rendering in this tab — keep it open." : "Rendering in another tab or window."}</p>
+                  <p className="mt-1.5 text-caption text-fg-3">{renderingHere ? "Rendering in this tab — keep it open." : "Rendering in another tab or window."}</p>
                 )}
               </div>
             </li>
@@ -205,7 +205,7 @@ function InProgress({ p, onRetry }: { p: ProjectView; onRetry: () => void }) {
           </div>
         )}
 
-        <p className="mt-8 text-[12px] text-fg-3">
+        <p className="mt-8 text-caption text-fg-3">
           Engine: {job.engine.story} · {job.engine.voice} · {job.engine.render} · {job.exportHeight}p{job.watermark ? " with watermark" : ""} · {job.creditCost} credits
           {job.attempts > 1 && ` · attempt ${job.attempts} of ${job.maxAttempts}`}
         </p>
@@ -222,7 +222,7 @@ function InProgress({ p, onRetry }: { p: ProjectView; onRetry: () => void }) {
               ))}
             </div>
           ) : (
-            <p className="rounded-[10px] border border-dashed border-line px-4 py-8 text-center text-[12.5px] text-fg-3">Stills of each scene appear here as the renderer reaches them.</p>
+            <p className="rounded-[10px] border border-dashed border-line px-4 py-8 text-center text-caption text-fg-3">Stills of each scene appear here as the renderer reaches them.</p>
           )}
         </div>
         {p.story && (
@@ -230,8 +230,8 @@ function InProgress({ p, onRetry }: { p: ProjectView; onRetry: () => void }) {
             <p className="eyebrow mb-3">Script</p>
             <ol className="space-y-2.5">
               {p.story.scenes.map((s, i) => (
-                <li key={i} className="rise flex gap-3 text-[13px]" style={{ animationDelay: `${i * 40}ms` }}>
-                  <span className="w-5 shrink-0 font-mono text-[11px] leading-5 text-fg-3">{String(i + 1).padStart(2, "0")}</span>
+                <li key={i} className="rise flex gap-3 text-small" style={{ animationDelay: `${i * 40}ms` }}>
+                  <span className="w-5 shrink-0 font-mono text-micro leading-5 text-fg-3">{String(i + 1).padStart(2, "0")}</span>
                   <span className="leading-snug text-fg-2">{s.narration}</span>
                 </li>
               ))}
@@ -271,7 +271,7 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
     <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,420px)_1fr]">
       <div className="mx-auto w-full max-w-[420px]">
         <video src={v.url} poster={v.thumb} controls playsInline className="aspect-[9/16] w-full rounded-[14px] border border-line bg-black" />
-        <p className="mt-2 text-center font-mono text-[11.5px] text-fg-3">
+        <p className="mt-2 text-center font-mono text-micro text-fg-3">
           {v.width}×{v.height} · {fmtDuration(v.durationSec)} · {(v.sizeBytes / 1e6).toFixed(1)} MB · H.264 MP4
         </p>
       </div>
@@ -305,7 +305,7 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
             Generate another
           </LinkButton>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-[13px]">
+        <div className="flex flex-wrap items-center gap-2 text-small">
           <span className="inline-flex items-center gap-1.5 text-fg-2">
             <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden><path d="M2.5 7.2l2.7 2.6 6.3-6.3" stroke="#B9F36A" strokeWidth="1.8" fill="none" /></svg>
             Saved to <Link href="/studio/projects" className="text-fg underline decoration-line underline-offset-4">My Studio</Link>
@@ -352,8 +352,8 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
 
         {generated.length > 0 && (
           <div className="rounded-[12px] border border-line bg-bg-2 p-4">
-            <p className="text-[14px] font-medium">New characters in this story</p>
-            <p className="mt-1 text-[13px] text-fg-2">{generated.map((c) => c.name).join(", ")} were designed for this video. Save them to reuse in future stories.</p>
+            <p className="text-body font-medium">New characters in this story</p>
+            <p className="mt-1 text-small text-fg-2">{generated.map((c) => c.name).join(", ")} were designed for this video. Save them to reuse in future stories.</p>
             <Button
               size="sm"
               className="mt-3"
@@ -383,13 +383,13 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
             </p>
             <ol className="space-y-2.5">
               {p.story.scenes.map((s, i) => (
-                <li key={i} className="flex gap-3 text-[13.5px]">
-                  <span className="w-5 shrink-0 font-mono text-[11px] leading-5 text-fg-3">{String(i + 1).padStart(2, "0")}</span>
+                <li key={i} className="flex gap-3 text-small">
+                  <span className="w-5 shrink-0 font-mono text-micro leading-5 text-fg-3">{String(i + 1).padStart(2, "0")}</span>
                   <span className="leading-snug text-fg-2">{s.narration}</span>
                 </li>
               ))}
             </ol>
-            <p className="mt-4 text-[12px] text-fg-3">
+            <p className="mt-4 text-caption text-fg-3">
               Cast: {p.story.cast.map((c) => c.name).join(", ")} · {STYLE_LABELS[p.style].label} style
             </p>
           </div>
@@ -402,7 +402,7 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
       <Modal open={shareOpen} onClose={() => setShareOpen(false)} label="Share this video">
         <div className="w-[min(440px,92vw)] rounded-[14px] border border-line bg-bg-2 p-5">
           <h2 className="text-lg font-semibold tracking-[-0.02em]">Make this video public?</h2>
-          <p className="mt-2 text-[13.5px] text-fg-2">Anyone with the link will be able to watch and download it, and it can appear in Explore. You can make it private again at any time.</p>
+          <p className="mt-2 text-small text-fg-2">Anyone with the link will be able to watch and download it, and it can appear in Explore. You can make it private again at any time.</p>
           <div className="mt-5 flex justify-end gap-2">
             <Button onClick={() => setShareOpen(false)}>Cancel</Button>
             <Button
@@ -427,7 +427,7 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
       <Modal open={del} onClose={() => setDel(false)} label="Delete video">
         <div className="w-[min(420px,92vw)] rounded-[14px] border border-line bg-bg-2 p-5">
           <h2 className="text-lg font-semibold tracking-[-0.02em]">Delete “{p.title}”?</h2>
-          <p className="mt-2 text-[13.5px] text-fg-2">The video, its script and its previews are removed permanently. Share links stop working.</p>
+          <p className="mt-2 text-small text-fg-2">The video, its script and its previews are removed permanently. Share links stop working.</p>
           <div className="mt-5 flex justify-end gap-2">
             <Button onClick={() => setDel(false)}>Cancel</Button>
             <Button

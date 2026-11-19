@@ -54,11 +54,11 @@ export function BillingScreen() {
     setMsg({ tone: "accent", text });
   };
 
-  if (!s) return <div className="flex min-h-[50vh] items-center justify-center text-[13px] text-fg-3">Loading…</div>;
+  if (!s) return <div className="flex min-h-[50vh] items-center justify-center text-small text-fg-3">Loading…</div>;
   const paymentsReady = !!providers?.payments.configured;
 
   return (
-    <div className="mx-auto w-full max-w-[1100px] px-4 pb-20 pt-6 sm:px-6 lg:pt-10">
+    <div className="mx-auto w-full max-w-[1080px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
       <PageHeader title="Credits & billing" sub="Every video has a credit cost shown before you create it. Failed videos are refunded automatically." />
       {msg && <Notice tone={msg.tone} className="mb-6">{msg.text}</Notice>}
 
@@ -70,26 +70,26 @@ export function BillingScreen() {
 
       {!paymentsReady && (
         <Notice tone="warn" className="mt-6">
-          Payments aren’t set up yet — no card or crypto payment provider is configured, so plans and credit packs can’t be purchased. Prices below are placeholders from <code className="font-mono text-[12px]">src/config/plans.ts</code>.
+          Payments aren’t set up yet — no card or crypto payment provider is configured, so plans and credit packs can’t be purchased. Prices below are placeholders from <code className="font-mono text-caption">src/config/plans.ts</code>.
         </Notice>
       )}
 
-      <h2 className="mb-3 mt-10 text-[17px] font-semibold tracking-[-0.02em]">Plans</h2>
+      <h2 className="mb-3 mt-10 text-lead font-semibold tracking-[-0.02em]">Plans</h2>
       <div className="grid gap-3 md:grid-cols-3">
         {PLANS.map((p) => {
           const current = p.id === s.plan.id;
           return (
             <div key={p.id} className={`flex flex-col rounded-[12px] border p-5 ${current ? "border-accent" : "border-line-soft"} bg-bg-2`}>
               <div className="flex items-center justify-between">
-                <h3 className="text-[16px] font-semibold">{p.name}</h3>
+                <h3 className="text-lead font-semibold">{p.name}</h3>
                 {current && <Tag tone="accent">Current</Tag>}
               </div>
-              <p className="mt-1 text-[13px] text-fg-2">{p.tagline}</p>
-              <p className="mt-4 text-[28px] font-semibold tracking-[-0.03em]">
+              <p className="mt-1 text-small text-fg-2">{p.tagline}</p>
+              <p className="mt-4 text-page font-semibold">
                 {formatPrice(p.priceMonthlyCents)}
-                <span className="text-[13px] font-normal text-fg-3"> /month</span>
+                <span className="text-small font-normal text-fg-3"> /month</span>
               </p>
-              <ul className="mt-4 space-y-1.5 text-[13px] text-fg-2">
+              <ul className="mt-4 space-y-1.5 text-small text-fg-2">
                 <li>{p.monthlyCredits} credits each month</li>
                 {p.features.map((f) => (
                   <li key={f}>{f}</li>
@@ -115,13 +115,13 @@ export function BillingScreen() {
         })}
       </div>
 
-      <h2 className="mb-3 mt-10 text-[17px] font-semibold tracking-[-0.02em]">Credit packs</h2>
+      <h2 className="mb-3 mt-10 text-lead font-semibold tracking-[-0.02em]">Credit packs</h2>
       <div className="grid gap-3 sm:grid-cols-2">
         {CREDIT_PACKS.map((c) => (
           <div key={c.id} className="flex items-center justify-between rounded-[12px] border border-line-soft bg-bg-2 p-4">
             <div>
-              <p className="text-[15px] font-medium">{c.credits} credits</p>
-              <p className="text-[13px] text-fg-2">{formatPrice(c.priceCents)} one-off · never expire</p>
+              <p className="text-body font-medium">{c.credits} credits</p>
+              <p className="text-small text-fg-2">{formatPrice(c.priceCents)} one-off · never expire</p>
             </div>
             <Button onClick={() => checkout("credits", c.id)} disabled={!paymentsReady}>
               Buy
@@ -129,15 +129,15 @@ export function BillingScreen() {
           </div>
         ))}
       </div>
-      <p className="mt-3 text-[12.5px] text-fg-3">Card and crypto payments plug in as separate providers. Credits are only added after the provider confirms payment on our server.</p>
+      <p className="mt-3 text-caption text-fg-3">Card and crypto payments plug in as separate providers. Credits are only added after the provider confirms payment on our server.</p>
 
-      <h2 className="mb-3 mt-10 text-[17px] font-semibold tracking-[-0.02em]">How credits work</h2>
+      <h2 className="mb-3 mt-10 text-lead font-semibold tracking-[-0.02em]">How credits work</h2>
       <CreditTable />
 
       {providers?.mode === "development" && (
         <div className="mt-10 rounded-[12px] border border-dashed border-[var(--warn-line)] p-5">
-          <p className="text-[14px] font-medium text-warn">Development tools</p>
-          <p className="mt-1 text-[12.5px] text-fg-2">Only available in development mode. Dev credits are labelled in the ledger and can’t exist in production.</p>
+          <p className="text-body font-medium text-warn">Development tools</p>
+          <p className="mt-1 text-caption text-fg-2">Only available in development mode. Dev credits are labelled in the ledger and can’t exist in production.</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button size="sm" onClick={() => dev("/api/dev/grant", { amount: 100 }, "Added 100 dev credits.")}>
               Add 100 dev credits
@@ -153,10 +153,10 @@ export function BillingScreen() {
 
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
         <section>
-          <h2 className="mb-3 text-[17px] font-semibold tracking-[-0.02em]">Credit ledger</h2>
+          <h2 className="mb-3 text-lead font-semibold tracking-[-0.02em]">Credit ledger</h2>
           <div className="overflow-hidden rounded-[12px] border border-line-soft">
-            <table className="w-full text-left text-[13px]">
-              <thead className="bg-bg-2 text-[12px] text-fg-3">
+            <table className="w-full text-left text-small">
+              <thead className="bg-bg-2 text-caption text-fg-3">
                 <tr>
                   <th className="px-3.5 py-2 font-normal">Entry</th>
                   <th className="px-3.5 py-2 font-normal">When</th>
@@ -168,7 +168,7 @@ export function BillingScreen() {
                   <tr key={l.id}>
                     <td className="px-3.5 py-2.5">
                       <span className="block">{KIND[l.kind] ?? l.kind}</span>
-                      <span className="block text-[12px] text-fg-3">{l.note}</span>
+                      <span className="block text-caption text-fg-3">{l.note}</span>
                     </td>
                     <td className="whitespace-nowrap px-3.5 py-2.5 text-fg-2">{timeAgo(l.createdAt)}</td>
                     <td className={`px-3.5 py-2.5 text-right font-mono ${l.amount > 0 ? "text-accent" : "text-fg-2"}`}>{l.amount > 0 ? `+${l.amount}` : l.amount}</td>
@@ -180,13 +180,13 @@ export function BillingScreen() {
         </section>
         <section className="space-y-8">
           <div>
-            <h2 className="mb-3 text-[17px] font-semibold tracking-[-0.02em]">Generation history</h2>
+            <h2 className="mb-3 text-lead font-semibold tracking-[-0.02em]">Generation history</h2>
             {s.history.length === 0 ? (
-              <p className="text-[13px] text-fg-3">No videos yet.</p>
+              <p className="text-small text-fg-3">No videos yet.</p>
             ) : (
               <ul className="divide-y divide-line-soft rounded-[12px] border border-line-soft">
                 {s.history.map((h) => (
-                  <li key={h.jobId} className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-[13px]">
+                  <li key={h.jobId} className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-small">
                     <Link href={`/studio/projects/${h.projectId}`} className="min-w-0 truncate hover:underline">
                       {h.title}
                     </Link>
@@ -199,13 +199,13 @@ export function BillingScreen() {
             )}
           </div>
           <div>
-            <h2 className="mb-3 text-[17px] font-semibold tracking-[-0.02em]">Purchase history</h2>
+            <h2 className="mb-3 text-lead font-semibold tracking-[-0.02em]">Purchase history</h2>
             {s.payments.length === 0 ? (
-              <p className="text-[13px] text-fg-3">No purchases yet.</p>
+              <p className="text-small text-fg-3">No purchases yet.</p>
             ) : (
               <ul className="divide-y divide-line-soft rounded-[12px] border border-line-soft">
                 {s.payments.map((p) => (
-                  <li key={p.id} className="flex justify-between px-3.5 py-2.5 text-[13px]">
+                  <li key={p.id} className="flex justify-between px-3.5 py-2.5 text-small">
                     <span>
                       {p.itemId} · {p.provider}
                     </span>
@@ -226,9 +226,9 @@ export function BillingScreen() {
 function Stat({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
     <div className="rounded-[12px] border border-line-soft bg-bg-2 p-5">
-      <p className="text-[12.5px] text-fg-2">{label}</p>
-      <p className="mt-1 text-[32px] font-semibold tracking-[-0.03em]">{value}</p>
-      {sub && <p className="text-[12px] text-fg-3">{sub}</p>}
+      <p className="text-caption text-fg-2">{label}</p>
+      <p className="mt-1 text-page font-semibold">{value}</p>
+      {sub && <p className="text-caption text-fg-3">{sub}</p>}
     </div>
   );
 }

@@ -11,9 +11,9 @@ const variants: Record<Variant, string> = {
   danger: "bg-transparent text-danger border border-[var(--danger-line)] hover:bg-[var(--danger-bg)]",
 };
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-[13px] rounded-[var(--btn-radius)]",
+  sm: "h-8 px-3 text-small rounded-[var(--btn-radius)]",
   md: "h-10 px-4 text-sm rounded-[var(--btn-radius)]",
-  lg: "h-12 px-5 text-[15px] rounded-[var(--btn-radius)]",
+  lg: "h-12 px-5 text-body rounded-[var(--btn-radius)]",
 };
 
 export function btn(variant: Variant = "secondary", size: Size = "md", extra = "") {

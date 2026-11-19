@@ -63,7 +63,7 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
           <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
           <span className="h-3 w-3 rounded-full bg-[#28c840]" />
         </span>
-        <span className="mx-auto text-[13px] font-medium text-fg-2">in my world studio</span>
+        <span className="mx-auto text-small font-medium text-fg-2">in my world studio</span>
         <span className="w-[52px]" />
       </div>
       <div className="grid md:grid-cols-[230px_1fr_auto]">
@@ -83,8 +83,8 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
                     {lead ? <Portrait appearance={lead.appearance} style={x.style} className="h-9 w-8" /> : null}
                   </span>
                   <span className="min-w-0">
-                    <span className="block truncate text-[13.5px] font-semibold">{x.title.toLowerCase()}</span>
-                    <span className="block truncate text-[12px] text-fg-3">
+                    <span className="block truncate text-small font-semibold">{x.title.toLowerCase()}</span>
+                    <span className="block truncate text-caption text-fg-3">
                       {FORMAT[x.format ?? "strange_world"]} · {x.story?.sheet?.twistType.replace(/_/g, " ")} twist
                     </span>
                   </span>
@@ -97,8 +97,8 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
         {/* Idea, stages, script */}
         <div className="min-w-0 p-4 sm:p-5">
           <div className="rounded-[12px] border border-line-soft p-3.5">
-            <p className="font-mono text-[11px] text-fg-3">what happens in your world?</p>
-            <p className="mt-1.5 min-h-[2.8em] text-[16px] font-medium leading-snug sm:text-[17px]" aria-live="polite">
+            <p className="font-mono text-micro text-fg-3">what happens in your world?</p>
+            <p className="mt-1.5 min-h-[2.8em] text-lead font-medium leading-snug sm:text-lead" aria-live="polite">
               {s.prompt.slice(0, typed)}
               {phase === "typing" && <span className="caret ml-0.5 inline-block h-[1em] w-[2px] translate-y-[3px] bg-fg" />}
             </p>
@@ -107,7 +107,7 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
             {STAGES.map((st, k) => {
               const done = phase === "playing" || (phase === "building" && k < stage);
               return (
-                <li key={st.key} className={`flex items-center gap-1.5 text-[12px] ${done ? "text-fg" : "text-fg-3"}`}>
+                <li key={st.key} className={`flex items-center gap-1.5 text-caption ${done ? "text-fg" : "text-fg-3"}`}>
                   <span className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full ${done ? "bg-[#28c840] text-white" : "border border-line"}`}>
                     {done && <svg width="8" height="8" viewBox="0 0 12 12" aria-hidden><path d="M2.5 6.2l2.3 2.3 4.7-5" stroke="currentColor" strokeWidth="2.2" fill="none" /></svg>}
                   </span>
@@ -118,7 +118,7 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
           </ol>
           <div className="mt-4 hidden max-h-[230px] overflow-hidden sm:block">
             {s.story?.sheet && phase !== "typing" && (
-              <div className="mb-3 flex flex-wrap gap-1.5 text-[11.5px]">
+              <div className="mb-3 flex flex-wrap gap-1.5 text-micro">
                 <span className="rounded-full bg-[#fff1c2] px-2 py-0.5 text-[#131316]">rule: {s.story.sheet.rule.split(",")[0].toLowerCase()}</span>
                 <span className="rounded-full bg-[#e3dcff] px-2 py-0.5 text-[#131316]">{s.story.sheet.twistType.replace(/_/g, " ")} twist</span>
                 <span className="rounded-full bg-[#d9f2ff] px-2 py-0.5 text-[#131316]">{s.story.sheet.endingType === "open_loop" ? "cliffhanger" : "closed loop"}</span>
@@ -126,8 +126,8 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
             )}
             <ol className="space-y-1.5">
               {scenes.slice(0, shownLines).map((sc, k) => (
-                <li key={k} className="rise flex gap-2 text-[13px] leading-snug">
-                  <span className="w-5 shrink-0 font-mono text-[10.5px] leading-[18px] text-fg-3">{String(k + 1).padStart(2, "0")}</span>
+                <li key={k} className="rise flex gap-2 text-small leading-snug">
+                  <span className="w-5 shrink-0 font-mono text-micro leading-[18px] text-fg-3">{String(k + 1).padStart(2, "0")}</span>
                   <span className="text-fg-2">{sc.narration}</span>
                 </li>
               ))}
@@ -151,12 +151,12 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
               className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${phase === "playing" ? "opacity-100" : "opacity-0"}`}
             />
             {phase !== "playing" && (
-              <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-[12px] font-medium text-white">
+              <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-caption font-medium text-white">
                 {phase === "typing" ? "waiting for an idea…" : `${STAGES[Math.min(stage, STAGES.length - 1)].label.toLowerCase()}…`}
               </span>
             )}
             {phase === "playing" && (
-              <button onClick={() => setMuted((m) => !m)} className="absolute bottom-2 right-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-medium text-[#131316]">
+              <button onClick={() => setMuted((m) => !m)} className="absolute bottom-2 right-2 rounded-full bg-white/90 px-2 py-0.5 text-micro font-medium text-[#131316]">
                 {muted ? "sound on" : "mute"}
               </button>
             )}

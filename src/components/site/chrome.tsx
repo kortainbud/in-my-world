@@ -7,7 +7,7 @@ import { Scene, ThemeToggle } from "./fx";
 
 export function SiteLogo({ className = "" }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 text-[17px] font-semibold tracking-[-0.02em] ${className}`}>
+    <span className={`inline-flex items-center gap-2 text-lead font-semibold tracking-[-0.02em] ${className}`}>
       <svg width="26" height="26" viewBox="0 0 22 22" aria-hidden>
         <rect x="1" y="1" width="20" height="20" rx="5" fill="#29A9F2" />
         <rect x="1" y="14" width="20" height="7" fill="#7FD14F" />
@@ -27,7 +27,7 @@ const LINKS = [
   { href: "/pricing", label: "pricing" },
 ];
 
-const pill = "inline-flex h-10 items-center justify-center rounded-full px-4 text-[15px] font-medium transition-colors";
+const pill = "inline-flex h-10 items-center justify-center rounded-full px-4 text-body font-medium transition-colors";
 const primary = "bg-[var(--pill-bg)] text-[var(--pill-fg)] hover:bg-[var(--pill-hover)]";
 
 export function SiteNav() {
@@ -47,7 +47,7 @@ export function SiteNav() {
         <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
           <ThemeToggle />
           {LINKS.map((l) => (
-            <Link key={l.href} href={l.href} className="rounded-full px-3 py-1.5 text-[15px] font-medium text-fg transition-colors hover:bg-bg-2">
+            <Link key={l.href} href={l.href} className="rounded-full px-3 py-1.5 text-body font-medium text-fg transition-colors hover:bg-bg-2">
               {l.label}
             </Link>
           ))}
@@ -57,7 +57,7 @@ export function SiteNav() {
             </Link>
           ) : (
             <>
-              <Link href="/sign-in" className="rounded-full px-3 py-1.5 text-[15px] font-medium text-fg hover:bg-bg-2">
+              <Link href="/sign-in" className="rounded-full px-3 py-1.5 text-body font-medium text-fg hover:bg-bg-2">
                 sign in
               </Link>
               <Link href="/sign-up?next=/studio" className={`${pill} ml-1 ${primary}`}>
@@ -77,7 +77,7 @@ export function SiteNav() {
         <div id="site-menu" className="absolute inset-x-0 top-[72px] border-b border-line bg-bg px-5 pb-6 pt-2 shadow-[0_20px_40px_-20px_rgba(0,0,0,0.15)] md:hidden">
           <nav className="flex flex-col" aria-label="Main">
             {LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="border-b border-line-soft py-3.5 text-[17px] font-medium">
+              <Link key={l.href} href={l.href} className="border-b border-line-soft py-3.5 text-lead font-medium">
                 {l.label}
               </Link>
             ))}
@@ -114,13 +114,13 @@ export function SiteFooter() {
       <div className="relative">
         {home ? (
           <div className="flex flex-col items-center justify-center px-5 pb-10 text-center" style={{ height: "calc(max(100vw, 900px) * 0.7031 * 0.56)" }}>
-            <h2 className="text-[44px] font-medium leading-[0.95] tracking-[-0.055em] text-white [text-shadow:0_2px_24px_rgba(0,40,90,0.3)] sm:text-[80px]">what happens in your world?</h2>
-            <p className="mx-auto mt-4 max-w-md text-[17px] font-medium text-white/95">type one sentence. post a video today.</p>
+            <h2 className="text-display-sm font-medium leading-[0.95] tracking-[-0.055em] text-white [text-shadow:0_2px_24px_rgba(0,40,90,0.3)] sm:text-display-lg">what happens in your world?</h2>
+            <p className="mx-auto mt-4 max-w-md text-lead font-medium text-white/95">type one sentence. post a video today.</p>
             <div className="mt-7 flex flex-col items-center justify-center gap-2 sm:flex-row">
-              <Link href="/sign-up?next=/studio" className={`${pill} h-12 px-6 text-[16px] ${primary}`}>
+              <Link href="/sign-up?next=/studio" className={`${pill} h-12 px-6 text-lead ${primary}`}>
                 create my world
               </Link>
-              <Link href="/explore" className={`${pill} h-12 bg-white px-6 text-[16px] text-[#131316] hover:bg-[#f5f5f3]`}>
+              <Link href="/explore" className={`${pill} h-12 bg-white px-6 text-lead text-[#131316] hover:bg-[#f5f5f3]`}>
                 explore stories
               </Link>
             </div>
@@ -131,15 +131,15 @@ export function SiteFooter() {
         <div className="mx-auto grid max-w-[1120px] gap-10 px-5 pb-14 pt-8 sm:px-6 md:grid-cols-[1.6fr_repeat(4,1fr)]">
           <div>
             <SiteLogo />
-            <p className="mt-4 max-w-[260px] text-[15px] leading-relaxed text-[var(--sand-fg-2)]">turn any idea into a whole world.</p>
+            <p className="mt-4 max-w-[260px] text-body leading-relaxed text-[var(--sand-fg-2)]">turn any idea into a whole world.</p>
           </div>
           {cols.map((c) => (
             <div key={c.title}>
-              <p className="mb-3 font-mono text-[13px] text-[var(--sand-fg-2)]">{c.title}</p>
+              <p className="mb-3 font-mono text-small text-[var(--sand-fg-2)]">{c.title}</p>
               <ul className="space-y-2">
                 {c.links.map((l) => (
                   <li key={l.href}>
-                    <Link href={l.href} className="text-[15px] font-medium hover:underline">
+                    <Link href={l.href} className="text-body font-medium hover:underline">
                       {l.label}
                     </Link>
                   </li>

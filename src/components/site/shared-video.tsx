@@ -18,14 +18,14 @@ export function SharedVideo({ id }: { id: string }) {
   if (err)
     return (
       <div className="mx-auto max-w-md px-6 py-28 text-center">
-        <h1 className="text-[22px] font-semibold">This video isn’t available</h1>
-        <p className="mt-2 text-[14px] text-fg-2">{err}</p>
+        <h1 className="text-title font-semibold">This video isn’t available</h1>
+        <p className="mt-2 text-body text-fg-2">{err}</p>
         <Link href="/explore" className={btn("secondary", "md", "mt-6")}>
           Explore other stories
         </Link>
       </div>
     );
-  if (!p?.video) return <div className="flex min-h-[60vh] items-center justify-center text-[13px] text-fg-3">Loading…</div>;
+  if (!p?.video) return <div className="flex min-h-[60vh] items-center justify-center text-small text-fg-3">Loading…</div>;
   return (
     <div className="mx-auto grid max-w-[1000px] gap-10 px-4 py-12 sm:px-6 md:grid-cols-[minmax(0,400px)_1fr]">
       <TrackedVideo
@@ -43,13 +43,13 @@ export function SharedVideo({ id }: { id: string }) {
       />
       <div className="md:pt-6">
         <StyleTag style={p.style} />
-        <h1 className="mt-3 text-[32px] font-semibold leading-tight tracking-[-0.03em]">{p.title}</h1>
-        <p className="mt-2 text-[14px] text-fg-2">
+        <h1 className="mt-3 text-page font-semibold leading-tight tracking-[-0.03em]">{p.title}</h1>
+        <p className="mt-2 text-body text-fg-2">
           by {p.owner.displayName} · {fmtDuration(p.video.durationSec)}
         </p>
         <div className="mt-6 rounded-[12px] border border-line-soft bg-bg-2 p-4">
           <p className="eyebrow mb-1.5">The idea</p>
-          <p className="text-[16px] leading-snug">{p.prompt}</p>
+          <p className="text-lead leading-snug">{p.prompt}</p>
         </div>
         <div className="mt-6 flex flex-wrap gap-2">
           <Link href={`/sign-up?next=${encodeURIComponent(`/studio?prompt=${encodeURIComponent(p.prompt)}&style=${p.style}`)}`} className={btn("primary", "lg")}>
@@ -59,7 +59,7 @@ export function SharedVideo({ id }: { id: string }) {
             Download
           </a>
         </div>
-        <p className="mt-8 text-[13px] text-fg-3">Made with In My World — turn any idea into a whole world.</p>
+        <p className="mt-8 text-small text-fg-3">Made with In My World — turn any idea into a whole world.</p>
       </div>
     </div>
   );

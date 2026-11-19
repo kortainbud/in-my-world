@@ -192,7 +192,7 @@ export function WorldLoader() {
             </span>
           ))}
         </div>
-        <p className="mt-10 font-mono text-[13px] text-[#0b3a5c]">building your world…</p>
+        <p className="mt-10 font-mono text-small text-[#0b3a5c]">building your world…</p>
       </div>
     </div>
   );

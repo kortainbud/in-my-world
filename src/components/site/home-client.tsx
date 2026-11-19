@@ -55,7 +55,7 @@ export function HeroDemo({ samples }: { samples: SampleEntry[] }) {
 
   if (!s)
     return (
-      <div className="flex aspect-[16/10] items-center justify-center rounded-[18px] border border-line bg-bg-2 text-[13px] text-fg-3">
+      <div className="flex aspect-[16/10] items-center justify-center rounded-[18px] border border-line bg-bg-2 text-small text-fg-3">
         Sample videos haven’t been generated yet.
       </div>
     );
@@ -66,7 +66,7 @@ export function HeroDemo({ samples }: { samples: SampleEntry[] }) {
       <div className="relative grid items-center gap-8 p-5 sm:p-8 md:grid-cols-[1fr_auto] md:gap-12 md:p-12">
         <div className="min-w-0">
           <p className="eyebrow">the idea</p>
-          <p className="mt-3 min-h-[3.6em] text-[22px] font-medium leading-snug tracking-[-0.02em] sm:text-[28px]" aria-live="polite">
+          <p className="mt-3 min-h-[3.6em] text-title font-medium leading-snug tracking-[-0.02em] sm:text-page" aria-live="polite">
             {s.prompt.slice(0, typed)}
             {phase === "typing" && <span className="caret ml-0.5 inline-block h-[1em] w-[3px] translate-y-[3px] bg-accent" />}
           </p>
@@ -74,7 +74,7 @@ export function HeroDemo({ samples }: { samples: SampleEntry[] }) {
             {STAGES.map((st, k) => {
               const done = phase === "playing" || (phase === "building" && k < stage);
               return (
-                <li key={st.key} className={`flex items-center gap-2 text-[13px] transition-colors ${done ? "text-fg" : "text-fg-3"}`}>
+                <li key={st.key} className={`flex items-center gap-2 text-small transition-colors ${done ? "text-fg" : "text-fg-3"}`}>
                   <span className={`flex h-4 w-4 items-center justify-center rounded-full ${done ? "bg-accent text-accent-ink" : "border border-line"}`}>
                     {done && <svg width="9" height="9" viewBox="0 0 12 12" aria-hidden><path d="M2.5 6.2l2.3 2.3 4.7-5" stroke="currentColor" strokeWidth="2" fill="none" /></svg>}
                   </span>
@@ -93,7 +93,7 @@ export function HeroDemo({ samples }: { samples: SampleEntry[] }) {
                 className={`h-1.5 rounded-full transition-all ${k === i % samples.length ? "w-8 bg-accent" : "w-3 bg-line hover:bg-fg-3"}`}
               />
             ))}
-            <span className="ml-2 text-[11.5px] text-fg-3">Real output from the engine · sample</span>
+            <span className="ml-2 text-micro text-fg-3">Real output from the engine · sample</span>
           </div>
         </div>
         <div className="relative mx-auto w-[min(300px,72vw)]">
@@ -112,7 +112,7 @@ export function HeroDemo({ samples }: { samples: SampleEntry[] }) {
             />
             {phase !== "playing" && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
-                <span className="text-[12px] font-medium text-fg-2">{phase === "typing" ? "Waiting for an idea" : STAGES[Math.min(stage, STAGES.length - 1)].label}…</span>
+                <span className="text-caption font-medium text-fg-2">{phase === "typing" ? "Waiting for an idea" : STAGES[Math.min(stage, STAGES.length - 1)].label}…</span>
               </div>
             )}
             <div className="absolute left-2.5 top-2.5">
@@ -151,9 +151,9 @@ export function ProductDemo({ sample }: { sample?: SampleEntry }) {
               role="tab"
               aria-selected={step === k}
               onClick={() => pick(k)}
-              className={`flex w-full items-center gap-3 rounded-[10px] border px-3.5 py-3 text-left text-[14px] transition-colors ${step === k ? "border-line bg-bg-2 text-fg" : "border-transparent text-fg-2 hover:text-fg"}`}
+              className={`flex w-full items-center gap-3 rounded-[10px] border px-3.5 py-3 text-left text-body transition-colors ${step === k ? "border-line bg-bg-2 text-fg" : "border-transparent text-fg-2 hover:text-fg"}`}
             >
-              <span className={`font-mono text-[12px] ${step === k ? "text-accent" : "text-fg-3"}`}>0{k + 1}</span>
+              <span className={`font-mono text-caption ${step === k ? "text-accent" : "text-fg-3"}`}>0{k + 1}</span>
               {s}
             </button>
           </li>
@@ -163,24 +163,24 @@ export function ProductDemo({ sample }: { sample?: SampleEntry }) {
         {step === 0 && (
           <div className="rise flex h-full flex-col justify-center">
             <p className="eyebrow">Prompt</p>
-            <p className="mt-4 text-[26px] font-medium leading-snug tracking-[-0.02em] sm:text-[34px]">{sample.prompt}</p>
-            <p className="mt-6 text-[13px] text-fg-3">One sentence. That’s the whole input.</p>
+            <p className="mt-4 text-heading font-medium leading-snug tracking-[-0.02em] sm:text-page">{sample.prompt}</p>
+            <p className="mt-6 text-small text-fg-3">One sentence. That’s the whole input.</p>
           </div>
         )}
         {step === 1 && (
           <div className="rise">
             <p className="eyebrow">Script · {sample.story.scenes.length} scenes</p>
-            <h3 className="mt-3 text-[22px] font-semibold tracking-[-0.02em]">{sample.title}</h3>
+            <h3 className="mt-3 text-title font-semibold tracking-[-0.02em]">{sample.title}</h3>
             {sample.story.sheet && (
-              <dl className="mt-3 grid gap-2 text-[12.5px] sm:grid-cols-2">
+              <dl className="mt-3 grid gap-2 text-caption sm:grid-cols-2">
                 <div className="rounded-[8px] border border-line-soft bg-bg px-3 py-2"><dt className="text-fg-3">The rule</dt><dd className="mt-0.5 text-fg-2">{sample.story.sheet.rule}</dd></div>
                 <div className="rounded-[8px] border border-line-soft bg-bg px-3 py-2"><dt className="text-fg-3">The secret · {sample.story.sheet.twistType.replace(/_/g, " ")} twist</dt><dd className="mt-0.5 text-fg-2">{sample.story.sheet.secret}</dd></div>
               </dl>
             )}
             <ol className="mt-5 space-y-3">
               {sample.story.scenes.map((sc, k) => (
-                <li key={k} className="flex gap-3 text-[14px]">
-                  <span className="w-6 shrink-0 font-mono text-[12px] leading-6 text-fg-3">{String(k + 1).padStart(2, "0")}</span>
+                <li key={k} className="flex gap-3 text-body">
+                  <span className="w-6 shrink-0 font-mono text-caption leading-6 text-fg-3">{String(k + 1).padStart(2, "0")}</span>
                   <span className="leading-relaxed text-fg-2">{sc.narration}</span>
                 </li>
               ))}
@@ -194,11 +194,11 @@ export function ProductDemo({ sample }: { sample?: SampleEntry }) {
               {sample.story.cast.map((c) => (
                 <div key={c.id} className="rounded-[12px] border border-line-soft bg-bg p-3 text-center">
                   <Portrait appearance={c.appearance} style={sample.style} full pose="wave" className="mx-auto h-40 w-32 sm:h-52 sm:w-40" alt={c.name} />
-                  <p className="mt-2 text-[14px] font-medium">{c.name}</p>
+                  <p className="mt-2 text-body font-medium">{c.name}</p>
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-[13px] text-fg-3">Characters keep the same look, outfit and proportions in every scene — and every future story.</p>
+            <p className="mt-4 text-small text-fg-3">Characters keep the same look, outfit and proportions in every scene — and every future story.</p>
           </div>
         )}
         {step === 3 && (
@@ -209,7 +209,7 @@ export function ProductDemo({ sample }: { sample?: SampleEntry }) {
                 <figure key={src}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={src} alt={sample.story!.scenes[k]?.description ?? `Scene ${k + 1}`} className="aspect-[9/16] w-full rounded-[8px] border border-line-soft object-cover" />
-                  <figcaption className="mt-1.5 line-clamp-2 text-[11px] leading-snug text-fg-3">{sample.story!.scenes[k]?.environment.replace(/_/g, " ")}</figcaption>
+                  <figcaption className="mt-1.5 line-clamp-2 text-micro leading-snug text-fg-3">{sample.story!.scenes[k]?.environment.replace(/_/g, " ")}</figcaption>
                 </figure>
               ))}
             </div>
@@ -220,7 +220,7 @@ export function ProductDemo({ sample }: { sample?: SampleEntry }) {
             <video src={sample.video} poster={sample.thumb} controls playsInline className="aspect-[9/16] w-[220px] rounded-[12px] border border-line bg-black" />
             <div>
               <p className="eyebrow">Finished video</p>
-              <p className="mt-3 text-[15px] leading-relaxed text-fg-2">
+              <p className="mt-3 text-body leading-relaxed text-fg-2">
                 {fmtDuration(sample.durationSec)} · {sample.width ?? 720}×{sample.height ?? 1280} · H.264 MP4 with narration, music, sound effects and burned-in captions. Ready to post.
               </p>
             </div>
@@ -235,7 +235,7 @@ export function ProductDemo({ sample }: { sample?: SampleEntry }) {
 
 export function Examples({ samples }: { samples: SampleEntry[] }) {
   const [open, setOpen] = useState<VideoItem | null>(null);
-  if (!samples.length) return <p className="text-[13px] text-fg-3">Sample videos haven’t been generated yet.</p>;
+  if (!samples.length) return <p className="text-small text-fg-3">Sample videos haven’t been generated yet.</p>;
   return (
     <>
       <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 lg:grid-cols-6">
@@ -243,7 +243,7 @@ export function Examples({ samples }: { samples: SampleEntry[] }) {
           <VideoCard key={s.id} item={{ ...s, isSample: true }} onOpen={() => setOpen({ ...s, isSample: true })} />
         ))}
       </div>
-      <p className="mt-6 text-[12px] text-fg-3">All examples are sample videos rendered by this product’s engine, labelled as samples.</p>
+      <p className="mt-6 text-caption text-fg-3">All examples are sample videos rendered by this product’s engine, labelled as samples.</p>
       <VideoModal item={open} onClose={() => setOpen(null)} actions={open && <Link href={`/sign-up?next=${encodeURIComponent(`/studio?prompt=${encodeURIComponent(open.prompt)}`)}`} className={btn("primary", "md")}>Make my own version</Link>} />
     </>
   );
@@ -261,20 +261,20 @@ export function CharacterShowcase() {
         <div className="grid w-full grid-cols-2 gap-3">
           <figure className="text-center">
             <Portrait appearance={c.appearance} style="roblox" full pose="wave" className="mx-auto h-64 w-48" alt={`${c.name} in Roblox style`} />
-            <figcaption className="mt-1 text-[11.5px] text-fg-3">Roblox style</figcaption>
+            <figcaption className="mt-1 text-micro text-fg-3">Roblox style</figcaption>
           </figure>
           <figure className="text-center">
             <Portrait appearance={c.appearance} style="minecraft" full pose="wave" className="mx-auto h-64 w-48" alt={`${c.name} in Minecraft style`} />
-            <figcaption className="mt-1 text-[11.5px] text-fg-3">Minecraft style</figcaption>
+            <figcaption className="mt-1 text-micro text-fg-3">Minecraft style</figcaption>
           </figure>
         </div>
         <div className="mt-5 w-full border-t border-line-soft pt-4">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-[20px] font-semibold tracking-[-0.02em]">{c.name}</h3>
+            <h3 className="text-title font-semibold tracking-[-0.02em]">{c.name}</h3>
             <Tag tone={c.source === "featured_personality" ? "accent" : "default"}>{SOURCE_LABELS[c.source]}</Tag>
           </div>
-          <p className="mt-1 text-[13.5px] text-fg-2">{c.personality}</p>
-          {c.permissionNote && <p className="mt-2 text-[11.5px] text-fg-3">{c.permissionNote}</p>}
+          <p className="mt-1 text-small text-fg-2">{c.personality}</p>
+          {c.permissionNote && <p className="mt-2 text-micro text-fg-3">{c.permissionNote}</p>}
         </div>
       </div>
       <div>
@@ -287,11 +287,11 @@ export function CharacterShowcase() {
               className={`rounded-[12px] border p-2 text-center transition-colors ${sel === x.id ? "border-accent bg-[var(--accent-soft)]" : "border-line-soft bg-bg-2 hover:border-line"}`}
             >
               <Portrait appearance={x.appearance} className="mx-auto h-24 w-20" alt="" />
-              <span className="mt-1 block truncate text-[13px] font-medium">{x.name}</span>
+              <span className="mt-1 block truncate text-small font-medium">{x.name}</span>
             </button>
           ))}
         </div>
-        <ul className="mt-6 space-y-3 text-[14px] text-fg-2">
+        <ul className="mt-6 space-y-3 text-body text-fg-2">
           <li><span className="text-fg">Cast once, reuse forever.</span> A character keeps its face, outfit, accessories and proportions in every scene and every story.</li>
           <li><span className="text-fg">Build your own.</span> Pick skin, hair, outfit, hats and accessories — then cast them in anything.</li>
           <li><span className="text-fg">Share or keep private.</span> Each character has visibility and reuse permissions. Featured personalities appear only with permission.</li>

@@ -66,7 +66,7 @@ export function ProjectsScreen() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[1280px] px-4 pb-20 pt-6 sm:px-6 lg:pt-10">
+    <div className="mx-auto w-full max-w-[1200px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
       <PageHeader title="My Studio" sub="Every video you make is saved here." actions={<LinkButton href="/studio" variant="primary">New video</LinkButton>} />
 
       <div role="tablist" aria-label="Filter projects" className="mb-6 flex gap-1 overflow-x-auto border-b border-line-soft scrollbar-none">
@@ -76,10 +76,10 @@ export function ProjectsScreen() {
             role="tab"
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
-            className={`-mb-px flex h-10 items-center gap-2 whitespace-nowrap border-b-2 px-3 text-[14px] transition-colors ${tab === t.id ? "border-accent text-fg" : "border-transparent text-fg-2 hover:text-fg"}`}
+            className={`-mb-px flex h-10 items-center gap-2 whitespace-nowrap border-b-2 px-3 text-body transition-colors ${tab === t.id ? "border-accent text-fg" : "border-transparent text-fg-2 hover:text-fg"}`}
           >
             {t.label}
-            {data && <span className="font-mono text-[11px] text-fg-3">{data.counts[t.id] ?? 0}</span>}
+            {data && <span className="font-mono text-micro text-fg-3">{data.counts[t.id] ?? 0}</span>}
           </button>
         ))}
       </div>
@@ -103,11 +103,11 @@ export function ProjectsScreen() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={p.thumb} alt="" loading="lazy" className={`absolute inset-0 h-full w-full object-cover ${p.status !== "completed" ? "opacity-50" : ""}`} />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center p-4 text-center text-[12.5px] leading-snug text-fg-3">“{p.prompt}”</div>
+                  <div className="absolute inset-0 flex items-center justify-center p-4 text-center text-caption leading-snug text-fg-3">“{p.prompt}”</div>
                 )}
                 <div className="absolute inset-x-0 top-0 flex items-center justify-between p-2">
                   <StyleTag style={p.style} />
-                  {p.video && <span className="rounded-[5px] bg-black/60 px-1.5 py-0.5 font-mono text-[11px]">{fmtDuration(p.video.durationSec)}</span>}
+                  {p.video && <span className="rounded-[5px] bg-black/60 px-1.5 py-0.5 font-mono text-micro">{fmtDuration(p.video.durationSec)}</span>}
                 </div>
                 {p.status !== "completed" && (
                   <div className="absolute inset-x-0 bottom-0 p-2.5">
@@ -117,10 +117,10 @@ export function ProjectsScreen() {
               </Link>
               <div className="mt-2.5 flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <Link href={`/studio/projects/${p.id}`} className="block truncate text-[14px] font-medium hover:underline">
+                  <Link href={`/studio/projects/${p.id}`} className="block truncate text-body font-medium hover:underline">
                     {p.title}
                   </Link>
-                  <p className="mt-0.5 text-[12px] text-fg-3">
+                  <p className="mt-0.5 text-caption text-fg-3">
                     {timeAgo(p.createdAt)} · {p.durationPreset}s{p.visibility === "public" ? " · public" : ""}
                   </p>
                 </div>
@@ -147,7 +147,7 @@ export function ProjectsScreen() {
         {confirm && (
           <div className="w-[min(420px,92vw)] rounded-[14px] border border-line bg-bg-2 p-5">
             <h2 className="text-lg font-semibold tracking-[-0.02em]">Delete “{confirm.title}”?</h2>
-            <p className="mt-2 text-[13.5px] text-fg-2">
+            <p className="mt-2 text-small text-fg-2">
               {confirm.status === "awaiting_render" ? "It hasn’t rendered yet, so its credits will be refunded. " : ""}This can’t be undone.
             </p>
             <div className="mt-5 flex justify-end gap-2">
@@ -217,11 +217,11 @@ function Menu({ items }: { items: { label: string; href?: string; download?: boo
         <div role="menu" className="absolute right-0 top-8 z-20 w-48 rounded-[10px] border border-line bg-bg-2 p-1 shadow-2xl shadow-black/60">
           {items.map((it) =>
             it.href ? (
-              <a key={it.label} role="menuitem" href={it.href} download={it.download || undefined} className="block rounded-[7px] px-2.5 py-1.5 text-[13px] text-fg-2 hover:bg-bg-3 hover:text-fg">
+              <a key={it.label} role="menuitem" href={it.href} download={it.download || undefined} className="block rounded-[7px] px-2.5 py-1.5 text-small text-fg-2 hover:bg-bg-3 hover:text-fg">
                 {it.label}
               </a>
             ) : (
-              <button key={it.label} role="menuitem" onClick={it.onClick} className={`block w-full rounded-[7px] px-2.5 py-1.5 text-left text-[13px] hover:bg-bg-3 ${it.danger ? "text-[var(--danger-fg)]" : "text-fg-2 hover:text-fg"}`}>
+              <button key={it.label} role="menuitem" onClick={it.onClick} className={`block w-full rounded-[7px] px-2.5 py-1.5 text-left text-small hover:bg-bg-3 ${it.danger ? "text-[var(--danger-fg)]" : "text-fg-2 hover:text-fg"}`}>
                 {it.label}
               </button>
             ),

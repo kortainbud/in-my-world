@@ -78,7 +78,7 @@ export function Explore({ context }: { context: "public" | "studio" }) {
               role="tab"
               aria-selected={style === s.id}
               onClick={() => set("style", s.id)}
-              className={`h-9 whitespace-nowrap rounded-[8px] px-3.5 text-[13.5px] font-medium transition-colors ${style === s.id ? "bg-fg text-bg" : "text-fg-2 hover:bg-bg-3 hover:text-fg"}`}
+              className={`h-9 whitespace-nowrap rounded-[8px] px-3.5 text-small font-medium transition-colors ${style === s.id ? "bg-fg text-bg" : "text-fg-2 hover:bg-bg-3 hover:text-fg"}`}
             >
               {s.label}
             </button>
@@ -107,7 +107,7 @@ export function Explore({ context }: { context: "public" | "studio" }) {
             key={c}
             onClick={() => set("category", c)}
             aria-pressed={category === c}
-            className={`h-7 rounded-[7px] border px-2.5 text-[12.5px] transition-colors ${category === c ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
+            className={`h-7 rounded-[7px] border px-2.5 text-caption transition-colors ${category === c ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
           >
             {c === "all" ? "All categories" : c}
           </button>
@@ -118,8 +118,8 @@ export function Explore({ context }: { context: "public" | "studio" }) {
 
       <section className="mt-8" aria-label="Stories">
         <div className="mb-4 flex items-baseline justify-between">
-          <h2 className="text-[17px] font-semibold tracking-[-0.02em]">{filtered ? "Results" : SORTS.find((s) => s.id === sort)?.label}</h2>
-          {data && <span className="text-[12px] text-fg-3">{data.items.length} {data.items.length === 1 ? "video" : "videos"}</span>}
+          <h2 className="text-lead font-semibold tracking-[-0.02em]">{filtered ? "Results" : SORTS.find((s) => s.id === sort)?.label}</h2>
+          {data && <span className="text-caption text-fg-3">{data.items.length} {data.items.length === 1 ? "video" : "videos"}</span>}
         </div>
         {!data && !error && (
           <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -128,8 +128,8 @@ export function Explore({ context }: { context: "public" | "studio" }) {
         )}
         {data && data.items.length === 0 && (
           <div className="rounded-[12px] border border-dashed border-line px-6 py-14 text-center">
-            <p className="text-[15px] font-medium">{data.total === 0 ? "No public stories yet" : "No stories match these filters"}</p>
-            <p className="mt-1.5 text-[13px] text-fg-2">{data.total === 0 ? "Finished videos that creators share will show up here." : "Try another style or category."}</p>
+            <p className="text-body font-medium">{data.total === 0 ? "No public stories yet" : "No stories match these filters"}</p>
+            <p className="mt-1.5 text-small text-fg-2">{data.total === 0 ? "Finished videos that creators share will show up here." : "Try another style or category."}</p>
           </div>
         )}
         {data && data.items.length > 0 && (
@@ -140,7 +140,7 @@ export function Explore({ context }: { context: "public" | "studio" }) {
                 item={i}
                 onOpen={() => setOpen(i)}
                 footer={
-                  <p className="mt-0.5 truncate text-[12px] text-fg-3">
+                  <p className="mt-0.5 truncate text-caption text-fg-3">
                     {i.isSample ? "Sample" : `@${i.owner.handle}`} · {i.views} {i.views === 1 ? "play" : "plays"} · {i.category}
                   </p>
                 }
@@ -153,13 +153,13 @@ export function Explore({ context }: { context: "public" | "studio" }) {
       {data && !filtered && (
         <div className="mt-16 grid gap-12 lg:grid-cols-3">
           <section aria-label="Popular prompts">
-            <h2 className="mb-4 text-[17px] font-semibold tracking-[-0.02em]">Popular prompts</h2>
+            <h2 className="mb-4 text-lead font-semibold tracking-[-0.02em]">Popular prompts</h2>
             <ul className="divide-y divide-line-soft rounded-[12px] border border-line-soft">
               {data.prompts.map((p) => (
                 <li key={p.id}>
-                  <Link href={createHref(p.prompt)} className="flex items-center justify-between gap-3 px-4 py-3 text-[13.5px] hover:bg-bg-2">
+                  <Link href={createHref(p.prompt)} className="flex items-center justify-between gap-3 px-4 py-3 text-small hover:bg-bg-2">
                     <span className="text-fg-2">{p.prompt}</span>
-                    <span className="shrink-0 text-[12px] text-fg-3">Use →</span>
+                    <span className="shrink-0 text-caption text-fg-3">Use →</span>
                   </Link>
                 </li>
               ))}
@@ -167,8 +167,8 @@ export function Explore({ context }: { context: "public" | "studio" }) {
           </section>
           <section aria-label="Popular characters">
             <div className="mb-4 flex items-baseline justify-between">
-              <h2 className="text-[17px] font-semibold tracking-[-0.02em]">Popular characters</h2>
-              <Link href={charHref} className="text-[12.5px] text-fg-2 hover:text-fg">
+              <h2 className="text-lead font-semibold tracking-[-0.02em]">Popular characters</h2>
+              <Link href={charHref} className="text-caption text-fg-2 hover:text-fg">
                 All characters →
               </Link>
             </div>
@@ -176,24 +176,24 @@ export function Explore({ context }: { context: "public" | "studio" }) {
               {data.characters.map((c) => (
                 <Link key={c.id} href={charHref} className="rounded-[10px] border border-line-soft bg-bg-2 p-1.5 text-center hover:border-line">
                   <Portrait appearance={c.appearance} className="mx-auto h-16 w-14" />
-                  <span className="mt-1 block truncate text-[12px]">{c.name}</span>
+                  <span className="mt-1 block truncate text-caption">{c.name}</span>
                 </Link>
               ))}
             </div>
           </section>
           <section aria-label="Featured creators">
-            <h2 className="mb-4 text-[17px] font-semibold tracking-[-0.02em]">Featured creators</h2>
+            <h2 className="mb-4 text-lead font-semibold tracking-[-0.02em]">Featured creators</h2>
             {data.creators.length === 0 ? (
-              <p className="text-[13px] text-fg-3">Creators appear here once they share videos.</p>
+              <p className="text-small text-fg-3">Creators appear here once they share videos.</p>
             ) : (
               <ul className="space-y-2">
                 {data.creators.map((c) => (
                   <li key={c.handle} className="flex items-center justify-between rounded-[10px] border border-line-soft px-3.5 py-2.5">
                     <span className="min-w-0">
-                      <span className="block truncate text-[13.5px] font-medium">{c.displayName}</span>
-                      <span className="text-[12px] text-fg-3">{c.isSample ? "Sample content" : `@${c.handle}`}</span>
+                      <span className="block truncate text-small font-medium">{c.displayName}</span>
+                      <span className="text-caption text-fg-3">{c.isSample ? "Sample content" : `@${c.handle}`}</span>
                     </span>
-                    <span className="text-right text-[12px] text-fg-2">
+                    <span className="text-right text-caption text-fg-2">
                       {c.videos} videos
                       <br />
                       {c.views} plays

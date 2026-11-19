@@ -6,8 +6,8 @@ export const instant = false;
 
 export default function StudioExplore() {
   return (
-    <div className="mx-auto w-full max-w-[1280px] px-4 pb-20 pt-6 sm:px-6 lg:pt-10">
-      <h1 className="mb-6 text-[26px] font-semibold tracking-[-0.03em]">Explore</h1>
+    <div className="mx-auto w-full max-w-[1200px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
+      <h1 className="mb-8 text-page font-semibold">Explore</h1>
       <Suspense fallback={null}>
         <Explore context="studio" />
       </Suspense>

@@ -39,7 +39,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             href={n.href}
             onClick={onNavigate}
             aria-current={on ? "page" : undefined}
-            className={`flex h-9 items-center gap-2.5 rounded-[8px] px-2.5 text-[14px] transition-colors ${on ? "bg-bg-3 text-fg" : "text-fg-2 hover:bg-bg-3/60 hover:text-fg"}`}
+            className={`flex h-9 items-center gap-2.5 rounded-[8px] px-2.5 text-body transition-colors ${on ? "bg-bg-3 text-fg" : "text-fg-2 hover:bg-bg-3/60 hover:text-fg"}`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden className={on && n.label === "Create" ? "text-accent" : ""}>
               {ICONS[n.label]}
@@ -57,7 +57,7 @@ function AgentBadge() {
   if (!a.jobId) return null;
   const pct = a.framesTotal ? Math.floor((a.framesDone / a.framesTotal) * 100) : 0;
   return (
-    <Link href={`/studio/projects/${a.projectId}`} className="block rounded-[10px] border border-line bg-bg-2 p-3 text-[12.5px] hover:border-[var(--line-strong)]">
+    <Link href={`/studio/projects/${a.projectId}`} className="block rounded-[10px] border border-line bg-bg-2 p-3 text-caption hover:border-[var(--line-strong)]">
       <span className="flex items-center gap-2 font-medium text-fg">
         <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-accent" />
         Rendering in this tab
@@ -79,22 +79,22 @@ function Account() {
       <AgentBadge />
       <Link href="/studio/billing" className="block rounded-[10px] border border-line bg-bg-2 p-3 hover:border-[var(--line-strong)]">
         <span className="flex items-baseline justify-between">
-          <span className="text-[12px] text-fg-2">{me.plan.name} plan</span>
-          <span className="font-mono text-[11px] text-fg-3">credits</span>
+          <span className="text-caption text-fg-2">{me.plan.name} plan</span>
+          <span className="font-mono text-micro text-fg-3">credits</span>
         </span>
-        <span className="mt-0.5 block text-[22px] font-semibold tracking-[-0.03em]">{me.balance}</span>
+        <span className="mt-0.5 block text-title font-semibold tracking-[-0.03em]">{me.balance}</span>
       </Link>
       {providers?.mode === "development" && (
-        <p className="rounded-[8px] border border-[var(--warn-line)] bg-[var(--warn-bg)] px-2.5 py-1.5 text-[11.5px] leading-snug text-[var(--warn-fg)]">
+        <p className="rounded-[8px] border border-[var(--warn-line)] bg-[var(--warn-bg)] px-2.5 py-1.5 text-micro leading-snug text-[var(--warn-fg)]">
           Development mode · {providers.story.ai ? "AI story" : "template stories"}, {providers.voice.id === "macos-say" ? "system voices" : "no narration"}, in-browser rendering
         </p>
       )}
       <div className="flex items-center justify-between px-1 pt-1">
-        <Link href="/studio/settings" className="min-w-0 truncate text-[13px] text-fg-2 hover:text-fg">
+        <Link href="/studio/settings" className="min-w-0 truncate text-small text-fg-2 hover:text-fg">
           {me.displayName}
         </Link>
         <button
-          className="text-[12px] text-fg-3 hover:text-fg"
+          className="text-caption text-fg-3 hover:text-fg"
           onClick={async () => {
             await api("/api/auth/signout", { method: "POST" });
             router.replace("/");
@@ -117,7 +117,7 @@ function Gate({ children }: { children: ReactNode }) {
   }, [loading, me, router, path]);
   if (loading || !me)
     return (
-      <div className="flex min-h-[60vh] items-center justify-center text-[13px] text-fg-3">
+      <div className="flex min-h-[60vh] items-center justify-center text-small text-fg-3">
         {loading ? "Loading your studio…" : "Redirecting to sign in…"}
       </div>
     );
@@ -148,7 +148,7 @@ function Frame({ children }: { children: ReactNode }) {
             </Link>
             <div className="flex items-center gap-2">
               {me && (
-                <Link href="/studio/billing" className="font-mono text-[12px] text-fg-2">
+                <Link href="/studio/billing" className="font-mono text-caption text-fg-2">
                   {me.balance} cr
                 </Link>
               )}
@@ -187,10 +187,10 @@ export function StudioShell({ children }: { children: ReactNode }) {
 
 export function PageHeader({ title, sub, actions }: { title: string; sub?: ReactNode; actions?: ReactNode }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-[26px] font-semibold tracking-[-0.03em]">{title}</h1>
-        {sub && <p className="mt-1 text-[14px] text-fg-2">{sub}</p>}
+        <h1 className="text-page font-semibold">{title}</h1>
+        {sub && <p className="mt-1 text-body text-fg-2">{sub}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>

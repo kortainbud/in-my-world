@@ -48,18 +48,18 @@ export function VideoCard({ item, onOpen, footer, size = "md" }: { item: VideoIt
         {hover && <video ref={vref} src={item.video} muted playsInline loop preload="none" className="absolute inset-0 h-full w-full object-cover" />}
         <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between p-2">
           <StyleTag style={item.style} />
-          {item.isSample && <span className="rounded-[5px] bg-black/60 px-1.5 py-0.5 font-mono text-[10.5px] uppercase tracking-wide text-white/80 backdrop-blur">Sample</span>}
+          {item.isSample && <span className="rounded-[5px] bg-black/60 px-1.5 py-0.5 font-mono text-micro uppercase tracking-wide text-white/80 backdrop-blur">Sample</span>}
         </div>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/70 to-transparent p-2.5 pt-10">
           <span className={`flex items-center justify-center rounded-full bg-white text-[#131316] transition-transform group-hover:scale-105 ${size === "lg" ? "h-11 w-11" : "h-9 w-9"}`}>
             <PlayIcon />
           </span>
-          <span className="rounded-[5px] bg-black/60 px-1.5 py-0.5 font-mono text-[11px] text-white">{fmtDuration(item.durationSec)}</span>
+          <span className="rounded-[5px] bg-black/60 px-1.5 py-0.5 font-mono text-micro text-white">{fmtDuration(item.durationSec)}</span>
         </div>
       </button>
       <div className="mt-2.5">
-        <p className="truncate text-[14px] font-medium">{item.title}</p>
-        {footer ?? <p className="mt-0.5 line-clamp-2 text-[12.5px] leading-snug text-fg-2">{item.prompt}</p>}
+        <p className="truncate text-body font-medium">{item.title}</p>
+        {footer ?? <p className="mt-0.5 line-clamp-2 text-caption leading-snug text-fg-2">{item.prompt}</p>}
       </div>
     </div>
   );
@@ -112,7 +112,7 @@ export function VideoModal({ item, onClose, actions }: { item: VideoItem | null;
                   {item.category && <Tag>{item.category}</Tag>}
                 </div>
                 <h2 className="text-xl font-semibold tracking-[-0.02em]">{item.title}</h2>
-                {item.owner && <p className="mt-1 text-[13px] text-fg-2">by {item.owner.displayName}</p>}
+                {item.owner && <p className="mt-1 text-small text-fg-2">by {item.owner.displayName}</p>}
               </div>
               <button onClick={onClose} className={btn("ghost", "sm", "!px-2")} aria-label="Close">
                 <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden><path d="M3.5 3.5l9 9m0-9l-9 9" stroke="currentColor" strokeWidth="1.6" /></svg>
@@ -120,7 +120,7 @@ export function VideoModal({ item, onClose, actions }: { item: VideoItem | null;
             </div>
             <div className="rounded-[10px] border border-line-soft bg-bg p-3.5">
               <p className="eyebrow mb-1.5">The idea</p>
-              <p className="text-[15px] leading-snug">{item.prompt}</p>
+              <p className="text-body leading-snug">{item.prompt}</p>
             </div>
             <div className="mt-auto flex flex-wrap gap-2">
               {actions}
