@@ -8,6 +8,16 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Timeline } from "@/lib/engine/types";
 import { api, ApiError } from "@/lib/client/api";
+import { KOKORO_SPEED } from "@/lib/engine/voices";
+
+interface Job {
+  jobId: string;
+  projectId: string;
+  title: string;
+  timeline: Timeline;
+  /** Narration to record in this browser before rendering. */
+  voice: { clips: { scene: number; kind: "n" | "d"; text: string; voice: string; delivery: string }[] } | null;
+}
 
 interface AgentState {
   supported: boolean | null;
@@ -44,7 +54,7 @@ export function RenderAgentProvider({ children, enabled }: { children: ReactNode
       if (stopped) return;
       if (!busy.current) {
         try {
-          const { job } = await api<{ job: { jobId: string; projectId: string; title: string; timeline: Timeline } | null }>("/api/render/claim", { method: "POST", json: { agentId: agentId.current } });
+          const { job } = await api<{ job: Job | null }>("/api/render/claim", { method: "POST", json: { agentId: agentId.current } });
           if (job) await render(job);
         } catch {
           /* network blip — try again next tick */
@@ -53,7 +63,54 @@ export function RenderAgentProvider({ children, enabled }: { children: ReactNode
       timer = setTimeout(loop, 3000);
     };
 
-    const render = async (job: { jobId: string; projectId: string; timeline: Timeline }) => {
+    /**
+     * Records the narration with Kokoro in this browser, uploads the clips,
+     * and gets back a timeline re-timed to the real speech. If recording
+     * fails, the video continues with captions and music only.
+     */
+    const narrate = async (job: Job, ctrl: AbortController): Promise<Timeline> => {
+      const signal = ctrl.signal;
+      const id = agentId.current;
+      const clips = job.voice!.clips;
+      const report = (done: number) =>
+        api(`/api/render/${job.jobId}/progress`, { method: "POST", json: { agentId: id, phase: "voice", framesDone: done, framesTotal: clips.length } }).catch((e) => {
+          if (e instanceof ApiError && e.status === 409) ctrl.abort();
+        });
+      setState((s) => ({ ...s, phase: "voice", framesDone: 0, framesTotal: clips.length }));
+      let done = 0;
+      // Keeps the render lease alive while the voice model downloads.
+      const keepAlive = setInterval(() => void report(done), 10_000);
+      try {
+        const { uploads } = await api<{ uploads: { scene: number; kind: "n" | "d"; signedUrl: string }[] }>(`/api/render/${job.jobId}/narration`, { method: "PUT", json: { agentId: id } });
+        const { loadKokoro, toWav, trimSilence } = await import("@/lib/client/kokoro");
+        void report(0);
+        const tts = await loadKokoro((f) => setState((s) => ({ ...s, phase: f < 1 ? "voice-download" : "voice", framesDone: Math.round(f * 100), framesTotal: 100 })));
+        for (const c of clips) {
+          if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+          const out = await tts.generate(c.text, { voice: c.voice, speed: KOKORO_SPEED[c.delivery] ?? 1 });
+          const wav = toWav(trimSilence(out.audio, out.sampling_rate), out.sampling_rate);
+          const target = uploads.find((u) => u.scene === c.scene && u.kind === c.kind);
+          if (!target) throw new Error("No upload slot for a narration clip.");
+          const r = await fetch(target.signedUrl, { method: "PUT", headers: { "content-type": "audio/wav", "x-upsert": "true" }, body: wav, signal });
+          if (!r.ok) throw new Error(`Narration upload failed (${r.status})`);
+          done++;
+          setState((s) => ({ ...s, phase: "voice", framesDone: done, framesTotal: clips.length }));
+          void report(done);
+        }
+        const { timeline } = await api<{ timeline: Timeline }>(`/api/render/${job.jobId}/narration`, { method: "POST", json: { agentId: id } });
+        return timeline;
+      } catch (e) {
+        clearInterval(keepAlive);
+        if ((e instanceof DOMException && e.name === "AbortError") || (e instanceof ApiError && e.status === 409)) throw e;
+        const reason = e instanceof Error ? e.message : "unknown error";
+        console.warn("[render-agent] narration failed, continuing with captions only:", reason);
+        const { timeline } = await api<{ timeline: Timeline }>(`/api/render/${job.jobId}/narration`, { method: "POST", json: { agentId: id, skipped: reason || "unknown error" } });
+        return timeline;
+      } finally {
+        clearInterval(keepAlive);
+      }
+    };
+    const render = async (job: Job) => {
       busy.current = true;
       const ctrl = new AbortController();
       setState((s) => ({ ...s, jobId: job.jobId, projectId: job.projectId, phase: "audio", framesDone: 0, framesTotal: 0, error: null }));
@@ -61,7 +118,8 @@ export function RenderAgentProvider({ children, enabled }: { children: ReactNode
       const id = agentId.current;
       const { renderTimelineToMp4 } = await import("@/lib/render/encode");
       try {
-        const res = await renderTimelineToMp4(job.timeline, {
+        const timeline = job.voice ? await narrate(job, ctrl) : job.timeline;
+        const res = await renderTimelineToMp4(timeline, {
           signal: ctrl.signal,
           onProgress: (p) => {
             setState((s) => ({ ...s, phase: p.phase, framesDone: p.framesDone, framesTotal: p.framesTotal }));

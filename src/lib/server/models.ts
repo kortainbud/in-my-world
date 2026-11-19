@@ -149,6 +149,8 @@ export interface GenerationJob {
   refunded: boolean;
   /** Narration audio produced by the voice stage, per scene. */
   audio?: { scene: number; narration?: { mediaKey: string; duration: number }; dialogue?: { mediaKey: string; duration: number } }[];
+  /** Narration recorded by the render agent's browser (Kokoro) before rendering. */
+  browserVoice?: { narrator: string; recorded: boolean };
   createdAt: string;
   updatedAt: string;
 }

@@ -7,6 +7,7 @@ import { promisify } from "node:util";
 import { PROVIDERS } from "../config";
 import { writeMedia } from "../media";
 import { ProviderError } from "./story";
+import { KOKORO_NARRATORS } from "@/lib/engine/voices";
 
 const run = promisify(execFile);
 
@@ -25,6 +26,7 @@ const SAY_NARRATORS: VoiceOption[] = [
 ];
 
 export function narratorVoices(): VoiceOption[] {
+  if (PROVIDERS.voice === "kokoro-browser") return KOKORO_NARRATORS.map((v) => ({ id: v.id, label: v.label, accent: v.accent }));
   return PROVIDERS.voice === "macos-say" ? SAY_NARRATORS : [];
 }
 
@@ -41,7 +43,7 @@ async function installedSayVoices() {
 }
 
 /** Reads the duration of a 16-bit PCM WAV from its header. */
-function wavDuration(buf: Buffer) {
+export function wavDuration(buf: Buffer) {
   const rate = buf.readUInt32LE(24);
   const bits = buf.readUInt16LE(34);
   const channels = buf.readUInt16LE(22);

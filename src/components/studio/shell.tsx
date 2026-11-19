@@ -63,7 +63,7 @@ function AgentBadge() {
         <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-[#2fa84f]" />
         Rendering in this tab
       </span>
-      <span className="mt-1 block text-fg-2">{a.phase === "frames" ? `${a.framesDone} / ${a.framesTotal} frames · ${pct}%` : a.phase === "uploading" ? "Uploading MP4" : "Preparing"}</span>
+      <span className="mt-1 block text-fg-2">{a.phase === "frames" ? `${a.framesDone} / ${a.framesTotal} frames · ${pct}%` : a.phase === "voice-download" ? `Downloading the voice · ${pct}%` : a.phase === "voice" ? `Recording narration · ${a.framesDone} / ${a.framesTotal}` : a.phase === "uploading" ? "Uploading MP4" : "Preparing"}</span>
       <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-bg-3">
         <span className="block h-full rounded-full bg-fg transition-[width]" style={{ width: `${pct}%` }} />
       </span>

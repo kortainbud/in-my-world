@@ -40,10 +40,10 @@ export async function signedReadUrl(key: string, seconds = 3600, download?: stri
 }
 
 /** First bytes + size of a stored object (used to verify uploads). */
-export async function inspectMedia(key: string): Promise<{ size: number; head: Buffer } | null> {
+export async function inspectMedia(key: string, bytes = 32): Promise<{ size: number; head: Buffer } | null> {
   const url = await signedReadUrl(key, 60);
   if (!url) return null;
-  const res = await fetch(url, { headers: { range: "bytes=0-31" } });
+  const res = await fetch(url, { headers: { range: `bytes=0-${bytes - 1}` } });
   if (!res.ok && res.status !== 206) return null;
   const head = Buffer.from(await res.arrayBuffer());
   const total = Number(res.headers.get("content-range")?.split("/")[1] ?? res.headers.get("content-length") ?? 0);

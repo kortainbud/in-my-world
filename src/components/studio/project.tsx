@@ -13,7 +13,7 @@ import { ChecklistPanel, MetricsPanel, SeriesStrip, StorySheetPanel } from "./st
 import { trackShare } from "@/lib/client/track";
 
 const ACTIVE = ["queued", "processing", "awaiting_render", "rendering"];
-const PHASE_LABEL: Record<string, string> = { audio: "Mixing audio", previews: "Rendering scene previews", frames: "Rendering frames", finalizing: "Finalizing MP4", uploading: "Uploading MP4" };
+const PHASE_LABEL: Record<string, string> = { voice: "Recording narration", "voice-download": "Downloading the voice (first time only)", audio: "Mixing audio", previews: "Rendering scene previews", frames: "Rendering frames", finalizing: "Finalizing MP4", uploading: "Uploading MP4" };
 
 export function ProjectScreen({ id }: { id: string }) {
   const [p, setP] = useState<ProjectView | null>(null);

@@ -16,6 +16,7 @@ import { deleteMedia, inspectMedia, mediaUrl, signedUploadUrl, writeMedia } from
 import type { GenerationJob, Project, Story, User, Video } from "./models";
 import { generateStory, ProviderError } from "./providers/story";
 import { defaultNarrator, narratorVoices, synthesize } from "./providers/voice";
+import { KOKORO_NARRATORS, kokoroVoiceFor } from "@/lib/engine/voices";
 
 export const SAMPLE_USER_ID = "usr_samples";
 const MAX_ATTEMPTS = 3;
@@ -168,6 +169,8 @@ export async function createGeneration(user: User, input: CreateInput) {
   return { project, job, duplicate: false };
 }
 
+const kokoroLabel = (id: string) => KOKORO_NARRATORS.find((v) => v.id === id)?.label ?? id;
+
 /* ---------------- Running a job (serverless-friendly) ---------------- */
 
 async function setStage(jobId: string, key: StageKey, patch: Partial<StageState>) {
@@ -282,7 +285,10 @@ export async function advanceJob(jobId: string, userId: string) {
     current = "narration";
     const audio: SceneAudio[] = [];
     const stored: NonNullable<GenerationJob["audio"]> = [];
-    if (PROVIDERS.voice === "none" || !project.voice) {
+    if (PROVIDERS.voice === "kokoro-browser" && project.voice) {
+      await setStage(jobId, "narration", { status: "pending", detail: `Voice: ${kokoroLabel(project.voice)} · recorded in your browser just before rendering` });
+      await mutateDoc<GenerationJob>("jobs", jobId, (j) => void (j.browserVoice = { narrator: project.voice!, recorded: false }));
+    } else if (PROVIDERS.voice === "none" || !project.voice) {
       await setStage(jobId, "narration", { status: "skipped", startedAt: now(), endedAt: now(), detail: "No narration voice set up — captions and music only" });
     } else {
       await setStage(jobId, "narration", { status: "running", startedAt: now(), detail: `Voice: ${project.voice}` });
@@ -401,9 +407,102 @@ export async function claimRender(user: User, agentId: string) {
     if (!story?.timeline) continue;
     await setProjectStatus(j.projectId, "rendering");
     const p = await getDoc<Project>("projects", j.projectId);
-    return { jobId: j.id, projectId: j.projectId, title: p?.title ?? "", timeline: story.timeline };
+    return { jobId: j.id, projectId: j.projectId, title: p?.title ?? "", timeline: story.timeline, voice: voiceTask(j, story) };
   }
   return null;
+}
+
+/** What the browser should record before rendering, if anything. */
+function voiceTask(j: GenerationJob, story: Story) {
+  if (!j.browserVoice || j.browserVoice.recorded) return null;
+  const refs = story.refs ?? {};
+  const cast = story.cast ?? [];
+  return {
+    clips: story.plan.scenes.flatMap((sc, i) => {
+      const out: { scene: number; kind: "n" | "d"; text: string; voice: string; delivery: string }[] = [{ scene: i, kind: "n", text: sc.narration, voice: kokoroVoiceFor(j.browserVoice!.narrator), delivery: sc.delivery ?? "normal" }];
+      if (sc.dialogue) {
+        const speaker = cast.find((c) => c.id === refs[sc.dialogue!.ref]);
+        out.push({ scene: i, kind: "d", text: sc.dialogue.line, voice: kokoroVoiceFor(speaker?.voice, speaker?.id ?? sc.dialogue.ref), delivery: "normal" });
+      }
+      return out;
+    }),
+  };
+}
+
+/** Signed URLs the browser uploads its recorded narration clips to. */
+export async function narrationUploadUrls(user: User, jobId: string, agentId: string) {
+  const j = await leased(user, jobId, agentId);
+  const story = await findOne<Story>("stories", (q) => q.eq("project_id", j.projectId));
+  if (!j.browserVoice || j.browserVoice.recorded || !story) throw new HttpError(409, "This video doesn't need narration recorded.");
+  const task = voiceTask(j, story)!;
+  await mutateLeased(user, jobId, agentId, (job) => {
+    const st = job.stages.find((s) => s.key === "narration")!;
+    st.status = "running";
+    st.startedAt ??= now();
+  });
+  return Promise.all(task.clips.map(async (c) => ({ scene: c.scene, kind: c.kind, ...(await signedUploadUrl(sceneAudioKey(jobId, c.scene, c.kind))) })));
+}
+
+/**
+ * The browser has uploaded its narration. Durations are read from the WAV
+ * files themselves (not trusted from the client), then the timeline is
+ * recompiled so scenes and captions follow the real speech.
+ * `skipped` = the browser couldn't record (captions-only video).
+ */
+export async function saveNarration(user: User, jobId: string, agentId: string, skipped: string | null) {
+  const j = await leased(user, jobId, agentId);
+  const story = await findOne<Story>("stories", (q) => q.eq("project_id", j.projectId));
+  const project = await getDoc<Project>("projects", j.projectId);
+  if (!j.browserVoice || !story?.timeline || !project) throw new HttpError(409, "This video doesn't need narration recorded.");
+  if (j.browserVoice.recorded) return { timeline: story.timeline };
+  const task = voiceTask(j, story)!;
+
+  let audio: SceneAudio[] = [];
+  const stored: NonNullable<GenerationJob["audio"]> = [];
+  if (!skipped) {
+    const measured = await Promise.all(
+      task.clips.map(async (c) => {
+        const key = sceneAudioKey(jobId, c.scene, c.kind);
+        const head = await inspectMedia(key, 64);
+        if (!head || head.head.toString("ascii", 0, 4) !== "RIFF" || head.head.toString("ascii", 8, 12) !== "WAVE") throw new HttpError(400, "A narration clip is missing or isn't a WAV file.");
+        if (head.size > 20_000_000) throw new HttpError(413, "A narration clip is too large.");
+        const rate = head.head.readUInt32LE(24), channels = head.head.readUInt16LE(22), bits = head.head.readUInt16LE(34);
+        const duration = rate && channels && bits ? (head.size - 44) / (rate * channels * (bits / 8)) : 0;
+        if (!(duration > 0.2 && duration < 60)) throw new HttpError(400, "A narration clip has an unexpected length.");
+        return { ...c, key, duration };
+      }),
+    );
+    audio = story.plan.scenes.map(() => ({}));
+    for (const m of measured) {
+      const slot = stored.find((x) => x.scene === m.scene) ?? (stored.push({ scene: m.scene }), stored[stored.length - 1]);
+      const clip = { mediaKey: m.key, duration: m.duration };
+      if (m.kind === "n") {
+        slot.narration = clip;
+        audio[m.scene].narration = { url: mediaUrl(m.key), duration: m.duration };
+      } else {
+        slot.dialogue = clip;
+        audio[m.scene].dialogue = { url: mediaUrl(m.key), duration: m.duration };
+      }
+    }
+  }
+  const tl = story.timeline;
+  const timeline = skipped
+    ? tl
+    : compileTimeline({ plan: story.plan, style: project.style, cast: story.cast ?? [], refs: story.refs ?? {}, audio, width: tl.width, height: tl.height, watermark: j.watermark, targetDuration: project.durationPreset });
+  await mutateDoc<Story>("stories", story.id, (s) => void (s.timeline = timeline));
+  const speech = stored.reduce((x, s) => x + (s.narration?.duration ?? 0) + (s.dialogue?.duration ?? 0), 0);
+  await mutateLeased(user, jobId, agentId, (job) => {
+    job.browserVoice = { ...job.browserVoice!, recorded: true };
+    job.audio = stored;
+    const n = job.stages.find((s) => s.key === "narration")!;
+    n.status = skipped ? "skipped" : "done";
+    n.endedAt = now();
+    n.detail = skipped
+      ? `Couldn't record narration in this browser (${skipped.slice(0, 80)}) — captions and music only`
+      : `Voice: ${kokoroLabel(job.browserVoice!.narrator)} (Kokoro) · ${stored.length} scenes · ${speech.toFixed(1)}s of speech`;
+    if (!skipped) job.stages.find((s) => s.key === "editing")!.detail = `${timeline.duration.toFixed(1)}s cut · ${timeline.captions.length} caption cards · ${timeline.sfx.length} sound cues · ${timeline.musicMood} score`;
+  });
+  return { timeline };
 }
 
 async function leased(user: User, jobId: string, agentId: string) {
@@ -427,7 +526,7 @@ export async function reportProgress(user: User, jobId: string, agentId: string,
   await mutateLeased(user, jobId, agentId, (j) => {
     j.renderProgress = { phase: String(prog.phase).slice(0, 20), framesDone: Math.max(0, Math.floor(prog.framesDone)), framesTotal: Math.max(1, Math.floor(prog.framesTotal)), updatedAt: now() };
     j.stages.find((s) => s.key === "render")!.detail =
-      prog.phase === "audio" ? "Mixing audio" : prog.phase === "previews" ? "Rendering scene previews" : prog.phase === "finalizing" ? "Finalizing MP4" : prog.phase === "uploading" ? "Uploading MP4" : "Rendering frames";
+      prog.phase === "voice" ? "Recording narration in this browser" : prog.phase === "audio" ? "Mixing audio" : prog.phase === "previews" ? "Rendering scene previews" : prog.phase === "finalizing" ? "Finalizing MP4" : prog.phase === "uploading" ? "Uploading MP4" : "Rendering frames";
   });
 }
 

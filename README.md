@@ -42,7 +42,7 @@ Create ─▶ POST /api/generate ─▶ credit hold + job ─▶ server pipeline
 | Capability | Development | Production |
 |---|---|---|
 | Story | Claude if `ANTHROPIC_API_KEY` is set, otherwise the **template engine** (not AI; labelled in the UI) | Claude (`claude-opus-5-5`, structured output, server-side refusal fallback). Without a key, generation returns a clear 503. |
-| Voice | macOS `say` voices, measured per clip | `none` (captions only) until a TTS adapter is added |
+| Voice | Kokoro (Apache-2.0), recorded in the render agent's browser; `VOICE_PROVIDER=macos-say` for Mac system voices | Same (Kokoro in the browser) |
 | Rendering | In-browser render agent | Same, or a server agent using the same protocol |
 | Data | Supabase (Postgres + Storage) | Same |
 | Payments | Whatever is configured (Stripe and/or Solana); dev-only credit grant and plan switch | Same |
@@ -80,7 +80,7 @@ See `.env.example`. None are required for development.
 | `DATA_DIR` | Local store + media directory (default `.data`) |
 | `ANTHROPIC_API_KEY` | Enables Claude story generation |
 | `STORY_PROVIDER`, `STORY_MODEL` | Optional overrides |
-| `VOICE_PROVIDER` | `macos-say` or `none` |
+| `VOICE_PROVIDER` | `kokoro-browser` (default), `macos-say` (dev, Mac only) or `none` |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Card payments: plans (monthly) and credit packs |
 | `SOLANA_RECEIVER_ADDRESS`, `SOLANA_CLUSTER`, `SOLANA_RPC_URL` | USDC/SOL credit-pack payments straight to your wallet, verified on-chain |
 | `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`), `SUPABASE_SERVICE_ROLE_KEY` | Database and media storage (required) |

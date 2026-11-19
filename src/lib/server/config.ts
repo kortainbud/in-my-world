@@ -15,7 +15,7 @@ export const MODE: Mode = process.env.IMW_MODE === "production" ? "production" :
 export const DATA_DIR = path.resolve(/*turbopackIgnore: true*/ process.env.DATA_DIR || ".data");
 
 export type StoryProviderId = "anthropic" | "dev-template";
-export type VoiceProviderId = "macos-say" | "none";
+export type VoiceProviderId = "kokoro-browser" | "macos-say" | "none";
 export type RenderProviderId = "browser";
 
 /**
@@ -33,11 +33,16 @@ function storyProvider(): StoryProviderId | null {
   return TEMPLATE_OK ? "dev-template" : null;
 }
 
+/**
+ * Narration defaults to Kokoro, recorded in the viewer's browser just before
+ * the video renders (free, no server). VOICE_PROVIDER=macos-say uses the Mac's
+ * system voices in development; none turns narration off.
+ */
 function voiceProvider(): VoiceProviderId {
   const explicit = process.env.VOICE_PROVIDER as VoiceProviderId | undefined;
   if (explicit === "none") return "none";
-  if (explicit === "macos-say" || (!explicit && MODE === "development" && process.platform === "darwin")) return "macos-say";
-  return "none";
+  if (explicit === "macos-say" && MODE === "development" && process.platform === "darwin") return "macos-say";
+  return "kokoro-browser";
 }
 
 export const PROVIDERS = {
@@ -58,7 +63,7 @@ export function providerSummary() {
     story: PROVIDERS.story
       ? { id: PROVIDERS.story, label: PROVIDERS.story === "anthropic" ? `Claude (${STORY_MODEL})` : "Template engine (not AI)", ai: PROVIDERS.story === "anthropic" }
       : { id: null, label: "Not configured", ai: false },
-    voice: { id: PROVIDERS.voice, label: PROVIDERS.voice === "macos-say" ? "macOS system voices (dev only)" : "No narration provider" },
+    voice: { id: PROVIDERS.voice, label: PROVIDERS.voice === "kokoro-browser" ? "Kokoro (recorded in your browser)" : PROVIDERS.voice === "macos-say" ? "macOS system voices (dev only)" : "No narration provider" },
     render: { id: PROVIDERS.render, label: "In-browser renderer (WebCodecs)" },
     payments: { card: !!process.env.STRIPE_SECRET_KEY && !!process.env.STRIPE_WEBHOOK_SECRET, crypto: !!process.env.SOLANA_RECEIVER_ADDRESS, configured: (!!process.env.STRIPE_SECRET_KEY && !!process.env.STRIPE_WEBHOOK_SECRET) || !!process.env.SOLANA_RECEIVER_ADDRESS },
   };
