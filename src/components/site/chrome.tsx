@@ -39,8 +39,8 @@ export function SiteNav() {
   }, []);
   useEffect(() => setOpen(false), [path]);
   return (
-    <header className="relative z-40">
-      <div className="mx-auto flex h-[75px] max-w-[1200px] items-center justify-between px-5 sm:px-6">
+    <header className="sticky top-0 z-40 border-b border-line-soft/0 bg-bg/80 backdrop-blur-md supports-[backdrop-filter]:bg-bg/70">
+      <div className="mx-auto flex h-[72px] max-w-[1120px] items-center justify-between px-5 sm:px-6">
         <Link href="/" aria-label="In My World home">
           <SiteLogo />
         </Link>
@@ -74,7 +74,7 @@ export function SiteNav() {
         </span>
       </div>
       {open && (
-        <div id="site-menu" className="absolute inset-x-0 top-[75px] border-b border-line bg-bg px-5 pb-6 pt-2 shadow-[0_20px_40px_-20px_rgba(0,0,0,0.15)] md:hidden">
+        <div id="site-menu" className="absolute inset-x-0 top-[72px] border-b border-line bg-bg px-5 pb-6 pt-2 shadow-[0_20px_40px_-20px_rgba(0,0,0,0.15)] md:hidden">
           <nav className="flex flex-col" aria-label="Main">
             {LINKS.map((l) => (
               <Link key={l.href} href={l.href} className="border-b border-line-soft py-3.5 text-[17px] font-medium">
@@ -113,7 +113,7 @@ export function SiteFooter() {
       </div>
       <div className="relative">
         {home ? (
-          <div className="px-5 pb-[18vw] pt-[9vw] text-center lg:pb-[16vw]">
+          <div className="flex flex-col items-center justify-center px-5 pb-10 text-center" style={{ height: "calc(max(100vw, 900px) * 0.7031 * 0.56)" }}>
             <h2 className="text-[44px] font-medium leading-[0.95] tracking-[-0.055em] text-white [text-shadow:0_2px_24px_rgba(0,40,90,0.3)] sm:text-[80px]">what happens in your world?</h2>
             <p className="mx-auto mt-4 max-w-md text-[17px] font-medium text-white/95">type one sentence. post a video today.</p>
             <div className="mt-7 flex flex-col items-center justify-center gap-2 sm:flex-row">
@@ -126,9 +126,9 @@ export function SiteFooter() {
             </div>
           </div>
         ) : (
-          <div className="h-[max(40vw,360px)]" />
+          <div style={{ height: "calc(max(100vw, 900px) * 0.7031 * 0.56)" }} />
         )}
-        <div className="mx-auto grid max-w-[1200px] gap-10 px-5 pb-14 pt-6 sm:px-6 md:grid-cols-[1.6fr_repeat(4,1fr)]">
+        <div className="mx-auto grid max-w-[1120px] gap-10 px-5 pb-14 pt-8 sm:px-6 md:grid-cols-[1.6fr_repeat(4,1fr)]">
           <div>
             <SiteLogo />
             <p className="mt-4 max-w-[260px] text-[15px] leading-relaxed text-[var(--sand-fg-2)]">turn any idea into a whole world.</p>

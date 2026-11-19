@@ -12,7 +12,8 @@ import { OFFICIAL_CHARACTERS } from "@/lib/engine/characters";
 import { rng } from "@/lib/engine/rng";
 import type { VisualStyle } from "@/lib/engine/types";
 
-type Spec = { name: string; w: number; h: number; style: VisualStyle; kind: "hills" | "ocean" | "lineup" | "meadow" | "night" | "sunset" | "island" | "finale"; clouds?: "all" | "edges" | "none"; dark?: boolean; transparent?: boolean };
+type Spec = { name: string; w: number; h: number; style: VisualStyle; kind: "hills" | "ocean" | "lineup" | "meadow" | "night" | "sunset" | "island" | "finale" | "obj";
+  obj?: "tree" | "tree-round" | "house" | "cloud" | "chunk" | "tower"; clouds?: "all" | "edges" | "none"; dark?: boolean; transparent?: boolean };
 
 const SPECS: Spec[] = [
   { name: "hero", w: 2560, h: 1300, style: "minecraft", kind: "hills" },
@@ -28,6 +29,7 @@ const SPECS: Spec[] = [
   { name: "finale", w: 2560, h: 1800, style: "minecraft", kind: "finale", clouds: "edges" },
   { name: "finale-night", w: 2560, h: 1800, style: "minecraft", kind: "finale", clouds: "none", dark: true },
   { name: "lineup-night", w: 2400, h: 1000, style: "roblox", kind: "lineup", dark: true, clouds: "none" },
+  ...(["tree", "tree-round", "house", "cloud", "chunk", "tower"] as const).map((o) => ({ name: `obj-${o}`, w: 420, h: 420, style: (o === "tree-round" || o === "tower" ? "roblox" : "minecraft") as VisualStyle, kind: "obj" as const, obj: o, transparent: true, clouds: "none" as const })),
 ];
 
 function render(spec: Spec): string {
@@ -81,7 +83,52 @@ function render(spec: Spec): string {
 
   const camera = new THREE.PerspectiveCamera(spec.kind === "lineup" ? 26 : 38, spec.w / spec.h, 0.1, 500);
 
-  if (spec.kind === "island") {
+  if (spec.kind === "obj") {
+    const o = spec.obj!;
+    if (o === "tree") {
+      box(1, 4, 1, "#7a5232", 0, 0, 0, "bark");
+      box(4, 3, 4, "#2f9a44", 0, 3.5, 0, "leaves");
+      box(2, 1.5, 2, "#3fae4a", 0, 6.5, 0, "leaves");
+    } else if (o === "tree-round") {
+      box(0.9, 3.4, 0.9, "#7a5232", 0, 0, 0, "bark");
+      const a = k.blob(4.2, "#4cbb57");
+      a.position.set(0, 5, 0);
+      scene.add(a);
+      const b2 = k.blob(2.6, "#3fae4a");
+      b2.position.set(1, 6.4, 0.6);
+      scene.add(b2);
+    } else if (o === "house") {
+      box(5, 3.6, 4, "#f2d1a5", 0, 0, 0, "planks");
+      box(5.8, 1, 4.8, "#b23a2b", 0, 3.6, 0, "planks");
+      box(4.2, 1, 3.6, "#b23a2b", 0, 4.6, 0, "planks");
+      box(1, 1.8, 0.1, "#6b4428", 0, 0, 2.02, "planks");
+      box(1, 1, 0.1, "#bfe6ff", -1.6, 1.7, 2.02, "glass");
+      box(1, 1, 0.1, "#bfe6ff", 1.6, 1.7, 2.02, "glass");
+    } else if (o === "cloud") {
+      box(6, 1.4, 3, "#ffffff", 0, 0, 0, "plain");
+      box(3.4, 1.3, 2.6, "#ffffff", -0.6, 1.4, 0, "plain");
+      box(2.2, 1, 2.2, "#ffe1ef", 1.6, -0.7, 0.2, "plain");
+    } else if (o === "chunk") {
+      for (let x = -1; x <= 1; x++)
+        for (let z = -1; z <= 1; z++) {
+          box(1, 1, 1, "#6cc04a", x, 0, z, "grass");
+          box(1, 1, 1, "#8a5a36", x, -1, z, "noise");
+          if (Math.abs(x) + Math.abs(z) < 2) box(1, 1, 1, "#8a8f96", x, -2, z, "stone");
+        }
+      box(0.4, 0.4, 0.4, "#ff8fb1", 0.6, 1, 0.3, "plain");
+      box(0.4, 0.4, 0.4, "#ffd166", -0.5, 1, -0.4, "plain");
+    } else if (o === "tower") {
+      box(2.4, 6, 2.4, "#9aa5b1", 0, 0, 0, "noise");
+      for (let y = 1; y < 6; y += 1.4) for (const x of [-0.6, 0.6]) box(0.5, 0.7, 0.05, "#cfe9ff", x, y, 1.22, "glass");
+      box(2.8, 0.4, 2.8, "#e63946", 0, 6, 0, "plain");
+    }
+    sun.position.set(10, 20, 14);
+    camera.fov = 26;
+    const size = o === "cloud" ? 9 : o === "chunk" ? 5 : o === "tower" ? 9 : 10;
+    camera.position.set(size * 1.3, size * 1.0, size * 1.7);
+    camera.lookAt(0, o === "chunk" ? -0.5 : o === "cloud" ? 0.3 : size * 0.33, 0);
+    camera.updateProjectionMatrix();
+  } else if (spec.kind === "island") {
     // A floating voxel island: grass top, dirt, a tapering stone underside.
     const R = 7;
     for (let x = -R; x <= R; x++)

@@ -67,20 +67,26 @@ export function Brick({ size = 40, color = "#e63946", style, className = "" }: {
   );
 }
 
-const FLOATERS = [
-  { top: 6, left: 4, s: 26, speed: -0.12, rot: 0.04, c: 0 },
-  { top: 12, left: 90, s: 34, speed: 0.18, rot: -0.05, c: 1 },
-  { top: 24, left: 93, s: 22, speed: -0.08, rot: 0.08, c: 2 },
-  { top: 33, left: 2, s: 30, speed: 0.22, rot: -0.03, c: 3 },
-  { top: 46, left: 91, s: 28, speed: -0.16, rot: 0.06, c: 4 },
-  { top: 57, left: 5, s: 20, speed: 0.1, rot: 0.05, c: 5 },
-  { top: 68, left: 88, s: 32, speed: 0.14, rot: -0.07, c: 6 },
-  { top: 79, left: 3, s: 24, speed: -0.2, rot: 0.04, c: 2 },
+type Floater = { top: number; left: number; speed: number; rot: number } & ({ kind: "brick"; s: number; c: number } | { kind: "img"; src: string; w: number });
+
+/** Bricks plus little pieces of the world: trees, houses, clouds, towers, land. */
+const FLOATERS: Floater[] = [
+  { kind: "img", src: "obj-cloud", w: 120, top: 3, left: 2, speed: -0.1, rot: 0.01 },
+  { kind: "brick", s: 30, c: 1, top: 9, left: 92, speed: 0.16, rot: -0.05 },
+  { kind: "img", src: "obj-tree", w: 96, top: 17, left: 90, speed: -0.06, rot: 0.02 },
+  { kind: "brick", s: 22, c: 2, top: 22, left: 4, speed: 0.2, rot: 0.06 },
+  { kind: "img", src: "obj-house", w: 104, top: 31, left: 1.5, speed: 0.12, rot: -0.015 },
+  { kind: "img", src: "obj-chunk", w: 90, top: 40, left: 91, speed: -0.14, rot: 0.02 },
+  { kind: "brick", s: 26, c: 0, top: 50, left: 3, speed: -0.18, rot: 0.05 },
+  { kind: "img", src: "obj-tower", w: 84, top: 57, left: 92, speed: 0.1, rot: -0.02 },
+  { kind: "img", src: "obj-tree-round", w: 92, top: 66, left: 2.5, speed: 0.15, rot: 0.02 },
+  { kind: "brick", s: 28, c: 6, top: 74, left: 91, speed: -0.12, rot: -0.06 },
+  { kind: "img", src: "obj-cloud", w: 110, top: 82, left: 89, speed: 0.08, rot: -0.01 },
 ];
 
 /**
- * A handful of bricks that drift through the page margins as you scroll.
- * Kept to the edges so they never sit on top of content.
+ * Bricks and bits of world that drift through the page margins as you
+ * scroll. Kept to the edges so they never sit on top of content.
  */
 export function FloatingBricks() {
   const refs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -92,7 +98,10 @@ export function FloatingBricks() {
       refs.current.forEach((el, i) => {
         if (!el) return;
         const f = FLOATERS[i];
-        el.style.transform = `translate3d(0, ${y * f.speed}px, 0) rotateX(-28deg) rotateY(${35 + y * f.rot}deg) rotateZ(${Math.sin(y * 0.002 + i) * 8}deg)`;
+        el.style.transform =
+          f.kind === "brick"
+            ? `translate3d(0, ${y * f.speed}px, 0) rotateX(-28deg) rotateY(${35 + y * f.rot}deg) rotateZ(${Math.sin(y * 0.002 + i) * 8}deg)`
+            : `translate3d(0, ${y * f.speed}px, 0) rotate(${Math.sin(y * 0.0015 + i) * 6 + y * f.rot * 0.2}deg)`;
       });
       raf = 0;
     };
@@ -104,11 +113,16 @@ export function FloatingBricks() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 hidden overflow-hidden lg:block">
+    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 hidden overflow-hidden xl:block">
       {FLOATERS.map((f, i) => (
         <span key={i} className="absolute" style={{ top: `${f.top}%`, left: `${f.left}%`, perspective: "600px", animation: `bob ${5 + (i % 4)}s ease-in-out ${i * 0.4}s infinite` }}>
           <span ref={(el) => void (refs.current[i] = el)} className="block" style={{ transformStyle: "preserve-3d" }}>
-            <Brick size={f.s} color={BRICK_COLORS[f.c]} style={{ position: "relative" }} />
+            {f.kind === "brick" ? (
+              <Brick size={f.s} color={BRICK_COLORS[f.c]} style={{ position: "relative" }} />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={`/scenes/${f.src}.png`} alt="" width={f.w} height={f.w} className="block opacity-95 drop-shadow-[0_14px_18px_rgba(0,0,0,0.12)]" />
+            )}
           </span>
         </span>
       ))}
@@ -226,18 +240,19 @@ export function PopChip({ id }: { id: string }) {
  */
 export function HorizontalScroll({ children, header }: { children: ReactNode; header: ReactNode }) {
   const wrap = useRef<HTMLDivElement>(null);
+  const pin = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLDivElement>(null);
-  const [h, setH] = useState<number | null>(null);
-  const [wide, setWide] = useState(false);
+  const [layout, setLayout] = useState<{ height: number; top: number } | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px) and (prefers-reduced-motion: no-preference)");
     const measure = () => {
-      setWide(mq.matches);
-      const t = track.current;
-      if (!t || !mq.matches) return setH(null);
-      const overflow = t.scrollWidth - window.innerWidth + 64;
-      setH(window.innerHeight + Math.max(0, overflow));
+      const t = track.current, p = pin.current;
+      if (!t || !p || !mq.matches) return setLayout(null);
+      const travel = Math.max(0, t.scrollWidth - t.clientWidth);
+      const content = p.offsetHeight;
+      // Pin vertically centred under the sticky nav; the section is only as tall as it needs to be.
+      setLayout({ height: content + travel, top: Math.max(96, (window.innerHeight - content) / 2 + 30) });
     };
     measure();
     window.addEventListener("resize", measure);
@@ -249,20 +264,19 @@ export function HorizontalScroll({ children, header }: { children: ReactNode; he
   }, []);
 
   useEffect(() => {
-    if (!wide) {
-      if (track.current) track.current.style.transform = "";
+    const t = track.current;
+    if (!layout || !t) {
+      if (t) t.style.transform = "";
       return;
     }
     let raf = 0;
     const tick = () => {
       raf = 0;
-      const w = wrap.current, t = track.current;
-      if (!w || !t) return;
-      const r = w.getBoundingClientRect();
-      const total = w.offsetHeight - window.innerHeight;
-      const p = Math.min(1, Math.max(0, -r.top / Math.max(1, total)));
-      const max = t.scrollWidth - window.innerWidth + 64;
-      t.style.transform = `translate3d(${-p * Math.max(0, max)}px,0,0)`;
+      const w = wrap.current;
+      if (!w) return;
+      const travel = Math.max(0, t.scrollWidth - t.clientWidth);
+      const p = Math.min(1, Math.max(0, (layout.top - w.getBoundingClientRect().top) / Math.max(1, travel)));
+      t.style.transform = `translate3d(${-p * travel}px,0,0)`;
     };
     const on = () => {
       if (!raf) raf = requestAnimationFrame(tick);
@@ -270,14 +284,15 @@ export function HorizontalScroll({ children, header }: { children: ReactNode; he
     tick();
     window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);
-  }, [wide, h]);
+  }, [layout]);
 
   return (
-    <div ref={wrap} style={wide && h ? { height: h } : undefined} className="relative">
-      <div className={wide ? "sticky top-0 flex h-screen flex-col justify-center overflow-hidden" : ""}>
+    <div ref={wrap} style={layout ? { height: layout.height } : undefined} className="relative">
+      <div ref={pin} className={layout ? "sticky overflow-hidden" : ""} style={layout ? { top: layout.top } : undefined}>
         {header}
-        <div ref={track} className={`flex gap-4 px-5 sm:px-6 lg:pl-[max(24px,calc((100vw-1060px)/2))] ${wide ? "will-change-transform" : "snap-x snap-mandatory overflow-x-auto pb-4 scrollbar-none"}`}>
+        <div ref={track} className={`flex gap-4 ${layout ? "will-change-transform" : "snap-x snap-mandatory overflow-x-auto pb-4 scrollbar-none"}`}>
           {children}
+          <span aria-hidden className="w-px shrink-0" />
         </div>
       </div>
     </div>
