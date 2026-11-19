@@ -2,27 +2,53 @@ import "server-only";
 import { MODE } from "./config";
 
 /**
- * Transactional email through Resend (https://resend.com — free tier: 3,000
- * emails a month). Set RESEND_API_KEY and EMAIL_FROM, e.g.
- * `In My World <hello@yourdomain.com>` on a domain verified in Resend.
- * In development without a key, emails are printed to the server console.
+ * Transactional email. Two ways to send, whichever is configured:
+ *  - Gmail (or any SMTP): SMTP_USER + SMTP_PASS (a Google app password).
+ *    Free, ~500 emails/day, sends from that Gmail address.
+ *  - Resend: RESEND_API_KEY + EMAIL_FROM on a domain verified in Resend.
+ * In development with neither, emails are printed to the server console.
  */
-export const EMAIL_ENABLED = !!process.env.RESEND_API_KEY && !!process.env.EMAIL_FROM;
+const smtpUser = () => (process.env.SMTP_USER ?? "").trim();
+const smtpPass = () => (process.env.SMTP_PASS ?? "").replace(/\s+/g, ""); // Google shows app passwords with spaces
+const resendKey = () => (process.env.RESEND_API_KEY ?? "").trim();
+
+export function emailEnabled() {
+  return !!(smtpUser() && smtpPass()) || !!(resendKey() && process.env.EMAIL_FROM);
+}
+
+function fromAddress() {
+  return process.env.EMAIL_FROM?.trim() || `In My World <${smtpUser()}>`;
+}
+
+type G = { __imwSmtp?: import("nodemailer").Transporter };
+const g = globalThis as G;
 
 export async function sendEmail(msg: { to: string; subject: string; text: string; html: string }) {
-  if (!EMAIL_ENABLED) {
-    if (MODE === "development") {
-      console.log(`\n[email:dev] To: ${msg.to}\nSubject: ${msg.subject}\n\n${msg.text}\n`);
-      return;
-    }
-    throw new Error("Email isn't configured (RESEND_API_KEY / EMAIL_FROM).");
+  if (smtpUser() && smtpPass()) {
+    const nodemailer = (await import("nodemailer")).default;
+    g.__imwSmtp ??= nodemailer.createTransport({
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port: Number(process.env.SMTP_PORT || 465),
+      secure: Number(process.env.SMTP_PORT || 465) === 465,
+      auth: { user: smtpUser(), pass: smtpPass() },
+    });
+    await g.__imwSmtp.sendMail({ from: fromAddress(), to: msg.to, subject: msg.subject, text: msg.text, html: msg.html });
+    return;
   }
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, "content-type": "application/json" },
-    body: JSON.stringify({ from: process.env.EMAIL_FROM, to: [msg.to], subject: msg.subject, text: msg.text, html: msg.html }),
-  });
-  if (!res.ok) throw new Error(`Email failed (${res.status}): ${(await res.text()).slice(0, 200)}`);
+  if (resendKey() && process.env.EMAIL_FROM) {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { authorization: `Bearer ${resendKey()}`, "content-type": "application/json" },
+      body: JSON.stringify({ from: fromAddress(), to: [msg.to], subject: msg.subject, text: msg.text, html: msg.html }),
+    });
+    if (!res.ok) throw new Error(`Email failed (${res.status}): ${(await res.text()).slice(0, 200)}`);
+    return;
+  }
+  if (MODE === "development") {
+    console.log(`\n[email:dev] To: ${msg.to}\nSubject: ${msg.subject}\n\n${msg.text}\n`);
+    return;
+  }
+  throw new Error("Email isn't configured (SMTP_USER/SMTP_PASS or RESEND_API_KEY/EMAIL_FROM).");
 }
 
 /** The site's public address for links in emails. Never taken from the request in production. */

@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { HttpError } from "@/lib/server/auth";
 import { MODE } from "@/lib/server/config";
 import { countDocs, findOne, getDoc, insertDoc, now } from "@/lib/server/data";
-import { EMAIL_ENABLED, resetEmail, sendEmail, siteUrl } from "@/lib/server/email";
+import { emailEnabled, resetEmail, sendEmail, siteUrl } from "@/lib/server/email";
 import { body, json, route } from "@/lib/server/http";
 import type { PasswordReset, Profile, User } from "@/lib/server/models";
 
@@ -13,7 +13,7 @@ const sha = (s: string) => crypto.createHash("sha256").update(s).digest("hex");
  * used to find out which emails have accounts.
  */
 export const POST = route(async (req: Request) => {
-  if (!EMAIL_ENABLED && MODE !== "development") throw new HttpError(503, "Password reset by email isn't available yet. Contact support to get back into your account.");
+  if (!emailEnabled() && MODE !== "development") throw new HttpError(503, "Password reset by email isn't available yet. Contact support to get back into your account.");
   const b = await body(req);
   const email = String(b.email ?? "").trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new HttpError(400, "Enter a valid email address.");
