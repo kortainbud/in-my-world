@@ -1,6 +1,7 @@
 import { HttpError, requireUser } from "@/lib/server/auth";
-import { tx } from "@/lib/server/db";
+import { isUniqueViolation, mutateDoc } from "@/lib/server/data";
 import { body, json, route } from "@/lib/server/http";
+import type { Profile } from "@/lib/server/models";
 
 export const PATCH = route(async (req: Request) => {
   const user = await requireUser();
@@ -9,11 +10,15 @@ export const PATCH = route(async (req: Request) => {
   const handle = String(b.handle ?? "").trim().toLowerCase();
   if (!name) throw new HttpError(400, "Display name can't be empty.");
   if (!/^[a-z0-9_]{3,20}$/.test(handle)) throw new HttpError(400, "Handles are 3–20 letters, numbers or underscores.");
-  await tx((db) => {
-    if (db.profiles.some((p) => p.handle === handle && p.userId !== user.id) || handle === "samples") throw new HttpError(409, "That handle is taken.");
-    const p = db.profiles.find((x) => x.userId === user.id)!;
-    p.displayName = name;
-    p.handle = handle;
-  });
+  if (handle === "samples") throw new HttpError(409, "That handle is taken.");
+  try {
+    await mutateDoc<Profile>("profiles", user.id, (p) => {
+      p.displayName = name;
+      p.handle = handle;
+    });
+  } catch (e) {
+    if (isUniqueViolation(e)) throw new HttpError(409, "That handle is taken.");
+    throw e;
+  }
   return json({ ok: true });
 });

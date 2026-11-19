@@ -1,24 +1,17 @@
 import { HttpError, requireUser } from "@/lib/server/auth";
-import { json, route } from "@/lib/server/http";
+import { body, json, route } from "@/lib/server/http";
 import { completeRender } from "@/lib/server/pipeline";
 
-const MAX_VIDEO_BYTES = 300 * 1024 * 1024;
-
+/** The agent has uploaded the MP4 + thumbnail to storage; verify and finish the job. */
 export const POST = route(async (req: Request, ctx: { params: Promise<{ jobId: string }> }) => {
   const { jobId } = await ctx.params;
   const user = await requireUser();
-  const len = Number(req.headers.get("content-length") || 0);
-  if (len > MAX_VIDEO_BYTES) throw new HttpError(413, "Video is too large.");
-  const form = await req.formData();
-  const mp4 = form.get("video");
-  const thumb = form.get("thumbnail");
-  const meta = JSON.parse(String(form.get("meta") ?? "{}"));
-  const agentId = String(form.get("agentId") ?? "");
-  if (!(mp4 instanceof Blob) || !(thumb instanceof Blob)) throw new HttpError(400, "Missing video or thumbnail.");
-  const res = await completeRender(
-    user, jobId, agentId,
-    { mp4: Buffer.from(await mp4.arrayBuffer()), thumb: Buffer.from(await thumb.arrayBuffer()) },
-    { width: Number(meta.width), height: Number(meta.height), durationSec: Number(meta.durationSec), videoCodec: String(meta.videoCodec ?? ""), audioCodec: String(meta.audioCodec ?? "") },
+  const b = await body(req);
+  const videoId = String(b.videoId ?? "");
+  if (!/^vid_[A-Za-z0-9]+$/.test(videoId)) throw new HttpError(400, "Missing upload.");
+  return json(
+    await completeRender(user, jobId, String(b.agentId ?? ""), {
+      videoId, width: Number(b.width), height: Number(b.height), durationSec: Number(b.durationSec), videoCodec: String(b.videoCodec ?? ""), audioCodec: String(b.audioCodec ?? ""),
+    }),
   );
-  return json(res);
 });

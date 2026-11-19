@@ -44,7 +44,7 @@ Create ─▶ POST /api/generate ─▶ credit hold + job ─▶ server pipeline
 | Story | Claude if `ANTHROPIC_API_KEY` is set, otherwise the **template engine** (not AI; labelled in the UI) | Claude (`claude-opus-5-5`, structured output, server-side refusal fallback). Without a key, generation returns a clear 503. |
 | Voice | macOS `say` voices, measured per clip | `none` (captions only) until a TTS adapter is added |
 | Rendering | In-browser render agent | Same, or a server agent using the same protocol |
-| Data | Local JSON store in `.data/` | Supabase (schema in `supabase/migrations`) |
+| Data | Supabase (Postgres + Storage) | Same |
 | Payments | Whatever is configured (Stripe and/or Solana); dev-only credit grant and plan switch | Same |
 
 Dev-only endpoints (`/api/dev/*`) return 404 in production mode.
@@ -83,22 +83,17 @@ See `.env.example`. None are required for development.
 | `VOICE_PROVIDER` | `macos-say` or `none` |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Card payments: plans (monthly) and credit packs |
 | `SOLANA_RECEIVER_ADDRESS`, `SOLANA_CLUSTER`, `SOLANA_RPC_URL` | USDC/SOL credit-pack payments straight to your wallet, verified on-chain |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Production data layer (adapter not yet written — see below) |
+| `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Database and media storage (required) |
 
 ## Database
 
-`supabase/migrations/20261119000000_init.sql` defines profiles, subscriptions, the credit ledger (with a derived `credit_balances` view), characters and character assets, projects, stories, scenes, generation jobs, generated videos, payments, wallets and wallet nonces. It also defines `public_content` and `featured_characters` views, storage buckets, and row-level security: owners read their own rows, public completed projects are readable by all, and money tables can only be written with the service role.
+Run `supabase/setup-v2.sql` once in the Supabase SQL Editor. Each table stores a JSON document (`data`) with indexed columns generated from it; the app's types in `src/lib/server/models.ts` map 1:1. Access goes through `src/lib/server/data.ts`:
 
-The migration has been validated against PostgreSQL (PGlite) with stub `auth`/`storage` schemas. Run it against a real Supabase project with `supabase db push`.
-
-### Moving to Supabase (outstanding)
-
-The local store (`src/lib/server/db.ts`) mirrors the schema table for table. To go to production:
-
-1. Implement a Supabase-backed data layer with the same functions the routes use (`read`/`tx` call sites in `src/lib/server/*`), using the service role on the server.
-2. Swap `src/lib/server/media.ts` to Supabase Storage (same keys; signed URLs for private media).
-3. Swap `auth.ts` sessions for Supabase Auth (email + social providers), keeping wallet identity as a linked identity.
-4. Move job processing to a durable queue/worker (the in-process worker resumes after restarts, but serverless hosts don't keep long-lived processes).
+- Updates are compare-and-swap on a `version` column, so concurrent serverless requests can't overwrite each other.
+- A trigger refuses any credit debit that would take a balance below zero; unique indexes allow one refund per job and one purchase credit per payment.
+- Row-level security is on with no policies: only the server (service role key) can read or write. The browser never talks to the database.
+- Media lives in private Storage buckets (`videos`, `thumbs`, `previews`, `audio`). `/api/media/*` checks access, then redirects to a short-lived signed URL. The render agent uploads finished MP4s straight to Storage via signed upload URLs, and the server verifies them before completing the job.
+- There's no background worker: the story/cast/timeline stages run when the project page (or any studio tab's render agent) calls `/api/jobs/:id/advance`, under a short lease. This works on serverless hosts such as Netlify.
 
 ## Adding providers
 

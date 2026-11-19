@@ -12,6 +12,7 @@
     "@anthropic-ai/sdk": "^1.10.0",
     "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.99.0",
+    "@supabase/supabase-js": "^2.119.1",
     "bs58": "^6.0.0",
     "geist": "^1.9.2",
     "mp4-muxer": "^5.2.2",

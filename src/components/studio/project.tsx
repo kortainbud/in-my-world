@@ -48,6 +48,23 @@ export function ProjectScreen({ id }: { id: string }) {
     return () => clearInterval(t);
   }, [active, load]);
 
+  // The server prepares the story, cast and timeline while this page asks it to
+  // (no background worker, so it runs on serverless hosts). A server lease stops
+  // two tabs from running the same job.
+  const preparing = !!p?.job && (p.status === "queued" || p.status === "processing");
+  const advancing = useRef(false);
+  const jobId = p?.job?.id;
+  useEffect(() => {
+    if (!preparing || !jobId || advancing.current) return;
+    advancing.current = true;
+    api(`/api/jobs/${jobId}/advance`, { method: "POST" })
+      .catch(() => undefined)
+      .finally(() => {
+        advancing.current = false;
+        void load();
+      });
+  }, [preparing, jobId, load]);
+
   if (error && !p)
     return (
       <div className="mx-auto max-w-xl px-6 py-20 text-center">

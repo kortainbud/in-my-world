@@ -1,5 +1,5 @@
 import { requireUser } from "@/lib/server/auth";
-import { id, now, tx } from "@/lib/server/db";
+import { addCredits } from "@/lib/server/credits";
 import { requireDevMode } from "@/lib/server/dev";
 import { body, json, route } from "@/lib/server/http";
 
@@ -9,8 +9,6 @@ export const POST = route(async (req: Request) => {
   const user = await requireUser();
   const b = await body(req);
   const amount = Math.min(1000, Math.max(1, Math.floor(Number(b.amount) || 100)));
-  await tx((db) => {
-    db.credits.push({ id: id("ctx"), userId: user.id, amount, kind: "dev_grant", note: "Development test credits (not purchasable)", createdAt: now() });
-  });
+  await addCredits(user.id, amount, "dev_grant", "Development test credits (not purchasable)");
   return json({ ok: true });
 });

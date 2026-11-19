@@ -2,7 +2,8 @@ import "server-only";
 import { Connection, Keypair, PublicKey, clusterApiUrl, type ParsedInstruction, type PartiallyDecodedInstruction } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { HttpError } from "./auth";
-import { now, read, tx } from "./db";
+import { findOne, getDoc, now } from "./data";
+import type { Payment } from "./models";
 import type { User } from "./models";
 import { SOLANA_ENABLED, SOLANA_RECEIVER, fulfill, recordPending, type Item } from "./payments";
 
@@ -89,7 +90,8 @@ type Ix = ParsedInstruction | PartiallyDecodedInstruction;
 /** Verifies the transaction on-chain and fulfils the payment once. */
 export async function confirmSolanaPayment(user: User, paymentId: string, signature?: string) {
   requireSolana();
-  const p = await read((db) => structuredClone(db.payments.find((x) => x.id === paymentId && x.userId === user.id && x.provider === "solana")));
+  const found0 = await getDoc<Payment>("payments", paymentId);
+  const p = found0 && found0.userId === user.id && found0.provider === "solana" ? found0 : null;
   if (!p?.crypto) throw new HttpError(404, "Payment not found.");
   if (p.status === "succeeded") return { status: "succeeded" as const, signature: p.providerRef };
   const c = p.crypto;
@@ -102,7 +104,7 @@ export async function confirmSolanaPayment(user: User, paymentId: string, signat
     if (!sig) return { status: "pending" as const };
   }
   if (!/^[1-9A-HJ-NP-Za-km-z]{64,90}$/.test(sig)) throw new HttpError(400, "That doesn't look like a transaction signature.");
-  const used = await read((db) => db.payments.some((x) => x.providerRef === sig && x.id !== p.id));
+  const used = await findOne<Payment>("payments", (q) => q.eq("provider_ref", sig!).neq("id", p.id));
   if (used) throw new HttpError(409, "That transaction has already been used for another payment.");
 
   const txn = await connection().getParsedTransaction(sig, { commitment: "confirmed", maxSupportedTransactionVersion: 0 });
@@ -133,10 +135,6 @@ export async function confirmSolanaPayment(user: User, paymentId: string, signat
   }
   if (paid < want) throw new HttpError(400, `The transaction paid less than the quote (${paid} of ${want}).`);
 
-  await tx((db) => {
-    const rec = db.payments.find((x) => x.id === p.id)!;
-    rec.providerRef = sig;
-    fulfill(db, rec);
-  });
+  await fulfill(p.id, { providerRef: sig });
   return { status: "succeeded" as const, signature: sig, at: now() };
 }

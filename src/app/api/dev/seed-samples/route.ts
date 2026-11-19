@@ -1,8 +1,9 @@
-import { requireUser } from "@/lib/server/auth";
-import { createAccount } from "@/lib/server/auth";
-import { id, now, read, tx } from "@/lib/server/db";
+import { createAccount, requireUser } from "@/lib/server/auth";
+import { addCredits } from "@/lib/server/credits";
+import { getDoc } from "@/lib/server/data";
 import { requireDevMode, SAMPLE_PROMPTS } from "@/lib/server/dev";
 import { json, route } from "@/lib/server/http";
+import type { User } from "@/lib/server/models";
 import { createGeneration, SAMPLE_USER_ID } from "@/lib/server/pipeline";
 import { defaultNarrator } from "@/lib/server/providers/voice";
 
@@ -14,18 +15,8 @@ export const POST = route(async (req: Request) => {
   const only = new URL(req.url).searchParams.get("only")?.toLowerCase();
   requireDevMode();
   await requireUser();
-  await tx((db) => {
-    if (!db.users.some((u) => u.id === SAMPLE_USER_ID)) {
-      const u = createAccount(db, { email: null, passwordHash: null, displayName: "In My World samples" });
-      // Re-key the account to the well-known samples id.
-      for (const coll of [db.profiles, db.subscriptions, db.credits] as { userId: string }[][]) for (const r of coll) if (r.userId === u.id) r.userId = SAMPLE_USER_ID;
-      u.id = SAMPLE_USER_ID;
-      const sub = db.subscriptions.find((s) => s.userId === SAMPLE_USER_ID)!;
-      sub.planId = "pro";
-    }
-    db.credits.push({ id: id("ctx"), userId: SAMPLE_USER_ID, amount: 500, kind: "dev_grant", note: "Sample generation", createdAt: now() });
-  });
-  const sampleUser = await read((db) => db.users.find((u) => u.id === SAMPLE_USER_ID)!);
+  const sampleUser = (await getDoc<User>("users", SAMPLE_USER_ID)) ?? (await createAccount({ id: SAMPLE_USER_ID, email: null, passwordHash: null, displayName: "In My World samples", planId: "pro" }));
+  await addCredits(SAMPLE_USER_ID, 500, "dev_grant", "Sample generation");
   const queued: string[] = [];
   for (const s of SAMPLE_PROMPTS.filter((x) => !only || x.prompt.toLowerCase().includes(only))) {
     const { project } = await createGeneration(sampleUser, {

@@ -1,5 +1,5 @@
 import "server-only";
-import { estimateCredits, getPlan } from "@/config/plans";
+import { estimateCredits, getPlan, type Plan } from "@/config/plans";
 import type { Category } from "@/config/site";
 import { canCast, OFFICIAL_CHARACTERS, type CharacterRecord } from "@/lib/engine/characters";
 import { compileTimeline, type SceneAudio } from "@/lib/engine/compile";
@@ -10,31 +10,36 @@ import {
 } from "@/lib/engine/types";
 import { HttpError } from "./auth";
 import { MODE, PROVIDERS, providerSummary } from "./config";
-import { balanceOf, rollPeriods } from "./credits";
-import { id, now, read, tx } from "./db";
-import { deleteMedia, mediaUrl, writeMedia } from "./media";
-import type { DB, GenerationJob, Project, Story, User } from "./models";
+import { addCredits, planFor, rollPeriods } from "./credits";
+import { creditBalance, deleteDocs, findDocs, findOne, getDoc, insertDoc, mutateDoc, newId, now, upsertDoc } from "./data";
+import { deleteMedia, inspectMedia, mediaUrl, signedUploadUrl, writeMedia } from "./media";
+import type { GenerationJob, Project, Story, User, Video } from "./models";
 import { generateStory, ProviderError } from "./providers/story";
 import { defaultNarrator, narratorVoices, synthesize } from "./providers/voice";
 
 export const SAMPLE_USER_ID = "usr_samples";
 const MAX_ATTEMPTS = 3;
 const LEASE_MS = 45_000;
+const ADVANCE_LEASE_MS = 90_000;
 
 /* ---------------- Character library ---------------- */
 
-export function libraryFor(db: DB, userId: string | null): CharacterRecord[] {
-  const own = userId ? db.characters.filter((c) => c.ownerId === userId) : [];
-  const community = db.characters.filter((c) => c.visibility === "public" && c.ownerId !== userId);
-  return [...OFFICIAL_CHARACTERS, ...own, ...community].map((c) => {
-    // A use = a story whose resolved cast includes this character (explicit or auto-cast).
-    const uses = db.stories.filter((s) => s.cast?.some((x) => x.id === c.id)).length;
-    return { ...c, uses: c.uses + uses };
-  });
+type Counter = { n: number };
+
+export async function libraryFor(userId: string | null): Promise<CharacterRecord[]> {
+  const [own, community, counters] = await Promise.all([
+    userId ? findDocs<CharacterRecord>("characters", (q) => q.eq("owner_id", userId)) : Promise.resolve([]),
+    findDocs<CharacterRecord>("characters", (q) => (userId ? q.eq("visibility", "public").neq("owner_id", userId) : q.eq("visibility", "public"))),
+    findDocs<Counter & { id: string }>("sample_views", (q) => q.like("id", "uses:%")),
+  ]);
+  const uses = new Map(counters.map((c) => [c.id.slice(5), c.n]));
+  return [...OFFICIAL_CHARACTERS, ...own, ...community].map((c) => ({ ...c, uses: c.uses + (uses.get(c.id) ?? 0) }));
 }
 
-function planFor(db: DB, userId: string) {
-  return getPlan(db.subscriptions.find((s) => s.userId === userId)?.planId);
+async function countUse(charId: string) {
+  const key = `uses:${charId}`;
+  const done = await mutateDoc<Counter & { id: string }>("sample_views", key, (d) => void (d.n += 1));
+  if (!done) await upsertDoc("sample_views", key, { id: key, n: 1 });
 }
 
 function categoryFor(prompt: string): Category {
@@ -81,10 +86,11 @@ export function validateInput(raw: unknown): CreateInput {
   return { prompt, style, duration, castIds, voice, idempotencyKey, parentProjectId, format, previousProjectId };
 }
 
-export function quote(db: DB, userId: string, input: Pick<CreateInput, "duration" | "style">) {
-  const plan = planFor(db, userId);
+export async function quote(userId: string, input: Pick<CreateInput, "duration" | "style">) {
+  await rollPeriods(userId);
+  const plan = await planFor(userId);
   const cost = estimateCredits({ duration: input.duration, style: input.style, narration: PROVIDERS.voice !== "none", exportHeight: plan.exportHeight });
-  return { plan, cost, balance: balanceOf(db, userId) };
+  return { plan, cost, balance: await creditBalance(userId) };
 }
 
 function freshStages(): StageState[] {
@@ -93,86 +99,87 @@ function freshStages(): StageState[] {
 
 export async function createGeneration(user: User, input: CreateInput) {
   if (!PROVIDERS.story) throw new HttpError(503, "Video generation isn't available: no story provider is configured.", "provider_unavailable");
-  const result = await tx((db) => {
-    if (input.idempotencyKey) {
-      const dup = db.jobs.find((j) => j.userId === user.id && j.idempotencyKey === input.idempotencyKey);
-      if (dup) return { project: db.projects.find((p) => p.id === dup.projectId)!, job: dup, duplicate: true };
-    }
-    rollPeriods(db, user.id);
-    const { plan, cost, balance } = quote(db, user.id, input);
-    if (input.duration > plan.maxDurationSec)
-      throw new HttpError(403, `${input.duration}-second videos need a plan that allows them. Your ${plan.name} plan goes up to ${plan.maxDurationSec}s.`, "duration_not_in_plan");
-    if (balance < cost.total) throw new HttpError(402, `This video costs ${cost.total} credits and you have ${balance}.`, "insufficient_credits");
+  if (input.idempotencyKey) {
+    const dup = await findOne<GenerationJob>("jobs", (q) => q.eq("user_id", user.id).eq("idempotency_key", input.idempotencyKey!));
+    if (dup) return { project: (await getDoc<Project>("projects", dup.projectId))!, job: dup, duplicate: true };
+  }
+  const { plan, cost } = await quote(user.id, input);
+  if (input.duration > plan.maxDurationSec)
+    throw new HttpError(403, `${input.duration}-second videos need a plan that allows them. Your ${plan.name} plan goes up to ${plan.maxDurationSec}s.`, "duration_not_in_plan");
 
-    const lib = libraryFor(db, user.id);
-    const planId = plan.id;
-    for (const cid of input.castIds) {
-      const c = lib.find((x) => x.id === cid);
-      if (!c) throw new HttpError(400, "One of the selected characters no longer exists.", "bad_cast");
-      const ok = canCast(c, { id: user.id, planId });
-      if (!ok.ok) throw new HttpError(403, `${c.name}: ${ok.reason}`, "cast_not_allowed");
-    }
+  const lib = await libraryFor(user.id);
+  for (const cid of input.castIds) {
+    const c = lib.find((x) => x.id === cid);
+    if (!c) throw new HttpError(400, "One of the selected characters no longer exists.", "bad_cast");
+    const ok = canCast(c, { id: user.id, planId: plan.id });
+    if (!ok.ok) throw new HttpError(403, `${c.name}: ${ok.reason}`, "cast_not_allowed");
+  }
 
-    let series: { seriesId: string; episode: number } | undefined;
-    if (input.previousProjectId) {
-      const prev = db.projects.find((x) => x.id === input.previousProjectId && x.userId === user.id);
-      if (!prev || !db.stories.some((x) => x.projectId === prev.id)) throw new HttpError(400, "The previous episode couldn't be found.", "bad_previous");
-      prev.seriesId ??= prev.id;
-      prev.episode ??= 1;
-      series = { seriesId: prev.seriesId, episode: prev.episode + 1 };
-    }
+  let series: { seriesId: string; episode: number } | undefined;
+  if (input.previousProjectId) {
+    const prev = await getDoc<Project>("projects", input.previousProjectId);
+    if (!prev || prev.userId !== user.id || !(await findOne<Story>("stories", (q) => q.eq("project_id", prev.id)))) throw new HttpError(400, "The previous episode couldn't be found.", "bad_previous");
+    const updated = await mutateDoc<Project>("projects", prev.id, (p) => {
+      p.seriesId ??= p.id;
+      p.episode ??= 1;
+    });
+    series = { seriesId: updated!.seriesId!, episode: (updated!.episode ?? 1) + 1 };
+  }
 
-    const projectId = id("prj");
-    const jobId = id("job");
-    const t = now();
-    const height = input.exportOverride ?? plan.exportHeight;
-    const summary = providerSummary();
-    const job: GenerationJob = {
-      id: jobId, projectId, userId: user.id, status: "queued", stages: freshStages(), attempts: 1, maxAttempts: MAX_ATTEMPTS,
-      creditCost: cost.total, idempotencyKey: input.idempotencyKey, exportHeight: height, watermark: plan.watermark,
-      engine: { story: summary.story.label, voice: summary.voice.label, render: summary.render.label },
-      previews: [], refunded: false, createdAt: t, updatedAt: t,
-    };
-    const project: Project = {
-      id: projectId, userId: user.id, title: "Untitled world", prompt: input.prompt, style: input.style, durationPreset: input.duration,
-      aspect: "9:16", mode: "auto", voice: input.voice, castIds: input.castIds, category: categoryFor(input.prompt), visibility: "private",
-      status: "queued", jobId, parentProjectId: input.parentProjectId, views: 0, createdAt: t, updatedAt: t,
-      format: input.format, previousProjectId: input.previousProjectId, seriesId: series?.seriesId, episode: series?.episode,
-    };
-    db.jobs.push(job);
-    db.projects.push(project);
-    db.credits.push({ id: id("ctx"), userId: user.id, amount: -cost.total, kind: "debit_generation", jobId, note: `Video: ${input.duration}s ${input.style}`, createdAt: t });
-    return { project, job, duplicate: false };
-  });
-  if (!result.duplicate) kick(result.job.id);
-  return result;
+  const projectId = newId("prj");
+  const jobId = newId("job");
+  const t = now();
+
+  // Debit first: the database refuses it if the balance would go negative.
+  try {
+    await addCredits(user.id, -cost.total, "debit_generation", `Video: ${input.duration}s ${input.style}`, { jobId });
+  } catch (e) {
+    if (e instanceof HttpError && e.code === "insufficient_credits") {
+      const bal = await creditBalance(user.id);
+      throw new HttpError(402, `This video costs ${cost.total} credits and you have ${bal}.`, "insufficient_credits");
+    }
+    throw e;
+  }
+
+  const summary = providerSummary();
+  const job: GenerationJob = {
+    id: jobId, projectId, userId: user.id, status: "queued", stages: freshStages(), attempts: 1, maxAttempts: MAX_ATTEMPTS,
+    creditCost: cost.total, idempotencyKey: input.idempotencyKey, exportHeight: input.exportOverride ?? plan.exportHeight, watermark: plan.watermark,
+    engine: { story: summary.story.label, voice: summary.voice.label, render: summary.render.label },
+    previews: [], refunded: false, createdAt: t, updatedAt: t,
+  };
+  const project: Project = {
+    id: projectId, userId: user.id, title: "Untitled world", prompt: input.prompt, style: input.style, durationPreset: input.duration,
+    aspect: "9:16", mode: "auto", voice: input.voice, castIds: input.castIds, category: categoryFor(input.prompt), visibility: "private",
+    status: "queued", jobId, parentProjectId: input.parentProjectId, views: 0, createdAt: t, updatedAt: t,
+    format: input.format, previousProjectId: input.previousProjectId, seriesId: series?.seriesId, episode: series?.episode,
+  };
+  try {
+    await insertDoc("projects", projectId, project);
+    await insertDoc("jobs", jobId, job);
+  } catch (e) {
+    await deleteDocs("projects", (q) => q.eq("id", projectId));
+    await addCredits(user.id, cost.total, "refund_generation", "Refund — couldn't start", { jobId });
+    // Lost an idempotency race: return the job that won.
+    const dup = input.idempotencyKey ? await findOne<GenerationJob>("jobs", (q) => q.eq("user_id", user.id).eq("idempotency_key", input.idempotencyKey!)) : null;
+    if (dup) return { project: (await getDoc<Project>("projects", dup.projectId))!, job: dup, duplicate: true };
+    throw e;
+  }
+  return { project, job, duplicate: false };
 }
 
-/* ---------------- Worker ---------------- */
-
-type W = { __imwRunning?: Set<string>; __imwResumed?: boolean };
-const w = globalThis as W;
-w.__imwRunning ??= new Set();
-
-function kick(jobId: string, delayMs = 0) {
-  setTimeout(() => void runJob(jobId), delayMs);
-}
-
-/** Resume jobs interrupted by a server restart. */
-export async function resumePending() {
-  if (w.__imwResumed) return;
-  w.__imwResumed = true;
-  const ids = await read((db) => db.jobs.filter((j) => j.status === "queued" || j.status === "processing").map((j) => j.id));
-  ids.forEach((i) => kick(i));
-}
+/* ---------------- Running a job (serverless-friendly) ---------------- */
 
 async function setStage(jobId: string, key: StageKey, patch: Partial<StageState>) {
-  await tx((db) => {
-    const j = db.jobs.find((x) => x.id === jobId);
-    if (!j) return;
-    const s = j.stages.find((x) => x.key === key)!;
-    Object.assign(s, patch);
+  await mutateDoc<GenerationJob>("jobs", jobId, (j) => {
+    Object.assign(j.stages.find((x) => x.key === key)!, patch);
     j.updatedAt = now();
+  });
+}
+
+async function setProjectStatus(projectId: string, status: Project["status"], extra: Partial<Project> = {}) {
+  await mutateDoc<Project>("projects", projectId, (p) => {
+    Object.assign(p, extra, { status, updatedAt: now() });
   });
 }
 
@@ -180,197 +187,187 @@ function sceneAudioKey(jobId: string, scene: number, kind: "n" | "d") {
   return `audio/${jobId}_${scene}_${kind}.wav`;
 }
 
-async function runJob(jobId: string) {
-  if (w.__imwRunning!.has(jobId)) return;
-  w.__imwRunning!.add(jobId);
+/**
+ * Runs the server-side stages of a job inside the calling request. Called by
+ * the project page (POST /api/jobs/:id/advance) — there's no background
+ * worker, so it works on serverless hosts. A short lease stops two requests
+ * running the same job.
+ */
+export async function advanceJob(jobId: string, userId: string) {
+  let claimed = false;
+  const job0 = await mutateDoc<GenerationJob & { advanceUntil?: string }>("jobs", jobId, (j) => {
+    if (j.userId !== userId && !(MODE === "development" && j.userId === SAMPLE_USER_ID)) return false;
+    if (!["queued", "processing"].includes(j.status)) return false;
+    if (j.advanceUntil && new Date(j.advanceUntil) > new Date()) return false;
+    j.advanceUntil = new Date(Date.now() + ADVANCE_LEASE_MS).toISOString();
+    j.status = "processing";
+    claimed = true;
+  });
+  if (!job0 || !claimed) return { ran: false };
+  const job = job0;
+  const project = (await getDoc<Project>("projects", job.projectId))!;
+  await setProjectStatus(project.id, "processing");
+  const plan: Plan = await planFor(job.userId);
+  const library = await libraryFor(job.userId);
+  const previous = project.previousProjectId ? (await findOne<Story>("stories", (q) => q.eq("project_id", project.previousProjectId!)))?.plan : undefined;
+  let story = await findOne<Story>("stories", (q) => q.eq("project_id", project.id));
+  const stageDone = (k: StageKey) => ["done", "skipped"].includes(job.stages.find((s) => s.key === k)?.status ?? "");
+  let current: StageKey = "story";
+
   try {
-    const ctx = await tx((db) => {
-      const j = db.jobs.find((x) => x.id === jobId);
-      if (!j || !["queued", "processing"].includes(j.status)) return null;
-      j.status = "processing";
-      const p = db.projects.find((x) => x.id === j.projectId)!;
-      p.status = "processing";
-      p.updatedAt = now();
-      const previous = p.previousProjectId ? db.stories.find((s) => s.projectId === p.previousProjectId)?.plan : undefined;
-      return { job: structuredClone(j), project: structuredClone(p), library: libraryFor(db, j.userId), planId: planFor(db, j.userId).id, story: structuredClone(db.stories.find((s) => s.projectId === p.id)), previous: structuredClone(previous) };
-    });
-    if (!ctx) return;
-    const { job, project, library } = ctx;
-    let story = ctx.story;
-    const stageDone = (k: StageKey) => job.stages.find((s) => s.key === k)?.status === "done" || job.stages.find((s) => s.key === k)?.status === "skipped";
-    let current: StageKey = "story";
-
-    try {
-      /* 1. Story */
-      if (!stageDone("story") || !story) {
-        current = "story";
-        await setStage(jobId, "story", { status: "running", startedAt: now(), detail: job.engine.story });
-        const cast = project.castIds.map((cid) => library.find((c) => c.id === cid)).filter(Boolean) as CharacterRecord[];
-        const res = await generateStory({
-          prompt: project.prompt, duration: project.durationPreset, style: project.style, format: project.format ?? "strange_world", previous: ctx.previous,
-          cast, library: library.filter((c) => canCast(c, { id: project.userId, planId: ctx.planId }).ok || project.castIds.includes(c.id)), seed: jobId,
-        });
-        const s: Story = { id: id("sty"), projectId: project.id, source: res.source, model: res.model, plan: res.plan, checklist: res.checklist, checklistSource: res.checklistSource, revised: res.revised, createdAt: now() };
-        await tx((db) => {
-          db.stories = db.stories.filter((x) => x.projectId !== project.id);
-          db.stories.push(s);
-          const p = db.projects.find((x) => x.id === project.id)!;
-          p.storyId = s.id;
-          p.title = res.plan.title;
-        });
-        story = s;
-        const passed = res.checklist.filter((c) => c.pass === true).length;
-        const twist = res.plan.sheet?.twistType ? ` · ${res.plan.sheet.twistType.replace(/_/g, " ")} twist` : "";
-        await setStage(jobId, "story", {
-          status: "done", endedAt: now(),
-          detail: `${res.plan.scenes.length} scenes${twist} · ${res.source === "anthropic" ? `written by ${res.model}${res.revised ? ", revised after editor review" : ""}` : "template engine (dev mode, not AI)"} · checklist ${passed}/${res.checklist.length}`,
-        });
-      }
-      const plan = story.plan;
-
-      /* 2. Characters */
-      current = "characters";
-      await setStage(jobId, "characters", { status: "running", startedAt: now() });
-      const specs: CharacterSpec[] = [];
-      const refs: Record<string, string> = {};
-      const generated: string[] = [];
-      let reused = 0;
-      for (const c of plan.cast) {
-        const rec = c.characterId ? library.find((x) => x.id === c.characterId) : undefined;
-        if (rec) {
-          specs.push({ id: rec.id, name: c.name || rec.name, appearance: rec.appearance, voice: rec.voice });
-          refs[c.ref] = rec.id;
-          reused++;
-        } else if (c.appearance) {
-          const gid = `gen_${jobId}_${c.ref}`;
-          specs.push({ id: gid, name: c.name, appearance: c.appearance });
-          refs[c.ref] = gid;
-          generated.push(gid);
-        }
-      }
-      await tx((db) => {
-        const s = db.stories.find((x) => x.id === story!.id)!;
-        s.cast = specs;
-        s.refs = refs;
-        s.generatedCharacterIds = generated;
+    /* 1. Story */
+    if (!stageDone("story") || !story) {
+      current = "story";
+      await setStage(jobId, "story", { status: "running", startedAt: now(), detail: job.engine.story });
+      const cast = project.castIds.map((cid) => library.find((c) => c.id === cid)).filter(Boolean) as CharacterRecord[];
+      const res = await generateStory({
+        prompt: project.prompt, duration: project.durationPreset, style: project.style, format: project.format ?? "strange_world", previous,
+        cast, library: library.filter((c) => canCast(c, { id: project.userId, planId: plan.id }).ok || project.castIds.includes(c.id)), seed: jobId,
       });
-      await setStage(jobId, "characters", { status: "done", endedAt: now(), detail: `${specs.length} characters · ${reused} from the library${generated.length ? ` · ${generated.length} newly designed` : ""}` });
-
-      /* 3. World */
-      current = "world";
-      await setStage(jobId, "world", { status: "running", startedAt: now() });
-      const envs = [...new Set(plan.scenes.map((s) => s.environment.replace(/_/g, " ")))];
-      const props = new Set(plan.scenes.flatMap((s) => s.props)).size;
-      await setStage(jobId, "world", { status: "done", endedAt: now(), detail: `${envs.length} environment${envs.length === 1 ? "" : "s"} (${envs.join(", ")}) · ${props} prop type${props === 1 ? "" : "s"} · ${project.style} style` });
-
-      /* 4. Animation */
-      current = "animation";
-      await setStage(jobId, "animation", { status: "running", startedAt: now() });
-      const actions = plan.scenes.reduce((a, s) => a + s.characters.length, 0);
-      const cams = new Set(plan.scenes.map((s) => s.camera)).size;
-      await setStage(jobId, "animation", { status: "done", endedAt: now(), detail: `${plan.scenes.length} scenes · ${actions} character performances · ${cams} camera moves` });
-
-      /* 5. Narration */
-      current = "narration";
-      const audio: SceneAudio[] = [];
-      const stored: NonNullable<GenerationJob["audio"]> = [];
-      if (PROVIDERS.voice === "none" || !project.voice) {
-        await setStage(jobId, "narration", { status: "skipped", startedAt: now(), endedAt: now(), detail: "No narration provider configured — captions only" });
-      } else {
-        await setStage(jobId, "narration", { status: "running", startedAt: now(), detail: `Voice: ${project.voice}` });
-        for (let i = 0; i < plan.scenes.length; i++) {
-          const sc = plan.scenes[i];
-          const n = await synthesize(sc.narration, project.voice, sceneAudioKey(jobId, i, "n"), sc.delivery);
-          const entry: (typeof stored)[number] = { scene: i, narration: n };
-          const a: SceneAudio = { narration: { url: mediaUrl(n.mediaKey), duration: n.duration } };
-          if (sc.dialogue) {
-            const speaker = specs.find((s) => s.id === refs[sc.dialogue!.ref]);
-            const d = await synthesize(sc.dialogue.line, speaker?.voice ?? "Fred", sceneAudioKey(jobId, i, "d"));
-            entry.dialogue = d;
-            a.dialogue = { url: mediaUrl(d.mediaKey), duration: d.duration };
-          }
-          stored.push(entry);
-          audio.push(a);
-          await setStage(jobId, "narration", { detail: `Voice: ${project.voice} · ${i + 1} of ${plan.scenes.length} scenes recorded` });
-        }
-        const total = stored.reduce((x, s) => x + (s.narration?.duration ?? 0) + (s.dialogue?.duration ?? 0), 0);
-        await setStage(jobId, "narration", { status: "done", endedAt: now(), detail: `Voice: ${project.voice} · ${stored.length} clips · ${total.toFixed(1)}s of speech` });
-      }
-
-      /* 6. Editing */
-      current = "editing";
-      await setStage(jobId, "editing", { status: "running", startedAt: now() });
-      // "720p" / "1080p" refers to the short side of the vertical frame: 720×1280 or 1080×1920.
-      const width = job.exportHeight;
-      const timeline = compileTimeline({
-        plan, style: project.style, cast: specs, refs, audio, width, height: Math.round((width * 16) / 9), watermark: job.watermark, targetDuration: project.durationPreset,
-      });
-      await tx((db) => {
-        db.stories.find((x) => x.id === story!.id)!.timeline = timeline;
-        const j = db.jobs.find((x) => x.id === jobId)!;
-        j.audio = stored;
-      });
-      await setStage(jobId, "editing", {
+      const s: Story = { id: newId("sty"), projectId: project.id, source: res.source, model: res.model, plan: res.plan, checklist: res.checklist, checklistSource: res.checklistSource, revised: res.revised, createdAt: now() };
+      await deleteDocs("stories", (q) => q.eq("project_id", project.id));
+      await insertDoc("stories", s.id, s);
+      await setProjectStatus(project.id, "processing", { storyId: s.id, title: res.plan.title });
+      story = s;
+      const passed = res.checklist.filter((c) => c.pass === true).length;
+      const twist = res.plan.sheet?.twistType ? ` · ${res.plan.sheet.twistType.replace(/_/g, " ")} twist` : "";
+      await setStage(jobId, "story", {
         status: "done", endedAt: now(),
-        detail: `${timeline.duration.toFixed(1)}s cut · ${timeline.captions.length} caption cards · ${timeline.sfx.length} sound cues · ${timeline.musicMood} score`,
+        detail: `${res.plan.scenes.length} scenes${twist} · ${res.source === "anthropic" ? `written by ${res.model}${res.revised ? ", revised after editor review" : ""}` : "template engine (not AI)"} · checklist ${passed}/${res.checklist.length}`,
       });
-
-      /* 7. Hand off to the renderer */
-      await tx((db) => {
-        const j = db.jobs.find((x) => x.id === jobId)!;
-        j.status = "awaiting_render";
-        j.stages.find((s) => s.key === "render")!.detail = "Waiting for a renderer";
-        const p = db.projects.find((x) => x.id === j.projectId)!;
-        p.status = "awaiting_render";
-        p.updatedAt = now();
-      });
-    } catch (e) {
-      const retryable = e instanceof ProviderError ? e.retryable : false;
-      const msg = e instanceof ProviderError ? e.message : "Something went wrong while preparing your video.";
-      if (!(e instanceof ProviderError)) console.error("[pipeline]", e);
-      await failOrRetry(jobId, current, msg, retryable);
     }
-  } finally {
-    w.__imwRunning!.delete(jobId);
+    const storyPlan = story.plan;
+
+    /* 2. Characters */
+    current = "characters";
+    await setStage(jobId, "characters", { status: "running", startedAt: now() });
+    const specs: CharacterSpec[] = [];
+    const refs: Record<string, string> = {};
+    const generated: string[] = [];
+    let reused = 0;
+    for (const c of storyPlan.cast) {
+      const rec = c.characterId ? library.find((x) => x.id === c.characterId) : undefined;
+      if (rec) {
+        specs.push({ id: rec.id, name: c.name || rec.name, appearance: rec.appearance, voice: rec.voice });
+        refs[c.ref] = rec.id;
+        reused++;
+      } else if (c.appearance) {
+        const gid = `gen_${jobId}_${c.ref}`;
+        specs.push({ id: gid, name: c.name, appearance: c.appearance });
+        refs[c.ref] = gid;
+        generated.push(gid);
+      }
+    }
+    await mutateDoc<Story>("stories", story.id, (s) => {
+      s.cast = specs;
+      s.refs = refs;
+      s.generatedCharacterIds = generated;
+    });
+    await Promise.all(specs.filter((s) => !s.id.startsWith("gen_")).map((s) => countUse(s.id).catch(() => undefined)));
+    await setStage(jobId, "characters", { status: "done", endedAt: now(), detail: `${specs.length} characters · ${reused} from the library${generated.length ? ` · ${generated.length} newly designed` : ""}` });
+
+    /* 3. World */
+    current = "world";
+    const envs = [...new Set(storyPlan.scenes.map((s) => s.environment.replace(/_/g, " ")))];
+    const props = new Set(storyPlan.scenes.flatMap((s) => s.props)).size;
+    await setStage(jobId, "world", { status: "done", startedAt: now(), endedAt: now(), detail: `${envs.length} environment${envs.length === 1 ? "" : "s"} (${envs.join(", ")}) · ${props} prop type${props === 1 ? "" : "s"} · ${project.style} style` });
+
+    /* 4. Animation */
+    current = "animation";
+    const actions = storyPlan.scenes.reduce((a, s) => a + s.characters.length, 0);
+    const cams = new Set(storyPlan.scenes.map((s) => s.camera)).size;
+    await setStage(jobId, "animation", { status: "done", startedAt: now(), endedAt: now(), detail: `${storyPlan.scenes.length} scenes · ${actions} character performances · ${cams} camera moves` });
+
+    /* 5. Narration */
+    current = "narration";
+    const audio: SceneAudio[] = [];
+    const stored: NonNullable<GenerationJob["audio"]> = [];
+    if (PROVIDERS.voice === "none" || !project.voice) {
+      await setStage(jobId, "narration", { status: "skipped", startedAt: now(), endedAt: now(), detail: "No narration voice set up — captions and music only" });
+    } else {
+      await setStage(jobId, "narration", { status: "running", startedAt: now(), detail: `Voice: ${project.voice}` });
+      for (let i = 0; i < storyPlan.scenes.length; i++) {
+        const sc = storyPlan.scenes[i];
+        const n = await synthesize(sc.narration, project.voice, sceneAudioKey(jobId, i, "n"), sc.delivery);
+        const entry: (typeof stored)[number] = { scene: i, narration: n };
+        const a: SceneAudio = { narration: { url: mediaUrl(n.mediaKey), duration: n.duration } };
+        if (sc.dialogue) {
+          const speaker = specs.find((s) => s.id === refs[sc.dialogue!.ref]);
+          const d = await synthesize(sc.dialogue.line, speaker?.voice ?? "Fred", sceneAudioKey(jobId, i, "d"));
+          entry.dialogue = d;
+          a.dialogue = { url: mediaUrl(d.mediaKey), duration: d.duration };
+        }
+        stored.push(entry);
+        audio.push(a);
+      }
+      const total = stored.reduce((x, s) => x + (s.narration?.duration ?? 0) + (s.dialogue?.duration ?? 0), 0);
+      await setStage(jobId, "narration", { status: "done", endedAt: now(), detail: `Voice: ${project.voice} · ${stored.length} clips · ${total.toFixed(1)}s of speech` });
+    }
+
+    /* 6. Editing */
+    current = "editing";
+    const width = job.exportHeight;
+    const timeline = compileTimeline({ plan: storyPlan, style: project.style, cast: specs, refs, audio, width, height: Math.round((width * 16) / 9), watermark: job.watermark, targetDuration: project.durationPreset });
+    await mutateDoc<Story>("stories", story.id, (s) => void (s.timeline = timeline));
+    await setStage(jobId, "editing", {
+      status: "done", startedAt: now(), endedAt: now(),
+      detail: `${timeline.duration.toFixed(1)}s cut · ${timeline.captions.length} caption cards · ${timeline.sfx.length} sound cues · ${timeline.musicMood} score`,
+    });
+
+    /* 7. Hand off to the renderer */
+    await mutateDoc<GenerationJob & { advanceUntil?: string }>("jobs", jobId, (j) => {
+      j.status = "awaiting_render";
+      j.audio = stored;
+      j.advanceUntil = undefined;
+      j.stages.find((s) => s.key === "render")!.detail = "Waiting for a renderer";
+    });
+    await setProjectStatus(project.id, "awaiting_render");
+  } catch (e) {
+    const retryable = e instanceof ProviderError ? e.retryable : false;
+    const msg = e instanceof ProviderError ? e.message : "Something went wrong while preparing your video.";
+    if (!(e instanceof ProviderError)) console.error("[pipeline]", e);
+    await failOrRetry(jobId, current, msg, retryable);
   }
+  return { ran: true };
 }
 
-/** Retries a retryable failure, otherwise fails the job and refunds its credits. */
+/** Retries a retryable failure (the next advance picks it up), otherwise fails and refunds. */
 async function failOrRetry(jobId: string, stage: StageKey, message: string, retryable: boolean) {
-  const retry = await tx((db) => {
-    const j = db.jobs.find((x) => x.id === jobId);
-    if (!j) return false;
-    const p = db.projects.find((x) => x.id === j.projectId)!;
-    const s = j.stages.find((x) => x.key === stage)!;
-    if (retryable && j.attempts < j.maxAttempts) {
-      j.attempts++;
+  let refundFor: GenerationJob | null = null;
+  const j = await mutateDoc<GenerationJob & { advanceUntil?: string }>("jobs", jobId, (job) => {
+    refundFor = null;
+    const s = job.stages.find((x) => x.key === stage)!;
+    job.advanceUntil = undefined;
+    job.renderLease = undefined;
+    job.updatedAt = now();
+    if (retryable && job.attempts < job.maxAttempts) {
+      job.attempts++;
       s.status = "pending";
-      s.detail = `Retrying (attempt ${j.attempts} of ${j.maxAttempts}): ${message}`;
-      j.status = stage === "render" ? "awaiting_render" : "queued";
-      p.status = j.status;
-      j.renderLease = undefined;
-      j.updatedAt = now();
-      return stage !== "render";
+      s.detail = `Retrying (attempt ${job.attempts} of ${job.maxAttempts}): ${message}`;
+      job.status = stage === "render" ? "awaiting_render" : "queued";
+      return;
     }
     s.status = "failed";
     s.endedAt = now();
     s.detail = message;
-    j.status = "failed";
-    j.error = message;
-    j.renderLease = undefined;
-    j.updatedAt = now();
-    p.status = "failed";
-    p.updatedAt = now();
-    refund(db, j);
-    return false;
+    job.status = "failed";
+    job.error = message;
+    if (!job.refunded) {
+      job.refunded = true;
+      refundFor = job;
+    }
   });
-  if (retry) kick(jobId, 2000);
+  if (!j) return;
+  await setProjectStatus(j.projectId, j.status);
+  if (refundFor) await refund(refundFor);
 }
 
-function refund(db: DB, j: GenerationJob) {
-  if (j.refunded) return;
-  j.refunded = true;
-  db.credits.push({ id: id("ctx"), userId: j.userId, amount: j.creditCost, kind: "refund_generation", jobId: j.id, note: "Refund — generation failed", createdAt: now() });
+async function refund(j: GenerationJob) {
+  try {
+    await addCredits(j.userId, j.creditCost, "refund_generation", "Refund — generation failed", { jobId: j.id });
+  } catch {
+    /* already refunded (unique per job) */
+  }
 }
 
 /* ---------------- Render agent protocol ---------------- */
@@ -380,152 +377,168 @@ function canRender(j: GenerationJob, userId: string) {
 }
 
 export async function claimRender(user: User, agentId: string) {
-  await resumePending();
-  return tx((db) => {
-    const t = Date.now();
-    const j = db.jobs
-      .filter((x) => canRender(x, user.id))
-      .filter((x) => x.status === "awaiting_render" || (x.status === "rendering" && (!x.renderLease || new Date(x.renderLease.expiresAt).getTime() < t)))
-      .sort((a, b) => (a.userId === user.id ? -1 : 1) - (b.userId === user.id ? -1 : 1) || a.createdAt.localeCompare(b.createdAt))[0];
-    if (!j) return null;
-    const story = db.stories.find((s) => s.projectId === j.projectId);
-    if (!story?.timeline) return null;
-    j.status = "rendering";
-    j.renderLease = { agentId, expiresAt: new Date(t + LEASE_MS).toISOString() };
-    const st = j.stages.find((s) => s.key === "render")!;
-    st.status = "running";
-    st.startedAt ??= now();
-    st.detail = "Rendering frames";
-    j.previews = [];
-    j.renderProgress = undefined;
-    const p = db.projects.find((x) => x.id === j.projectId)!;
-    p.status = "rendering";
-    p.updatedAt = now();
-    return { jobId: j.id, projectId: j.projectId, title: p.title, timeline: story.timeline };
-  });
+  const ownerIds = MODE === "development" ? [user.id, SAMPLE_USER_ID] : [user.id];
+  const candidates = await findDocs<GenerationJob>("jobs", (q) => q.in("user_id", ownerIds).in("status", ["awaiting_render", "rendering"]).order("ts", { ascending: true }).limit(10));
+  candidates.sort((a, b) => (a.userId === user.id ? -1 : 1) - (b.userId === user.id ? -1 : 1));
+  for (const c of candidates) {
+    let won = false;
+    const j = await mutateDoc<GenerationJob>("jobs", c.id, (job) => {
+      const t = Date.now();
+      const free = job.status === "awaiting_render" || (job.status === "rendering" && (!job.renderLease || new Date(job.renderLease.expiresAt).getTime() < t));
+      if (!free || !canRender(job, user.id)) return false;
+      job.status = "rendering";
+      job.renderLease = { agentId, expiresAt: new Date(t + LEASE_MS).toISOString() };
+      const st = job.stages.find((s) => s.key === "render")!;
+      st.status = "running";
+      st.startedAt ??= now();
+      st.detail = "Rendering frames";
+      job.previews = [];
+      job.renderProgress = undefined;
+      won = true;
+    });
+    if (!won || !j) continue;
+    const story = await findOne<Story>("stories", (q) => q.eq("project_id", j.projectId));
+    if (!story?.timeline) continue;
+    await setProjectStatus(j.projectId, "rendering");
+    const p = await getDoc<Project>("projects", j.projectId);
+    return { jobId: j.id, projectId: j.projectId, title: p?.title ?? "", timeline: story.timeline };
+  }
+  return null;
 }
 
-function leased(db: DB, user: User, jobId: string, agentId: string) {
-  const j = db.jobs.find((x) => x.id === jobId);
+async function leased(user: User, jobId: string, agentId: string) {
+  const j = await getDoc<GenerationJob>("jobs", jobId);
   if (!j || !canRender(j, user.id)) throw new HttpError(404, "Job not found.");
   if (j.status !== "rendering" || j.renderLease?.agentId !== agentId) throw new HttpError(409, "This render was handed to another renderer.", "lease_lost");
   return j;
 }
 
-export async function reportProgress(user: User, jobId: string, agentId: string, prog: { phase: string; framesDone: number; framesTotal: number }) {
-  return tx((db) => {
-    const j = leased(db, user, jobId, agentId);
+async function mutateLeased(user: User, jobId: string, agentId: string, fn: (j: GenerationJob) => void) {
+  return mutateDoc<GenerationJob>("jobs", jobId, (j) => {
+    if (!canRender(j, user.id)) throw new HttpError(404, "Job not found.");
+    if (j.status !== "rendering" || j.renderLease?.agentId !== agentId) throw new HttpError(409, "This render was handed to another renderer.", "lease_lost");
+    fn(j);
     j.renderLease = { agentId, expiresAt: new Date(Date.now() + LEASE_MS).toISOString() };
-    j.renderProgress = { phase: String(prog.phase).slice(0, 20), framesDone: Math.max(0, Math.floor(prog.framesDone)), framesTotal: Math.max(1, Math.floor(prog.framesTotal)), updatedAt: now() };
-    const st = j.stages.find((s) => s.key === "render")!;
-    st.detail = prog.phase === "audio" ? "Mixing audio" : prog.phase === "previews" ? "Rendering scene previews" : prog.phase === "finalizing" ? "Finalizing MP4" : "Rendering frames";
     j.updatedAt = now();
+  });
+}
+
+export async function reportProgress(user: User, jobId: string, agentId: string, prog: { phase: string; framesDone: number; framesTotal: number }) {
+  await mutateLeased(user, jobId, agentId, (j) => {
+    j.renderProgress = { phase: String(prog.phase).slice(0, 20), framesDone: Math.max(0, Math.floor(prog.framesDone)), framesTotal: Math.max(1, Math.floor(prog.framesTotal)), updatedAt: now() };
+    j.stages.find((s) => s.key === "render")!.detail =
+      prog.phase === "audio" ? "Mixing audio" : prog.phase === "previews" ? "Rendering scene previews" : prog.phase === "finalizing" ? "Finalizing MP4" : prog.phase === "uploading" ? "Uploading MP4" : "Rendering frames";
   });
 }
 
 export async function savePreview(user: User, jobId: string, agentId: string, scene: number, jpeg: Buffer) {
   if (jpeg[0] !== 0xff || jpeg[1] !== 0xd8) throw new HttpError(400, "Preview must be a JPEG.");
   if (jpeg.length > 2_000_000) throw new HttpError(413, "Preview too large.");
-  await read((db) => leased(db, user, jobId, agentId));
+  await leased(user, jobId, agentId);
   const key = await writeMedia(`previews/${jobId}_${scene}.jpg`, jpeg);
-  await tx((db) => {
-    const j = leased(db, user, jobId, agentId);
+  await mutateLeased(user, jobId, agentId, (j) => {
     j.previews = [...j.previews.filter((p) => p.scene !== scene), { scene, mediaKey: key }].sort((a, b) => a.scene - b.scene);
-    j.renderLease = { agentId, expiresAt: new Date(Date.now() + LEASE_MS).toISOString() };
   });
 }
 
-function isMp4(buf: Buffer) {
-  return buf.length > 1024 && buf.toString("ascii", 4, 8) === "ftyp";
+/** Signed URLs the browser uploads the finished MP4 and thumbnail to (bypasses function size limits). */
+export async function renderUploadUrls(user: User, jobId: string, agentId: string) {
+  await leased(user, jobId, agentId);
+  const videoId = newId("vid");
+  const video = await signedUploadUrl(`videos/${videoId}.mp4`);
+  const thumb = await signedUploadUrl(`thumbs/${videoId}.jpg`);
+  await mutateLeased(user, jobId, agentId, (j) => void ((j as GenerationJob & { pendingVideoId?: string }).pendingVideoId = videoId));
+  return { videoId, video, thumb };
 }
 
 export async function completeRender(
   user: User, jobId: string, agentId: string,
-  files: { mp4: Buffer; thumb: Buffer },
-  meta: { width: number; height: number; durationSec: number; videoCodec: string; audioCodec: string },
+  meta: { videoId: string; width: number; height: number; durationSec: number; videoCodec: string; audioCodec: string },
 ) {
-  if (!isMp4(files.mp4)) throw new HttpError(400, "The uploaded file isn't a valid MP4.", "bad_video");
-  if (files.thumb[0] !== 0xff || files.thumb[1] !== 0xd8) throw new HttpError(400, "Thumbnail must be a JPEG.");
-  const expected = await read((db) => {
-    const j = leased(db, user, jobId, agentId);
-    const story = db.stories.find((s) => s.projectId === j.projectId);
-    return { width: story?.timeline?.width, height: story?.timeline?.height, duration: story?.timeline?.duration ?? 0 };
-  });
-  if (meta.width !== expected.width || meta.height !== expected.height) throw new HttpError(400, "Video dimensions don't match the job.", "bad_video");
-  if (Math.abs(meta.durationSec - expected.duration) > 1) throw new HttpError(400, "Video length doesn't match the job.", "bad_video");
+  const j = (await leased(user, jobId, agentId)) as GenerationJob & { pendingVideoId?: string };
+  if (!j.pendingVideoId || j.pendingVideoId !== meta.videoId) throw new HttpError(400, "Unknown upload.", "bad_video");
+  const story = await findOne<Story>("stories", (q) => q.eq("project_id", j.projectId));
+  const tl = story?.timeline;
+  if (!tl || meta.width !== tl.width || meta.height !== tl.height) throw new HttpError(400, "Video dimensions don't match the job.", "bad_video");
+  if (Math.abs(meta.durationSec - tl.duration) > 1) throw new HttpError(400, "Video length doesn't match the job.", "bad_video");
+  const mediaKey = `videos/${meta.videoId}.mp4`;
+  const thumbKey = `thumbs/${meta.videoId}.jpg`;
+  const [v, th] = await Promise.all([inspectMedia(mediaKey), inspectMedia(thumbKey)]);
+  if (!v || v.size < 1024 || v.head.toString("ascii", 4, 8) !== "ftyp") throw new HttpError(400, "The uploaded file isn't a valid MP4.", "bad_video");
+  if (!th || th.head[0] !== 0xff || th.head[1] !== 0xd8) throw new HttpError(400, "Thumbnail must be a JPEG.", "bad_video");
 
-  const videoId = id("vid");
-  const mediaKey = await writeMedia(`videos/${videoId}.mp4`, files.mp4);
-  const thumbKey = await writeMedia(`thumbs/${videoId}.jpg`, files.thumb);
-  return tx((db) => {
-    const j = leased(db, user, jobId, agentId);
-    db.videos.push({
-      id: videoId, projectId: j.projectId, mediaKey, thumbKey, width: meta.width, height: meta.height, durationSec: meta.durationSec,
-      sizeBytes: files.mp4.length, videoCodec: String(meta.videoCodec).slice(0, 40), audioCodec: String(meta.audioCodec).slice(0, 40), engine: j.engine.render, createdAt: now(),
-    });
-    j.status = "completed";
-    j.renderLease = undefined;
-    const st = j.stages.find((s) => s.key === "render")!;
+  const video: Video = {
+    id: meta.videoId, projectId: j.projectId, mediaKey, thumbKey, width: meta.width, height: meta.height, durationSec: meta.durationSec,
+    sizeBytes: v.size, videoCodec: String(meta.videoCodec).slice(0, 40), audioCodec: String(meta.audioCodec).slice(0, 40), engine: j.engine.render, createdAt: now(),
+  };
+  await upsertDoc("videos", video.id, video);
+  await mutateLeased(user, jobId, agentId, (job) => {
+    job.status = "completed";
+    const st = job.stages.find((s) => s.key === "render")!;
     st.status = "done";
     st.endedAt = now();
-    st.detail = `${meta.width}×${meta.height} · ${meta.durationSec.toFixed(1)}s · ${(files.mp4.length / 1e6).toFixed(1)} MB MP4`;
-    j.updatedAt = now();
-    const p = db.projects.find((x) => x.id === j.projectId)!;
-    p.status = "completed";
-    p.videoId = videoId;
-    p.updatedAt = now();
-    return { videoId };
+    st.detail = `${meta.width}×${meta.height} · ${meta.durationSec.toFixed(1)}s · ${(v.size / 1e6).toFixed(1)} MB MP4`;
   });
+  await mutateDoc<GenerationJob>("jobs", jobId, (job) => void (job.renderLease = undefined));
+  await setProjectStatus(j.projectId, "completed", { videoId: video.id });
+  return { videoId: video.id };
 }
 
 export async function reportRenderFailure(user: User, jobId: string, agentId: string, message: string, retryable: boolean) {
-  await read((db) => leased(db, user, jobId, agentId));
+  await leased(user, jobId, agentId);
   await failOrRetry(jobId, "render", `Render failed: ${message.slice(0, 200)}`, retryable);
 }
 
-/* ---------------- Retry / regenerate / delete ---------------- */
+/* ---------------- Retry / delete ---------------- */
 
 export async function retryFailed(user: User, projectId: string) {
-  const res = await tx((db) => {
-    const p = db.projects.find((x) => x.id === projectId && x.userId === user.id);
-    if (!p) throw new HttpError(404, "Project not found.");
-    const j = db.jobs.find((x) => x.id === p.jobId)!;
-    if (j.status !== "failed") throw new HttpError(409, "Only failed videos can be retried.");
-    rollPeriods(db, user.id);
-    if (balanceOf(db, user.id) < j.creditCost) throw new HttpError(402, `Retrying costs ${j.creditCost} credits and you have ${balanceOf(db, user.id)}.`, "insufficient_credits");
-    const firstFailed = j.stages.findIndex((s) => s.status === "failed");
-    j.stages = j.stages.map((s, i) => (i >= firstFailed ? { key: s.key, status: "pending" } : s));
-    j.attempts = 1;
-    j.error = undefined;
-    j.refunded = false;
-    j.previews = [];
-    j.renderProgress = undefined;
-    const renderOnly = j.stages[firstFailed]?.key === "render";
-    j.status = renderOnly ? "awaiting_render" : "queued";
-    p.status = j.status;
-    p.updatedAt = now();
-    db.credits.push({ id: id("ctx"), userId: user.id, amount: -j.creditCost, kind: "debit_generation", jobId: j.id, note: "Retry of failed video", createdAt: now() });
-    return { jobId: j.id, renderOnly };
+  const p = await getDoc<Project>("projects", projectId);
+  if (!p || p.userId !== user.id) throw new HttpError(404, "Project not found.");
+  const j0 = await getDoc<GenerationJob>("jobs", p.jobId);
+  if (!j0 || j0.status !== "failed") throw new HttpError(409, "Only failed videos can be retried.");
+  await rollPeriods(user.id);
+  try {
+    await addCredits(user.id, -j0.creditCost, "debit_generation", "Retry of failed video", { jobId: j0.id });
+  } catch (e) {
+    if (e instanceof HttpError && e.code === "insufficient_credits") throw new HttpError(402, `Retrying costs ${j0.creditCost} credits and you have ${await creditBalance(user.id)}.`, "insufficient_credits");
+    throw e;
+  }
+  let renderOnly = false;
+  const j = await mutateDoc<GenerationJob>("jobs", j0.id, (job) => {
+    const firstFailed = job.stages.findIndex((s) => s.status === "failed");
+    job.stages = job.stages.map((s, i) => (i >= firstFailed ? { key: s.key, status: "pending" } : s));
+    job.attempts = 1;
+    job.error = undefined;
+    job.refunded = false;
+    job.previews = [];
+    job.renderProgress = undefined;
+    renderOnly = job.stages[firstFailed]?.key === "render";
+    job.status = renderOnly ? "awaiting_render" : "queued";
   });
-  if (!res.renderOnly) kick(res.jobId);
-  return res;
+  await setProjectStatus(p.id, j!.status);
+  return { jobId: j0.id, renderOnly };
 }
 
 export async function deleteProject(user: User, projectId: string) {
-  const keys = await tx((db) => {
-    const p = db.projects.find((x) => x.id === projectId && x.userId === user.id);
-    if (!p) throw new HttpError(404, "Project not found.");
-    const j = db.jobs.find((x) => x.id === p.jobId);
-    if (j && ["queued", "processing", "rendering"].includes(j.status)) throw new HttpError(409, "Wait for this video to finish before deleting it.");
-    // Deleting before rendering finishes refunds unused credits.
-    if (j && j.status === "awaiting_render") refund(db, j);
-    const vids = db.videos.filter((v) => v.projectId === p.id);
-    const keys = [...vids.flatMap((v) => [v.mediaKey, v.thumbKey]), ...(j?.previews.map((x) => x.mediaKey) ?? []), ...(j?.audio?.flatMap((a) => [a.narration?.mediaKey, a.dialogue?.mediaKey]).filter(Boolean) as string[] ?? [])];
-    db.videos = db.videos.filter((v) => v.projectId !== p.id);
-    db.stories = db.stories.filter((s) => s.projectId !== p.id);
-    db.jobs = db.jobs.filter((x) => x.projectId !== p.id);
-    db.projects = db.projects.filter((x) => x.id !== p.id);
-    return keys;
-  });
-  await Promise.all(keys.map((k) => deleteMedia(k).catch(() => undefined)));
+  const p = await getDoc<Project>("projects", projectId);
+  if (!p || p.userId !== user.id) throw new HttpError(404, "Project not found.");
+  const j = await getDoc<GenerationJob>("jobs", p.jobId);
+  if (j && ["queued", "processing", "rendering"].includes(j.status)) throw new HttpError(409, "Wait for this video to finish before deleting it.");
+  if (j && j.status === "awaiting_render" && !j.refunded) {
+    await mutateDoc<GenerationJob>("jobs", j.id, (x) => void (x.refunded = true));
+    await refund(j);
+  }
+  const vids = await findDocs<Video>("videos", (q) => q.eq("project_id", p.id));
+  const keys = [
+    ...vids.flatMap((v) => [v.mediaKey, v.thumbKey]),
+    ...(j?.previews.map((x) => x.mediaKey) ?? []),
+    ...((j?.audio?.flatMap((a) => [a.narration?.mediaKey, a.dialogue?.mediaKey]).filter(Boolean) as string[]) ?? []),
+  ];
+  await Promise.all([
+    deleteDocs("videos", (q) => q.eq("project_id", p.id)),
+    deleteDocs("stories", (q) => q.eq("project_id", p.id)),
+    deleteDocs("jobs", (q) => q.eq("project_id", p.id)),
+  ]);
+  await deleteDocs("projects", (q) => q.eq("id", p.id));
+  await deleteMedia(keys).catch(() => undefined);
 }

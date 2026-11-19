@@ -1,5 +1,6 @@
 import "server-only";
-import type { DB } from "./models";
+import { findDocs, findIds, getDoc } from "./data";
+import type { Project, ViewerStat } from "./models";
 
 export interface Metrics {
   views: number;
@@ -17,13 +18,23 @@ export interface Metrics {
  * Explore, embeds). Creators' plays of their own videos are excluded.
  * Plays on TikTok/Reels/Shorts aren't visible to us.
  */
-export function metricsFor(db: DB, targetId: string, ownerId: string | null, durationSec: number | null): Metrics {
-  const stats = (db.viewerStats ?? []).filter((s) => s.targetId === targetId);
+export async function metricsFor(targetId: string, ownerId: string | null, durationSec: number | null): Promise<Metrics> {
+  const [stats, project] = await Promise.all([
+    findDocs<ViewerStat>("viewer_stats", (q) => q.eq("target_id", targetId)),
+    getDoc<Project>("projects", targetId),
+  ]);
   const n = stats.length;
-  const project = db.projects.find((p) => p.id === targetId);
   // Viewers who also watched another video by the same creator.
-  const ownerTargets = ownerId ? new Set(db.projects.filter((p) => p.userId === ownerId && p.id !== targetId).map((p) => p.id)) : new Set<string>();
-  const returning = stats.filter((s) => (db.viewerStats ?? []).some((o) => o.viewer === s.viewer && ownerTargets.has(o.targetId))).length;
+  let returning = 0;
+  if (ownerId && n) {
+    const others = await findIds("projects", (q) => q.eq("user_id", ownerId).neq("id", targetId));
+    if (others.length) {
+      const viewers = [...new Set(stats.map((s) => s.viewer))];
+      const seen = await findDocs<ViewerStat>("viewer_stats", (q) => q.in("viewer", viewers).in("target_id", others));
+      const rv = new Set(seen.map((s) => s.viewer));
+      returning = stats.filter((s) => rv.has(s.viewer)).length;
+    }
+  }
   return {
     views: n,
     retention3s: n ? stats.filter((s) => s.reached3s).length / n : null,

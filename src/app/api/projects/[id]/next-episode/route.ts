@@ -1,5 +1,6 @@
 import { HttpError, requireUser } from "@/lib/server/auth";
-import { read } from "@/lib/server/db";
+import { getDoc } from "@/lib/server/data";
+import type { Project } from "@/lib/server/models";
 import { body, json, route } from "@/lib/server/http";
 import { createGeneration, validateInput } from "@/lib/server/pipeline";
 
@@ -8,7 +9,8 @@ export const POST = route(async (req: Request, ctx: { params: Promise<{ id: stri
   const { id } = await ctx.params;
   const user = await requireUser();
   const b = await body(req);
-  const p = await read((db) => db.projects.find((x) => x.id === id && x.userId === user.id));
+  const p0 = await getDoc<Project>("projects", id);
+  const p = p0 && p0.userId === user.id ? p0 : null;
   if (!p) throw new HttpError(404, "Project not found.");
   if (p.status !== "completed") throw new HttpError(409, "Finish this episode before starting the next one.");
   const input = validateInput({

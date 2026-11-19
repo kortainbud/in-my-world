@@ -77,13 +77,19 @@ export function RenderAgentProvider({ children, enabled }: { children: ReactNode
             await fetch(`/api/render/${job.jobId}/preview?scene=${scene}`, { method: "POST", headers: { "x-render-agent": id, "content-type": "image/jpeg" }, body: jpeg });
           },
         });
-        const fd = new FormData();
-        fd.set("agentId", id);
-        fd.set("video", res.mp4, "video.mp4");
-        fd.set("thumbnail", res.thumbnail, "thumb.jpg");
-        fd.set("meta", JSON.stringify({ width: res.width, height: res.height, durationSec: res.durationSec, videoCodec: res.videoCodec, audioCodec: res.audioCodec }));
         setState((s) => ({ ...s, phase: "uploading" }));
-        await api(`/api/render/${job.jobId}/complete`, { method: "POST", body: fd });
+        // Upload straight to storage (large files skip the server), then ask the server to verify.
+        const up = await api<{ videoId: string; video: { signedUrl: string }; thumb: { signedUrl: string } }>(`/api/render/${job.jobId}/upload-urls`, { method: "POST", json: { agentId: id } });
+        const put = async (url: string, blob: Blob, type: string) => {
+          const r = await fetch(url, { method: "PUT", headers: { "content-type": type, "x-upsert": "true" }, body: blob, signal: ctrl.signal });
+          if (!r.ok) throw new Error(`Upload failed (${r.status})`);
+        };
+        await put(up.video.signedUrl, res.mp4, "video/mp4");
+        await put(up.thumb.signedUrl, res.thumbnail, "image/jpeg");
+        await api(`/api/render/${job.jobId}/complete`, {
+          method: "POST",
+          json: { agentId: id, videoId: up.videoId, width: res.width, height: res.height, durationSec: res.durationSec, videoCodec: res.videoCodec, audioCodec: res.audioCodec },
+        });
       } catch (e) {
         const aborted = e instanceof DOMException && e.name === "AbortError";
         const message = e instanceof Error ? e.message : "Unknown error";

@@ -17,8 +17,8 @@ export const SAMPLE_PROMPTS: { prompt: string; style: "roblox" | "minecraft"; fo
   { prompt: "In my city, nobody can move when the traffic lights turn red. Not even inside their homes.", style: "minecraft", format: "mystery_series" },
 ];
 
-export async function copyToPublic(src: string, rel: string) {
+export async function copyToPublic(data: Buffer, rel: string) {
   const dest = path.join(process.cwd(), "public", rel);
   await fs.mkdir(path.dirname(dest), { recursive: true });
-  await fs.copyFile(src, dest);
+  await fs.writeFile(dest, data);
 }

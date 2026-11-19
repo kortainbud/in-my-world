@@ -1,6 +1,7 @@
 import { createAccount, createSession, currentUser, HttpError } from "@/lib/server/auth";
-import { id, now, tx } from "@/lib/server/db";
+import { findOne, insertDoc, isUniqueViolation, newId, now, takeDoc } from "@/lib/server/data";
 import { body, json, route } from "@/lib/server/http";
+import type { Wallet, WalletNonce } from "@/lib/server/models";
 import { verifyWalletSignature } from "@/lib/server/wallets";
 
 /**
@@ -13,33 +14,43 @@ export const POST = route(async (req: Request) => {
   const nonce = String(b.nonce ?? "");
   const signature = String(b.signature ?? "");
   const user = await currentUser();
-  const n = await tx((db) => {
-    const found = db.walletNonces.find((x) => x.nonce === nonce);
-    db.walletNonces = db.walletNonces.filter((x) => x.nonce !== nonce); // single use
-    return found;
-  });
+  const n = nonce ? await takeDoc<WalletNonce>("wallet_nonces", nonce) : null; // single use
   if (!n || new Date(n.expiresAt) < new Date()) throw new HttpError(400, "That signature request expired. Try again.");
   const ok = await verifyWalletSignature(n.chain, n.address, n.message, signature);
   if (!ok) throw new HttpError(401, "The signature didn't match this wallet.");
   const addr = n.chain === "evm" ? n.address.toLowerCase() : n.address;
+  const find = () => findOne<Wallet>("wallets", (q) => q.eq("chain", n.chain).eq("address", addr));
+  const link = async (userId: string) => {
+    const w: Wallet = { id: newId("wal"), userId, chain: n.chain, address: addr, purpose: "identity", linkedAt: now() };
+    await insertDoc("wallets", w.id, w);
+  };
 
   if (n.purpose === "link") {
     if (!user || user.id !== n.userId) throw new HttpError(401, "Sign in to link a wallet.");
-    await tx((db) => {
-      const existing = db.wallets.find((w) => w.chain === n.chain && w.address === addr);
-      if (existing && existing.userId !== user.id) throw new HttpError(409, "This wallet is linked to another account.");
-      if (!existing) db.wallets.push({ id: id("wal"), userId: user.id, chain: n.chain, address: addr, purpose: "identity", linkedAt: now() });
-    });
+    const existing = await find();
+    if (existing && existing.userId !== user.id) throw new HttpError(409, "This wallet is linked to another account.");
+    if (!existing) {
+      try {
+        await link(user.id);
+      } catch (e) {
+        if (isUniqueViolation(e)) throw new HttpError(409, "This wallet is linked to another account.");
+        throw e;
+      }
+    }
     return json({ ok: true, linked: true });
   }
 
-  const userId = await tx((db) => {
-    const w = db.wallets.find((x) => x.chain === n.chain && x.address === addr);
-    if (w) return w.userId;
-    const u = createAccount(db, { email: null, passwordHash: null, displayName: `${addr.slice(0, 4)}…${addr.slice(-4)}` });
-    db.wallets.push({ id: id("wal"), userId: u.id, chain: n.chain, address: addr, purpose: "identity", linkedAt: now() });
-    return u.id;
-  });
-  await createSession(userId);
+  let w = await find();
+  if (!w) {
+    const u = await createAccount({ email: null, passwordHash: null, displayName: `${addr.slice(0, 4)}…${addr.slice(-4)}` });
+    try {
+      await link(u.id);
+    } catch (e) {
+      if (!isUniqueViolation(e)) throw e;
+    }
+    w = await find();
+  }
+  if (!w) throw new HttpError(500, "Couldn't sign in with this wallet. Try again.");
+  await createSession(w.userId);
   return json({ ok: true, signedIn: true });
 });

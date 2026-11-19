@@ -2,7 +2,8 @@ import "server-only";
 import Stripe from "stripe";
 import { getPlan, type PlanId } from "@/config/plans";
 import { HttpError } from "./auth";
-import { id, now, tx } from "./db";
+import { findOne, insertDoc, mutateDoc, newId, now } from "./data";
+import type { CreditTransaction, Payment, Subscription } from "./models";
 import type { User } from "./models";
 import { STRIPE_ENABLED, fulfill, recordPending, type Item } from "./payments";
 
@@ -38,10 +39,7 @@ export async function createStripeCheckout(user: User, item: Item, origin: strin
     success_url: `${origin}/studio/billing?checkout=success`,
     cancel_url: `${origin}/studio/billing?checkout=cancelled`,
   });
-  await tx((db) => {
-    const p = db.payments.find((x) => x.id === pending.id);
-    if (p) p.providerRef = session.id;
-  });
+  await mutateDoc<Payment>("payments", pending.id, (p) => void (p.providerRef = session.id));
   if (!session.url) throw new HttpError(502, "Stripe didn't return a checkout page.");
   return session.url;
 }
@@ -63,16 +61,13 @@ export async function handleStripeWebhook(rawBody: string, signature: string | n
     const session = event.data.object as Stripe.Checkout.Session;
     if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") return { handled: false };
     const paymentId = session.metadata?.paymentId;
-    await tx((db) => {
-      const p = db.payments.find((x) => x.id === paymentId && x.provider === "stripe");
-      if (!p) return;
-      p.providerRef = session.id;
-      fulfill(db, p);
-      if (p.kind === "subscription" && typeof session.subscription === "string") {
-        const sub = db.subscriptions.find((x) => x.userId === p.userId);
-        if (sub) sub.provider = `stripe:${session.subscription}`;
-      }
-    });
+    const p = paymentId ? await findOne<Payment>("payments", (q) => q.eq("id", paymentId)) : null;
+    if (!p || p.provider !== "stripe") return { handled: false };
+    await fulfill(p.id, { providerRef: session.id });
+    if (p.kind === "subscription" && typeof session.subscription === "string") {
+      const ref = `stripe:${session.subscription}`;
+      await mutateDoc<Subscription>("subscriptions", p.userId, (sub) => void (sub.provider = ref));
+    }
     return { handled: true };
   }
 
@@ -83,24 +78,25 @@ export async function handleStripeWebhook(rawBody: string, signature: string | n
     const meta = invoice.parent?.subscription_details?.metadata ?? {};
     const userId = meta.userId;
     const plan = getPlan(meta.itemId as PlanId);
-    await tx((db) => {
-      const sub = db.subscriptions.find((x) => x.userId === userId);
-      if (!sub || db.credits.some((c) => c.note.includes(invoice.id ?? "__"))) return;
-      const start = new Date();
-      const end = new Date(start);
-      end.setMonth(end.getMonth() + 1);
-      Object.assign(sub, { planId: plan.id, status: "active", currentPeriodStart: start.toISOString(), currentPeriodEnd: end.toISOString() });
-      db.credits.push({ id: id("ctx"), userId: userId!, amount: plan.monthlyCredits, kind: "grant_monthly", note: `${plan.name} plan — monthly allowance (${invoice.id})`, createdAt: now() });
+    if (!userId || !invoice.id) return { handled: false };
+    const ref = `stripe_invoice:${invoice.id}`;
+    if (await findOne<CreditTransaction>("credits", (q) => q.eq("payment_id", ref))) return { handled: true };
+    const start = new Date();
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + 1);
+    const sub = await mutateDoc<Subscription>("subscriptions", userId, (x) => {
+      Object.assign(x, { planId: plan.id, status: "active", currentPeriodStart: start.toISOString(), currentPeriodEnd: end.toISOString() });
     });
+    if (!sub) return { handled: false };
+    const cid = newId("ctx");
+    await insertDoc<CreditTransaction>("credits", cid, { id: cid, userId, amount: plan.monthlyCredits, kind: "grant_monthly", paymentId: ref, note: `${plan.name} plan — monthly allowance (${invoice.id})`, createdAt: now() });
     return { handled: true };
   }
 
   if (event.type === "customer.subscription.deleted") {
     const subObj = event.data.object as Stripe.Subscription;
-    await tx((db) => {
-      const sub = db.subscriptions.find((x) => x.provider === `stripe:${subObj.id}`);
-      if (sub) Object.assign(sub, { planId: "free", status: "canceled", provider: "none" });
-    });
+    const sub = await findOne<Subscription>("subscriptions", (q) => q.eq("provider", `stripe:${subObj.id}`));
+    if (sub) await mutateDoc<Subscription>("subscriptions", sub.userId, (x) => void Object.assign(x, { planId: "free", status: "canceled", provider: "none" }));
     return { handled: true };
   }
 

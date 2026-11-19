@@ -3,7 +3,8 @@ import samples from "@/data/samples.json";
 import { STAGES, type ChecklistItem, type StageState, type StoryFormat, type StorySheet } from "@/lib/engine/types";
 import { metricsFor, type Metrics } from "./analytics";
 import { mediaUrl } from "./media";
-import type { DB, Project } from "./models";
+import { findDocs, findOne, getDoc, getMany } from "./data";
+import type { GenerationJob, Profile, Project, Story, Video } from "./models";
 import { SAMPLE_USER_ID } from "./pipeline";
 
 export interface SampleEntry {
@@ -72,11 +73,39 @@ export interface ProjectView {
   metrics?: Metrics;
 }
 
-export function projectView(db: DB, p: Project, opts: { withJob?: boolean } = {}): ProjectView {
-  const video = p.videoId ? db.videos.find((v) => v.id === p.videoId) : undefined;
-  const prof = db.profiles.find((x) => x.userId === p.userId);
-  const job = opts.withJob ? db.jobs.find((j) => j.id === p.jobId) : undefined;
-  const story = opts.withJob ? db.stories.find((s) => s.projectId === p.id) : undefined;
+interface Ctx {
+  video?: Video;
+  prof?: Profile | null;
+  job?: GenerationJob | null;
+  story?: Story | null;
+  episodes?: Project[];
+  metrics?: Metrics;
+}
+
+/** Full view of one project (with job, story, series and metrics when `withJob`). */
+export async function projectView(p: Project, opts: { withJob?: boolean } = {}): Promise<ProjectView> {
+  const [video, prof, job, story, episodes] = await Promise.all([
+    p.videoId ? getDoc<Video>("videos", p.videoId) : null,
+    getDoc<Profile>("profiles", p.userId),
+    opts.withJob ? getDoc<GenerationJob>("jobs", p.jobId) : null,
+    opts.withJob ? findOne<Story>("stories", (q) => q.eq("project_id", p.id)) : null,
+    p.seriesId ? findDocs<Project>("projects", (q) => q.eq("series_id", p.seriesId!)) : [],
+  ]);
+  const metrics = opts.withJob ? await metricsFor(p.id, p.userId, video?.durationSec ?? null) : undefined;
+  return buildView(p, opts, { video: video ?? undefined, prof, job, story, episodes, metrics });
+}
+
+/** Light views for lists (no job/story), batched. */
+export async function projectViews(ps: Project[]): Promise<ProjectView[]> {
+  const [videos, profiles] = await Promise.all([
+    getMany<Video>("videos", ps.map((p) => p.videoId ?? "")),
+    getMany<Profile>("profiles", ps.map((p) => p.userId)),
+  ]);
+  return ps.map((p) => buildView(p, {}, { video: p.videoId ? videos.get(p.videoId) : undefined, prof: profiles.get(p.userId), episodes: [] }));
+}
+
+function buildView(p: Project, opts: { withJob?: boolean }, c: Ctx): ProjectView {
+  const { video, prof, job, story } = c;
   const lastPreview = job?.previews.at(-1);
   return {
     id: p.id,
@@ -96,7 +125,7 @@ export function projectView(db: DB, p: Project, opts: { withJob?: boolean } = {}
     series: p.seriesId
       ? {
           id: p.seriesId,
-          episodes: db.projects
+          episodes: (c.episodes?.length ? c.episodes : [p])
             .filter((x) => x.seriesId === p.seriesId && (opts.withJob || (x.visibility === "public" && x.status === "completed")))
             .sort((a, b) => (a.episode ?? 1) - (b.episode ?? 1))
             .map((x) => ({ id: x.id, episode: x.episode ?? 1, title: x.title, status: x.status })),
@@ -134,6 +163,6 @@ export function projectView(db: DB, p: Project, opts: { withJob?: boolean } = {}
           revised: story.revised,
         }
       : undefined,
-    metrics: opts.withJob ? metricsFor(db, p.id, p.userId, video?.durationSec ?? null) : undefined,
+    metrics: c.metrics,
   };
 }

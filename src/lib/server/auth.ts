@@ -2,10 +2,13 @@ import "server-only";
 import { cookies } from "next/headers";
 import crypto from "node:crypto";
 import { promisify } from "node:util";
-import { MODE } from "./config";
-import { id, now, read, tx } from "./db";
-import type { DB, User } from "./models";
 import { getPlan } from "@/config/plans";
+import { MODE } from "./config";
+import { HttpError } from "./auth-errors";
+import { deleteDocs, getDoc, insertDoc, isUniqueViolation, newId, now } from "./data";
+import type { Profile, Session, Subscription, User } from "./models";
+
+export { HttpError };
 
 const scrypt = promisify(crypto.scrypt) as (pw: string, salt: Buffer, len: number) => Promise<Buffer>;
 export const SESSION_COOKIE = "imw_session";
@@ -30,10 +33,8 @@ const sha = (s: string) => crypto.createHash("sha256").update(s).digest("hex");
 export async function createSession(userId: string) {
   const token = crypto.randomBytes(32).toString("base64url");
   const expires = new Date(Date.now() + SESSION_DAYS * 864e5);
-  await tx((db) => {
-    db.sessions = db.sessions.filter((s) => new Date(s.expiresAt) > new Date());
-    db.sessions.push({ tokenHash: sha(token), userId, createdAt: now(), expiresAt: expires.toISOString() });
-  });
+  const s: Session = { tokenHash: sha(token), userId, createdAt: now(), expiresAt: expires.toISOString() };
+  await insertDoc("sessions", s.tokenHash, s);
   const jar = await cookies();
   jar.set(SESSION_COOKIE, token, { httpOnly: true, sameSite: "lax", secure: MODE === "production", path: "/", expires });
 }
@@ -41,7 +42,7 @@ export async function createSession(userId: string) {
 export async function destroySession() {
   const jar = await cookies();
   const token = jar.get(SESSION_COOKIE)?.value;
-  if (token) await tx((db) => void (db.sessions = db.sessions.filter((s) => s.tokenHash !== sha(token))));
+  if (token) await deleteDocs("sessions", (q) => q.eq("id", sha(token)));
   jar.delete(SESSION_COOKIE);
 }
 
@@ -49,18 +50,9 @@ export async function currentUser(): Promise<User | null> {
   const jar = await cookies();
   const token = jar.get(SESSION_COOKIE)?.value;
   if (!token) return null;
-  const h = sha(token);
-  return read((db) => {
-    const s = db.sessions.find((x) => x.tokenHash === h);
-    if (!s || new Date(s.expiresAt) < new Date()) return null;
-    return db.users.find((u) => u.id === s.userId) ?? null;
-  });
-}
-
-export class HttpError extends Error {
-  constructor(public status: number, message: string, public code?: string) {
-    super(message);
-  }
+  const s = await getDoc<Session>("sessions", sha(token));
+  if (!s || new Date(s.expiresAt) < new Date()) return null;
+  return getDoc<User>("users", s.userId);
 }
 
 export async function requireUser(): Promise<User> {
@@ -69,19 +61,33 @@ export async function requireUser(): Promise<User> {
   return u;
 }
 
-/** Creates user + profile + free subscription + signup credits. Call inside tx. */
-export function createAccount(db: DB, opts: { email: string | null; passwordHash: string | null; displayName: string }): User {
-  const user: User = { id: id("usr"), email: opts.email, passwordHash: opts.passwordHash, createdAt: now() };
-  db.users.push(user);
+/** Creates user + profile + free subscription + signup credits. */
+export async function createAccount(opts: { email: string | null; passwordHash: string | null; displayName: string; id?: string; planId?: "free" | "creator" | "pro" }): Promise<User> {
+  const user: User = { id: opts.id ?? newId("usr"), email: opts.email, passwordHash: opts.passwordHash, createdAt: now() };
+  try {
+    await insertDoc("users", user.id, user);
+  } catch (e) {
+    if (isUniqueViolation(e)) throw new HttpError(409, "An account with this email already exists. Sign in instead.");
+    throw e;
+  }
   const base = opts.displayName.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 16) || "creator";
-  let handle = base;
-  let n = 1;
-  while (db.profiles.some((p) => p.handle === handle)) handle = `${base}${++n}`;
-  db.profiles.push({ userId: user.id, displayName: opts.displayName, handle, createdAt: now() });
+  for (let n = 1; ; n++) {
+    const handle = n === 1 ? base : `${base}${n}`;
+    try {
+      const p: Profile = { userId: user.id, displayName: opts.displayName, handle, createdAt: now() };
+      await insertDoc("profiles", user.id, p);
+      break;
+    } catch (e) {
+      if (!isUniqueViolation(e) || n > 50) throw e;
+    }
+  }
+  const plan = getPlan(opts.planId ?? "free");
   const start = new Date();
   const end = new Date(start);
   end.setMonth(end.getMonth() + 1);
-  db.subscriptions.push({ userId: user.id, planId: "free", status: "active", provider: "none", currentPeriodStart: start.toISOString(), currentPeriodEnd: end.toISOString() });
-  db.credits.push({ id: id("ctx"), userId: user.id, amount: getPlan("free").monthlyCredits, kind: "grant_signup", note: "Free plan — monthly allowance", createdAt: now() });
+  const sub: Subscription = { userId: user.id, planId: plan.id, status: "active", provider: "none", currentPeriodStart: start.toISOString(), currentPeriodEnd: end.toISOString() };
+  await insertDoc("subscriptions", user.id, sub);
+  const grant = { id: newId("ctx"), userId: user.id, amount: plan.monthlyCredits, kind: "grant_signup" as const, note: `${plan.name} plan — monthly allowance`, createdAt: now() };
+  await insertDoc("credits", grant.id, grant);
   return user;
 }
