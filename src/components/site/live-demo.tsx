@@ -56,8 +56,8 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
   const shownLines = phase === "playing" ? scenes.length : phase === "building" ? Math.round((stage / STAGES.length) * scenes.length) : 0;
 
   return (
-    <div className="overflow-hidden rounded-[16px] bg-white text-fg shadow-[0_30px_80px_-30px_rgba(10,40,90,0.45)]">
-      <div className="flex h-10 items-center border-b border-[#ececea] px-4">
+    <div className="overflow-hidden rounded-[18px] border border-line-soft bg-[var(--card)] text-fg shadow-[0_40px_90px_-40px_rgba(10,40,90,0.5)]">
+      <div className="flex h-10 items-center border-b border-line-soft px-4">
         <span className="flex gap-1.5" aria-hidden>
           <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
           <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
@@ -68,7 +68,7 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
       </div>
       <div className="grid md:grid-cols-[230px_1fr_auto]">
         {/* Story list */}
-        <ul className="flex gap-1 overflow-x-auto border-b border-[#ececea] p-2 scrollbar-none md:block md:space-y-0.5 md:overflow-visible md:border-b-0 md:border-r" aria-label="Sample stories">
+        <ul className="flex gap-1 overflow-x-auto border-b border-line-soft p-2 scrollbar-none md:block md:space-y-0.5 md:overflow-visible md:border-b-0 md:border-r" aria-label="Sample stories">
           {samples.map((x, k) => {
             const on = k === i % samples.length;
             const lead = x.story?.cast[0];
@@ -77,9 +77,9 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
                 <button
                   onClick={() => setI(k)}
                   aria-pressed={on}
-                  className={`flex w-[220px] items-center gap-2.5 rounded-[10px] px-2 py-2 text-left transition-colors md:w-full ${on ? "bg-[#f0f0ec]" : "hover:bg-[#f7f7f5]"}`}
+                  className={`flex w-[220px] items-center gap-2.5 rounded-[10px] px-2 py-2 text-left transition-colors md:w-full ${on ? "bg-bg-2" : "hover:bg-bg-2"}`}
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-[#e8f4fd]">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-bg-2">
                     {lead ? <Portrait appearance={lead.appearance} style={x.style} className="h-9 w-8" /> : null}
                   </span>
                   <span className="min-w-0">
@@ -96,7 +96,7 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
 
         {/* Idea, stages, script */}
         <div className="min-w-0 p-4 sm:p-5">
-          <div className="rounded-[12px] border border-[#ececea] p-3.5">
+          <div className="rounded-[12px] border border-line-soft p-3.5">
             <p className="font-mono text-[11px] text-fg-3">what happens in your world?</p>
             <p className="mt-1.5 min-h-[2.8em] text-[16px] font-medium leading-snug sm:text-[17px]" aria-live="polite">
               {s.prompt.slice(0, typed)}
@@ -108,7 +108,7 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
               const done = phase === "playing" || (phase === "building" && k < stage);
               return (
                 <li key={st.key} className={`flex items-center gap-1.5 text-[12px] ${done ? "text-fg" : "text-fg-3"}`}>
-                  <span className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full ${done ? "bg-[#28c840] text-white" : "border border-[#d6d6d2]"}`}>
+                  <span className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full ${done ? "bg-[#28c840] text-white" : "border border-line"}`}>
                     {done && <svg width="8" height="8" viewBox="0 0 12 12" aria-hidden><path d="M2.5 6.2l2.3 2.3 4.7-5" stroke="currentColor" strokeWidth="2.2" fill="none" /></svg>}
                   </span>
                   <span className="truncate">{st.label.toLowerCase()}</span>
@@ -119,9 +119,9 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
           <div className="mt-4 hidden max-h-[230px] overflow-hidden sm:block">
             {s.story?.sheet && phase !== "typing" && (
               <div className="mb-3 flex flex-wrap gap-1.5 text-[11.5px]">
-                <span className="rounded-full bg-[#fff1c2] px-2 py-0.5">rule: {s.story.sheet.rule.split(",")[0].toLowerCase()}</span>
-                <span className="rounded-full bg-[#e3dcff] px-2 py-0.5">{s.story.sheet.twistType.replace(/_/g, " ")} twist</span>
-                <span className="rounded-full bg-[#d9f2ff] px-2 py-0.5">{s.story.sheet.endingType === "open_loop" ? "cliffhanger" : "closed loop"}</span>
+                <span className="rounded-full bg-[#fff1c2] px-2 py-0.5 text-[#131316]">rule: {s.story.sheet.rule.split(",")[0].toLowerCase()}</span>
+                <span className="rounded-full bg-[#e3dcff] px-2 py-0.5 text-[#131316]">{s.story.sheet.twistType.replace(/_/g, " ")} twist</span>
+                <span className="rounded-full bg-[#d9f2ff] px-2 py-0.5 text-[#131316]">{s.story.sheet.endingType === "open_loop" ? "cliffhanger" : "closed loop"}</span>
               </div>
             )}
             <ol className="space-y-1.5">
@@ -136,7 +136,7 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
         </div>
 
         {/* Phone */}
-        <div className="flex justify-center border-t border-[#ececea] p-4 md:border-l md:border-t-0">
+        <div className="flex justify-center border-t border-line-soft p-4 md:border-l md:border-t-0">
           <div className="relative aspect-[9/16] w-[190px] overflow-hidden rounded-[22px] border-[5px] border-[#131316] bg-black sm:w-[210px]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={s.thumb} alt="" className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${phase === "playing" ? "opacity-0" : "opacity-40 blur-[2px]"}`} />
@@ -156,7 +156,7 @@ export function LiveDemo({ samples }: { samples: SampleEntry[] }) {
               </span>
             )}
             {phase === "playing" && (
-              <button onClick={() => setMuted((m) => !m)} className="absolute bottom-2 right-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-medium text-fg">
+              <button onClick={() => setMuted((m) => !m)} className="absolute bottom-2 right-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-medium text-[#131316]">
                 {muted ? "sound on" : "mute"}
               </button>
             )}

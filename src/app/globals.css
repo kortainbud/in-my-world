@@ -64,7 +64,156 @@
 }
 html:has(.theme-light),
 html:has(.theme-light) body {
-  background: #ffffff;
+  background: var(--site-bg, #ffffff);
+}
+.theme-light {
+  --card: #ffffff;
+  --pill-bg: #131316;
+  --pill-fg: #ffffff;
+  --pill-hover: #2c2c33;
+  --sand: #dfd79c;
+  --sand-fg: #3b3420;
+  --sand-fg-2: #6b5f3a;
+}
+
+/* Dark variant of the public site: the brief's palette. Toggle in the nav. */
+html[data-site-theme="dark"] {
+  --site-bg: #101010;
+}
+html[data-site-theme="dark"] .theme-light {
+  --bg: #101010;
+  --bg-2: #181818;
+  --bg-3: #202020;
+  --line: #303030;
+  --line-soft: #262626;
+  --fg: #f5f3ee;
+  --fg-2: #a3a3a3;
+  --fg-3: #6b6b6b;
+  --accent: #b9f36a;
+  --accent-ink: #101010;
+  --accent-hover: #c9f88a;
+  --accent-soft: #161d0f;
+  --accent-line: #4c6630;
+  --accent-text: #d6f5ae;
+  --line-strong: #4a4a4a;
+  --hover: #262626;
+  --frame: #262626;
+  --card: #1c1c1c;
+  --pill-bg: #b9f36a;
+  --pill-fg: #101010;
+  --pill-hover: #c9f88a;
+  --sand: #332e32;
+  --sand-fg: #f5f3ee;
+  --sand-fg-2: #b9b2a6;
+  --warn-bg: #1a170b;
+  --warn-fg: #f2dc8a;
+  --warn-line: #4a3e12;
+  --danger-bg: #1a1110;
+  --danger-fg: #ffb3a9;
+  --danger-line: #4a2a26;
+  color-scheme: dark;
+}
+.scene-night {
+  display: none;
+}
+html[data-site-theme="dark"] .scene-day {
+  display: none;
+}
+html[data-site-theme="dark"] .scene-night {
+  display: block;
+}
+
+/* ---------- Floating bricks ---------- */
+.brick {
+  --s: 40px;
+  --c: #e63946;
+  display: block;
+  position: absolute;
+  width: calc(var(--s) * 2);
+  height: var(--s);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.brick > i {
+  display: block;
+  position: absolute;
+  inset: 0;
+  background: var(--c);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.brick > i.t {
+  height: var(--s);
+  transform: rotateX(90deg) translateZ(calc(var(--s) / 2));
+  background:
+    radial-gradient(circle at 25% 50%, rgba(255, 255, 255, 0.35) 0 calc(var(--s) * 0.16), transparent calc(var(--s) * 0.17)),
+    radial-gradient(circle at 75% 50%, rgba(255, 255, 255, 0.35) 0 calc(var(--s) * 0.16), transparent calc(var(--s) * 0.17)),
+    var(--c);
+  filter: brightness(1.12);
+}
+.brick > i.f {
+  transform: translateZ(calc(var(--s) / 2));
+}
+.brick > i.b {
+  transform: rotateY(180deg) translateZ(calc(var(--s) / 2));
+}
+.brick > i.l,
+.brick > i.r {
+  width: var(--s);
+  filter: brightness(0.82);
+}
+.brick > i.l {
+  transform: rotateY(-90deg) translateZ(calc(var(--s) / 2));
+}
+.brick > i.r {
+  left: auto;
+  right: 0;
+  transform: rotateY(90deg) translateZ(calc(var(--s) / 2));
+}
+@keyframes bob {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -14px;
+  }
+}
+
+/* ---------- World-builder loader ---------- */
+@keyframes drop-in {
+  0% {
+    transform: translateY(-70vh) rotate(-18deg);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(6px) rotate(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) rotate(0);
+    opacity: 1;
+  }
+}
+@keyframes split-up {
+  to {
+    transform: translateY(-100%);
+  }
+}
+@keyframes split-down {
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes pop-out {
+  0% {
+    transform: translate(-50%, 55%) scale(0.6);
+  }
+  60% {
+    transform: translate(-50%, -6%) scale(1.06);
+  }
+  100% {
+    transform: translate(-50%, 0) scale(1);
+  }
 }
 
 @theme inline {

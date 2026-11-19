@@ -2,7 +2,9 @@ import Link from "next/link";
 import { CREDIT_PACKS, formatPrice, PLANS } from "@/config/plans";
 import { CreditTable } from "@/components/credit-table";
 
-const TOPS = ["/scenes/card-day.jpg", "/scenes/card-sunset.jpg", "/scenes/card-night.jpg"];
+import { Brick } from "./fx";
+
+const STACK = ["#7fd14f", "#3d7bf2", "#e63946"];
 
 export function Pricing() {
   return (
@@ -10,12 +12,20 @@ export function Pricing() {
       <div className="grid gap-4 md:grid-cols-3">
         {PLANS.map((p, i) => (
           <div key={p.id} className="flex flex-col rounded-[24px] bg-bg-2 p-2.5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={TOPS[i % TOPS.length]} alt="" className="h-[120px] w-full rounded-[16px] object-cover" />
+            {/* One brick per tier. */}
+            <div className="flex h-[110px] items-end justify-center gap-0 rounded-[16px] bg-[var(--card)] pb-5" style={{ perspective: "600px" }} aria-hidden>
+              <span className="relative flex flex-col-reverse items-center" style={{ transform: "rotateX(-24deg) rotateY(30deg)", transformStyle: "preserve-3d" }}>
+                {Array.from({ length: i + 1 }, (_, k) => (
+                  <span key={k} className="block" style={{ height: 22, transformStyle: "preserve-3d" }}>
+                    <Brick size={22} color={STACK[k]} style={{ position: "relative" }} />
+                  </span>
+                ))}
+              </span>
+            </div>
             <div className="flex flex-1 flex-col px-3.5 pb-3.5 pt-5">
               <div className="flex items-center gap-2">
                 <h3 className="text-[22px] font-semibold tracking-[-0.03em]">{p.name.toLowerCase()}</h3>
-                {p.highlighted && <span className="rounded-full bg-white px-2 py-0.5 font-mono text-[11px] text-fg-2">most popular</span>}
+                {p.highlighted && <span className="rounded-full bg-[var(--card)] px-2 py-0.5 font-mono text-[11px] text-fg-2">most popular</span>}
               </div>
               <p className="mt-1 text-[15px] text-fg-2">{p.tagline.toLowerCase()}</p>
               <p className="mt-6 flex items-baseline gap-2">
@@ -25,14 +35,14 @@ export function Pricing() {
               <p className="mt-2 text-[14px] font-medium">{p.monthlyCredits} credits every month</p>
               <Link
                 href={`/sign-up?next=${encodeURIComponent(p.id === "free" ? "/studio" : "/studio/billing")}`}
-                className={`mt-5 inline-flex h-11 items-center justify-center rounded-full text-[15px] font-medium transition-colors ${p.highlighted ? "bg-fg text-white hover:bg-[#2c2c33]" : "bg-white text-fg hover:bg-[#fafaf8]"}`}
+                className={`mt-5 inline-flex h-11 items-center justify-center rounded-full text-[15px] font-medium transition-colors ${p.highlighted ? "bg-[var(--pill-bg)] text-[var(--pill-fg)] hover:bg-[var(--pill-hover)]" : "bg-[var(--card)] text-fg hover:bg-bg-3"}`}
               >
                 {p.id === "free" ? "start free" : `choose ${p.name.toLowerCase()}`}
               </Link>
               <ul className="mt-5 space-y-2 text-[14px] text-fg-2">
                 {p.features.map((f) => (
                   <li key={f} className="flex gap-2">
-                    <svg width="14" height="14" viewBox="0 0 14 14" className="mt-[4px] shrink-0" aria-hidden><path d="M2.5 7.2l2.7 2.6 6.3-6.3" stroke="#131316" strokeWidth="1.8" fill="none" /></svg>
+                    <svg width="14" height="14" viewBox="0 0 14 14" className="mt-[4px] shrink-0" aria-hidden><path d="M2.5 7.2l2.7 2.6 6.3-6.3" stroke="currentColor" strokeWidth="1.8" fill="none" /></svg>
                     {f.toLowerCase()}
                   </li>
                 ))}
@@ -90,7 +100,7 @@ export function FAQ() {
         <details key={f.q} className="group rounded-[18px] bg-bg-2 px-5 py-4 [&_summary::-webkit-details-marker]:hidden">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[16px] font-semibold tracking-[-0.01em]">
             {f.q.toLowerCase()}
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[17px] text-fg transition-transform group-open:rotate-45" aria-hidden>
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--card)] text-[17px] text-fg transition-transform group-open:rotate-45" aria-hidden>
               +
             </span>
           </summary>
