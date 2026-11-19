@@ -10,6 +10,7 @@ import { btn, Button, LinkButton, Modal, Notice, Spinner, StyleTag, Tag } from "
 import { useRenderAgent } from "./render-agent";
 
 const ACTIVE = ["queued", "processing", "awaiting_render", "rendering"];
+const PHASE_LABEL: Record<string, string> = { audio: "Mixing audio", previews: "Rendering scene previews", frames: "Rendering frames", finalizing: "Finalizing MP4", uploading: "Uploading MP4" };
 
 export function ProjectScreen({ id }: { id: string }) {
   const [p, setP] = useState<ProjectView | null>(null);
@@ -132,7 +133,11 @@ function InProgress({ p, onRetry }: { p: ProjectView; onRetry: () => void }) {
                   {s.label}
                   {s.status === "skipped" && <span className="ml-2 text-[12px] font-normal text-fg-3">skipped</span>}
                 </p>
-                {s.detail && <p className={`mt-0.5 text-[13px] ${s.status === "failed" ? "text-[#ffb3a9]" : "text-fg-2"}`}>{s.detail}</p>}
+                {s.detail && (
+                  <p className={`mt-0.5 text-[13px] ${s.status === "failed" ? "text-[#ffb3a9]" : "text-fg-2"}`}>
+                    {s.key === "render" && s.status === "running" && renderingHere && agent.phase ? PHASE_LABEL[agent.phase] ?? s.detail : s.detail}
+                  </p>
+                )}
                 {s.key === "render" && s.status === "running" && framesTotal > 0 && renderPhase === "frames" && (
                   <div className="mt-2.5 max-w-md">
                     <div className="h-1.5 overflow-hidden rounded-full bg-bg-3">

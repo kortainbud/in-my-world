@@ -12,9 +12,13 @@ export interface SampleEntry {
   style: "roblox" | "minecraft";
   category: string;
   durationSec: number;
+  width?: number;
+  height?: number;
   video: string;
   thumb: string;
   createdAt: string;
+  story?: { source?: string; scenes: { narration: string; description: string; environment: string }[]; cast: { id: string; name: string; appearance: import("@/lib/engine/types").Appearance }[] };
+  previews?: string[];
 }
 
 export const SAMPLES = samples as SampleEntry[];

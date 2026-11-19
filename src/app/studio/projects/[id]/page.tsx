@@ -1,8 +1,13 @@
-"use client";
-import { useParams } from "next/navigation";
-import { ProjectScreen } from "@/components/studio/project";
+import { Suspense } from "react";
+import { ProjectRoute } from "@/components/studio/pages/project-route";
 
-export default function ProjectPage() {
-  const { id } = useParams<{ id: string }>();
-  return <ProjectScreen id={id} />;
+// Client-rendered behind the studio auth gate.
+export const instant = false;
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <ProjectRoute />
+    </Suspense>
+  );
 }

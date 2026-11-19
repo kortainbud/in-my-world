@@ -48,7 +48,7 @@ export function portrait(ap: Appearance, style: VisualStyle, opts: { pose?: "idl
     const h = av.topY;
     const cam = new THREE.PerspectiveCamera(opts.full ? 32 : 26, 360 / 440, 0.1, 100);
     if (opts.full) {
-      cam.position.set(0, h * 0.55, 15);
+      cam.position.set(0, h * 0.56, h * 2.05);
       cam.lookAt(0, h * 0.5, 0);
     } else {
       cam.position.set(0, h * 0.78, 10);

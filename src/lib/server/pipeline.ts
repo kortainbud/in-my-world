@@ -27,7 +27,8 @@ export function libraryFor(db: DB, userId: string | null): CharacterRecord[] {
   const own = userId ? db.characters.filter((c) => c.ownerId === userId) : [];
   const community = db.characters.filter((c) => c.visibility === "public" && c.ownerId !== userId);
   return [...OFFICIAL_CHARACTERS, ...own, ...community].map((c) => {
-    const uses = db.projects.filter((p) => p.castIds.includes(c.id)).length;
+    // A use = a story whose resolved cast includes this character (explicit or auto-cast).
+    const uses = db.stories.filter((s) => s.cast?.some((x) => x.id === c.id)).length;
     return { ...c, uses: c.uses + uses };
   });
 }
@@ -52,6 +53,8 @@ export interface CreateInput {
   voice: string | null;
   idempotencyKey?: string;
   parentProjectId?: string;
+  /** Internal only (sample seeding): force an export size regardless of plan. */
+  exportOverride?: 720 | 1080;
 }
 
 export function validateInput(raw: unknown): CreateInput {
@@ -108,7 +111,7 @@ export async function createGeneration(user: User, input: CreateInput) {
     const projectId = id("prj");
     const jobId = id("job");
     const t = now();
-    const height = plan.exportHeight;
+    const height = input.exportOverride ?? plan.exportHeight;
     const summary = providerSummary();
     const job: GenerationJob = {
       id: jobId, projectId, userId: user.id, status: "queued", stages: freshStages(), attempts: 1, maxAttempts: MAX_ATTEMPTS,
@@ -234,7 +237,7 @@ async function runJob(jobId: string) {
       await setStage(jobId, "world", { status: "running", startedAt: now() });
       const envs = [...new Set(plan.scenes.map((s) => s.environment.replace(/_/g, " ")))];
       const props = new Set(plan.scenes.flatMap((s) => s.props)).size;
-      await setStage(jobId, "world", { status: "done", endedAt: now(), detail: `${envs.length} environment${envs.length === 1 ? "" : "s"} (${envs.join(", ")}) · ${props} prop types · ${project.style} style` });
+      await setStage(jobId, "world", { status: "done", endedAt: now(), detail: `${envs.length} environment${envs.length === 1 ? "" : "s"} (${envs.join(", ")}) · ${props} prop type${props === 1 ? "" : "s"} · ${project.style} style` });
 
       /* 4. Animation */
       current = "animation";

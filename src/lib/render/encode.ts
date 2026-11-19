@@ -41,7 +41,7 @@ export function webCodecsAvailable() {
 
 async function pickVideoCodec(width: number, height: number, fps: number) {
   for (const codec of ["avc1.640028", "avc1.4d0028", "avc1.42003e", "avc1.640033"]) {
-    const config: VideoEncoderConfig = { codec, width, height, bitrate: height >= 1920 ? 8_000_000 : 4_500_000, framerate: fps, avc: { format: "avc" } };
+    const config: VideoEncoderConfig = { codec, width, height, bitrate: height >= 1920 ? 5_000_000 : 2_500_000, framerate: fps, avc: { format: "avc" } };
     const s = await VideoEncoder.isConfigSupported(config).catch(() => null);
     if (s?.supported) return config;
   }

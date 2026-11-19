@@ -12,7 +12,7 @@ import path from "node:path";
 export type Mode = "development" | "production";
 
 export const MODE: Mode = process.env.IMW_MODE === "production" ? "production" : "development";
-export const DATA_DIR = path.resolve(process.env.DATA_DIR || ".data");
+export const DATA_DIR = path.resolve(/*turbopackIgnore: true*/ process.env.DATA_DIR || ".data");
 
 export type StoryProviderId = "anthropic" | "dev-template";
 export type VoiceProviderId = "macos-say" | "none";

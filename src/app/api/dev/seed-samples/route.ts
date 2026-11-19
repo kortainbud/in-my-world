@@ -10,7 +10,8 @@ import { defaultNarrator } from "@/lib/server/providers/voice";
  * Development only: queues the sample videos under a dedicated samples account.
  * The signed-in developer's browser renders them like any other job.
  */
-export const POST = route(async () => {
+export const POST = route(async (req: Request) => {
+  const only = new URL(req.url).searchParams.get("only")?.toLowerCase();
   requireDevMode();
   await requireUser();
   await tx((db) => {
@@ -26,9 +27,9 @@ export const POST = route(async () => {
   });
   const sampleUser = await read((db) => db.users.find((u) => u.id === SAMPLE_USER_ID)!);
   const queued: string[] = [];
-  for (const s of SAMPLE_PROMPTS) {
+  for (const s of SAMPLE_PROMPTS.filter((x) => !only || x.prompt.toLowerCase().includes(only))) {
     const { project } = await createGeneration(sampleUser, {
-      prompt: s.prompt, style: s.style, duration: 30, castIds: [], voice: defaultNarrator(), idempotencyKey: `sample:${s.style}:${s.prompt}:${Date.now()}`,
+      prompt: s.prompt, style: s.style, duration: 30, castIds: [], voice: defaultNarrator(), exportOverride: 720, idempotencyKey: `sample:${s.style}:${s.prompt}:${Date.now()}`,
     });
     queued.push(project.id);
   }

@@ -27,8 +27,8 @@ type Theme = "money" | "grow" | "numbers" | "dream" | "truth" | "silence" | "dis
 const THEME_TESTS: [Theme, RegExp][] = [
   ["dream", /\bdream|asleep|sleep|bed\b|nightmare/i],
   ["numbers", /\bnumber|score|count|level|rating/i],
+  ["money", /\bmoney|rich|coin|cash|dollar|pay|price|cost|gold/i],
   ["grow", /\btall|grow|bigger|giant|shrink|tiny|small/i],
-  ["money", /\bmoney|rich|coin|cash|dollar|pay|price|cost|gold|tree/i],
   ["truth", /\blie|lying|liar|truth|honest/i],
   ["silence", /\bspeak|talk|voice|silent|quiet|words/i],
   ["discover", /\bdiscover|door|secret|portal|hidden|find/i],
@@ -54,6 +54,9 @@ function titleFrom(prompt: string, themes: Theme[]) {
     .trim();
   const words = stripped.split(" ").filter(Boolean);
   if (words.length > 0 && words.length <= 6) return words.join(" ").replace(/^\w/, (c) => c.toUpperCase());
+  // Otherwise use the first clause if it's short ("everyone can fly, but only on Tuesdays" → "Everyone can fly").
+  const clause = stripped.split(/[,;:—-]/)[0].trim().split(" ").filter(Boolean);
+  if (clause.length >= 2 && clause.length <= 6) return clause.join(" ").replace(/^\w/, (c) => c.toUpperCase());
   const byTheme: Record<Theme, string> = {
     money: "The Money Rule",
     grow: "Growing Up, Literally",
@@ -343,8 +346,8 @@ const ENDING: Beat[] = [
 
 const ARC_BY_DURATION: Record<DurationPreset, (Beat | Beat[])[]> = {
   30: [HOOK, SETUP, DEMO, COMPLICATION, ENDING],
-  60: [HOOK, SETUP, DEMO, DEMO, COMPLICATION, ESCALATION, TWIST, ENDING],
-  90: [HOOK, SETUP, SETUP, DEMO, DEMO, DEMO, COMPLICATION, COMPLICATION, ESCALATION, ESCALATION, TWIST, TWIST, ENDING],
+  60: [HOOK, SETUP, DEMO, DEMO, DEMO, COMPLICATION, ESCALATION, ESCALATION, TWIST, ENDING],
+  90: [HOOK, SETUP, SETUP, DEMO, DEMO, DEMO, COMPLICATION, COMPLICATION, ESCALATION, ESCALATION, ESCALATION, TWIST, TWIST, ENDING],
 };
 
 const MOOD: Record<Theme, MusicMood> = {
@@ -363,6 +366,79 @@ const MOOD: Record<Theme, MusicMood> = {
 function castFrom(rec: CharacterRecord, ref: string, role: string): CastMember {
   return { ref, name: rec.name, role, characterId: rec.id };
 }
+
+type Role = "setup" | "demo1" | "demo2" | "complication" | "escalation" | "twist" | "ending";
+type Pack = Partial<Record<Role, (h: string, f: string, r: string) => string>>;
+
+/** Theme-specific narration. Visual staging still comes from the beat; only the words change. */
+const PACKS: Record<string, Pack> = {
+  liarMoney: {
+    setup: () => "Every lie drops a coin in your pocket. Small lie, small coin. Big lie? Big coin.",
+    demo1: (h) => `${h} told one tiny lie about breakfast and bought a bike before lunch.`,
+    demo2: (_h, f) => `By noon, ${f} had lied about owning a dog and moved into a mansion.`,
+    complication: (_h, _f, r) => `Then ${r} told the biggest lie in history. The bank ran out of coins.`,
+    escalation: () => "Everyone started lying about everything. Nobody knew what was real anymore.",
+    twist: () => "But every coin remembers the lie it came from. And they all started talking at once.",
+    ending: () => "Now the truth is the rarest thing in town. Guess who's rich now. That's my world. What's yours?",
+  },
+  money: {
+    setup: () => "Here, nobody goes to work. You just water your money and wait.",
+    demo1: (h) => `${h} planted one coin on Monday. By Friday, it was a whole forest.`,
+    demo2: (_h, f) => `The whole street showed up with buckets. ${f} brought a ladder.`,
+    complication: (_h, _f, r) => `Then ${r} bought every single tree in town. Every one.`,
+    escalation: (_h, _f, r) => `Prices went crazy. A sandwich cost a tree. ${r} charged rent for shade.`,
+    twist: (_h, _f, r) => `But money from a tree is still just leaves. ${r} had a mountain and nobody would trade.`,
+    ending: () => "So we planted something else. Turns out friends grow faster. That's my world. What's yours?",
+  },
+  numbers: {
+    setup: () => "Nobody knows what the number means. Not even the people with big ones.",
+    demo1: () => "Mine said seven. Every time I did something brave, it went up.",
+    demo2: (_h, f) => `${f} had forty-two and refused to tell anyone why.`,
+    complication: (_h, _f, r) => `Then ${r} showed up with nine hundred and ninety-nine. People followed him everywhere.`,
+    escalation: () => "Everyone started chasing numbers. Nobody was actually having fun.",
+    twist: () => "Turns out the number isn't a score. It's how many people you made smile today.",
+    ending: (_h, _f, r) => `${r} hit zero by lunch. I hit a thousand. All I did was say thank you. That's my world.`,
+  },
+  grow: {
+    setup: () => "Help someone carry their bags? You grow an inch. Hold a door? Another inch.",
+    demo1: (h) => `${h} helped one old lady cross the road and shot up like a rocket.`,
+    demo2: (h) => `By lunchtime, ${h} needed a ladder just to high-five anyone.`,
+    complication: (_h, _f, r) => `Then ${r} started helping people just to get taller. Fake helping. For clout.`,
+    escalation: () => "Doorways got taller. Ceilings got taller. Buses had sunroofs now.",
+    twist: (_h, _f, r) => `But fake kindness doesn't count. ${r} shrank right back down in front of everyone.`,
+    ending: () => "Now the tallest person in town is the one who never asks for anything back. That's my world.",
+  },
+  dream: {
+    setup: () => "Every night, a screen lights up over your bed and shows exactly what you're dreaming.",
+    demo1: () => "My neighbours watch mine like a TV show. Last night it was a giant trophy.",
+    demo2: (_h, f) => `${f}'s dreams are always about pizza. Every. Single. Night.`,
+    complication: (_h, _f, r) => `Then ${r}'s screen started showing everyone else's secrets.`,
+    escalation: () => "Nobody wanted to fall asleep anymore. The whole town was yawning.",
+    twist: () => "Turns out the screens only show what you're too scared to say out loud.",
+    ending: () => "So I said mine out loud. The screen went quiet. Best sleep of my life. That's my world.",
+  },
+  truth: {
+    setup: () => "Try to lie and your mouth just says the truth instead. Loudly.",
+    demo1: () => "My teacher asked if I did my homework. My mouth said: no, I played games for six hours.",
+    demo2: (_h, f) => `${f} tried to say she liked my haircut. It came out as: it looks like a broom.`,
+    complication: (_h, _f, r) => `Then ${r} found a loophole. If you never talk, you never get caught.`,
+    escalation: () => "The whole town went silent. Just people nodding at each other all day.",
+    twist: (_h, _f, r) => `But silence is the loudest answer. Everyone knew exactly what ${r} meant.`,
+    ending: () => "So now we just say the nice true stuff first. It works surprisingly well. That's my world.",
+  },
+};
+
+function packFor(prompt: string, themes: Theme[]): Pack | null {
+  if (themes.includes("truth") && themes.includes("money")) return PACKS.liarMoney;
+  for (const t of themes) if (PACKS[t]) return PACKS[t];
+  return null;
+}
+
+const ROLES: Record<DurationPreset, (Role | "hook")[]> = {
+  30: ["hook", "setup", "demo1", "complication", "ending"],
+  60: ["hook", "setup", "demo1", "demo2", "demo1", "complication", "escalation", "escalation", "twist", "ending"],
+  90: ["hook", "setup", "setup", "demo1", "demo2", "demo1", "complication", "complication", "escalation", "escalation", "escalation", "twist", "twist", "ending"],
+};
 
 export function generateDevStory(opts: {
   prompt: string;
@@ -401,10 +477,24 @@ export function generateDevStory(opts: {
   const scenes = ARC_BY_DURATION[opts.duration].map((slot) => {
     if (typeof slot === "function") return slot(ctx);
     const options = slot.filter((b) => !used.has(b));
-    const beat = options.length ? options[0] : slot[0];
+    const beat = options.length ? r.pick(options) : r.pick(slot);
     used.add(beat);
     return beat(ctx);
   });
+
+  // Swap in theme-specific narration where we have it (once per role, so 90s stories don't repeat lines).
+  const pack = packFor(opts.prompt, themes);
+  if (pack) {
+    const usedRoles = new Set<string>();
+    ROLES[opts.duration].forEach((role, i) => {
+      if (role === "hook" || !scenes[i]) return;
+      const line = pack[role];
+      if (line && !usedRoles.has(role)) {
+        scenes[i].narration = line(hero.name, friend.name, rival.name);
+        usedRoles.add(role);
+      }
+    });
+  }
 
   // Normalise any non-vocabulary expression we used for flavour.
   for (const s of scenes) for (const ch of s.characters) if ((ch.expression as string) === "determined") ch.expression = "neutral";

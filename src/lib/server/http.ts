@@ -1,4 +1,5 @@
 import "server-only";
+import { unstable_rethrow } from "next/navigation";
 import { NextResponse } from "next/server";
 import { HttpError } from "./auth";
 
@@ -17,6 +18,8 @@ export function route<A extends unknown[]>(fn: (...args: A) => Promise<Response>
     try {
       return await fn(...args);
     } catch (e) {
+      // Let Next.js internal control-flow errors (prerender bail-outs, redirects) through.
+      unstable_rethrow(e);
       return errorResponse(e);
     }
   };

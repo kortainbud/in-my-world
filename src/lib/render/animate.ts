@@ -42,7 +42,8 @@ export function pose(av: Avatar, p: PoseInput): { x: number; y: number; z: numbe
   reset(av);
   const { lt, dur, t, base, phase } = p;
   const u = lt / dur;
-  let x = base.x, y = base.y, z = base.z, ry = 0, rx = 0;
+  let x = base.x, y = base.y, ry = 0, rx = 0;
+  const z = base.z;
   const breathe = Math.sin(t * 2 + phase) * 0.03;
   av.body.position.y = breathe;
   av.armL.rotation.z = -0.06 - breathe;

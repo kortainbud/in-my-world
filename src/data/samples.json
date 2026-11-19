@@ -1,1 +1,656 @@
-[]
+[
+  {
+    "id": "sample-roblox-money-grows-on-trees",
+    "title": "Money grows on trees",
+    "prompt": "In my world, money grows on trees.",
+    "style": "roblox",
+    "category": "Money",
+    "durationSec": 24,
+    "width": 720,
+    "height": 1280,
+    "video": "/samples/sample-roblox-money-grows-on-trees.mp4",
+    "thumb": "/samples/sample-roblox-money-grows-on-trees.jpg",
+    "createdAt": "2026-11-19T02:48:01.612Z",
+    "story": {
+      "source": "dev-template",
+      "scenes": [
+        {
+          "narration": "In my world, money grows on trees.",
+          "description": "Pixel stands in the middle of the world, looking straight at us.",
+          "environment": "city_plaza"
+        },
+        {
+          "narration": "Here, nobody goes to work. You just water your money and wait.",
+          "description": "Sage explains the rule with big hand gestures.",
+          "environment": "park"
+        },
+        {
+          "narration": "Pixel planted one coin on Monday. By Friday, it was a whole forest.",
+          "description": "The rule visibly kicks in on Pixel.",
+          "environment": "town_street"
+        },
+        {
+          "narration": "Then Juno bought every single tree in town. Every one.",
+          "description": "Juno celebrates on a stage while Pixel sulks.",
+          "environment": "stage"
+        },
+        {
+          "narration": "So we planted something else. Turns out friends grow faster. That's my world. What's yours?",
+          "description": "Pixel and Sage celebrate as confetti falls.",
+          "environment": "park"
+        }
+      ],
+      "cast": [
+        {
+          "id": "ch_pixel",
+          "name": "Pixel",
+          "appearance": {
+            "skin": "#FFD7B0",
+            "hair": "spiky",
+            "hairColor": "#B9F36A",
+            "top": "#151515",
+            "topAccent": "#B9F36A",
+            "bottoms": "#151515",
+            "shoes": "#1A1A1A",
+            "hat": "none",
+            "hatColor": "#B9F36A",
+            "accessory": "shades",
+            "accessoryColor": "#111111",
+            "face": "grin",
+            "height": 0.88
+          }
+        },
+        {
+          "id": "ch_sage",
+          "name": "Sage",
+          "appearance": {
+            "skin": "#E8B48F",
+            "hair": "long",
+            "hairColor": "#D8D3CC",
+            "top": "#2F4F46",
+            "topAccent": "#C9B67A",
+            "bottoms": "#22302B",
+            "shoes": "#1A1A1A",
+            "hat": "none",
+            "hatColor": "#B9F36A",
+            "accessory": "glasses",
+            "accessoryColor": "#C9B67A",
+            "face": "calm",
+            "height": 1.06
+          }
+        },
+        {
+          "id": "ch_juno",
+          "name": "Juno",
+          "appearance": {
+            "skin": "#8D5A3B",
+            "hair": "bun",
+            "hairColor": "#16110E",
+            "top": "#7A5CFA",
+            "topAccent": "#EDE6FF",
+            "bottoms": "#E9E4DA",
+            "shoes": "#1A1A1A",
+            "hat": "none",
+            "hatColor": "#B9F36A",
+            "accessory": "none",
+            "accessoryColor": "#111111",
+            "face": "cheeky",
+            "height": 1
+          }
+        }
+      ]
+    },
+    "previews": [
+      "/samples/sample-roblox-money-grows-on-trees-scene-0.jpg",
+      "/samples/sample-roblox-money-grows-on-trees-scene-1.jpg",
+      "/samples/sample-roblox-money-grows-on-trees-scene-2.jpg",
+      "/samples/sample-roblox-money-grows-on-trees-scene-3.jpg",
+      "/samples/sample-roblox-money-grows-on-trees-scene-4.jpg"
+    ]
+  },
+  {
+    "id": "sample-minecraft-everyone-gets-richer-every-time-they-tel",
+    "title": "The Money Rule",
+    "prompt": "In my world, everyone gets richer every time they tell a lie.",
+    "style": "minecraft",
+    "category": "Money",
+    "durationSec": 29,
+    "width": 720,
+    "height": 1280,
+    "video": "/samples/sample-minecraft-everyone-gets-richer-every-time-they-tel.mp4",
+    "thumb": "/samples/sample-minecraft-everyone-gets-richer-every-time-they-tel.jpg",
+    "createdAt": "2026-11-19T02:46:14.509Z",
+    "story": {
+      "source": "dev-template",
+      "scenes": [
+        {
+          "narration": "In my world, everyone gets richer every time they tell a lie.",
+          "description": "Dot stands in the middle of the world, looking straight at us.",
+          "environment": "city_plaza"
+        },
+        {
+          "narration": "Every lie drops a coin in your pocket. Small lie, small coin. Big lie? Big coin.",
+          "description": "Rex explains the rule with big hand gestures.",
+          "environment": "park"
+        },
+        {
+          "narration": "Dot told one tiny lie about breakfast and bought a bike before lunch.",
+          "description": "Rex doubles over laughing as a crowd gathers.",
+          "environment": "town_street"
+        },
+        {
+          "narration": "Then Milo told the biggest lie in history. The bank ran out of coins.",
+          "description": "Milo struts in, smug, and the music changes.",
+          "environment": "city_plaza"
+        },
+        {
+          "narration": "Now the truth is the rarest thing in town. Guess who's rich now. That's my world. What's yours?",
+          "description": "Dot and Rex celebrate as confetti falls.",
+          "environment": "park"
+        }
+      ],
+      "cast": [
+        {
+          "id": "ch_dot",
+          "name": "Dot",
+          "appearance": {
+            "skin": "#A86B4C",
+            "hair": "short",
+            "hairColor": "#2A1B12",
+            "top": "#2A9D8F",
+            "topAccent": "#E9C46A",
+            "bottoms": "#264653",
+            "shoes": "#1A1A1A",
+            "hat": "beanie",
+            "hatColor": "#E76F51",
+            "accessory": "backpack",
+            "accessoryColor": "#E9C46A",
+            "face": "smile",
+            "height": 0.95
+          }
+        },
+        {
+          "id": "ch_rex",
+          "name": "Rex",
+          "appearance": {
+            "skin": "#6E4630",
+            "hair": "short",
+            "hairColor": "#0E0B09",
+            "top": "#FFFFFF",
+            "topAccent": "#E63946",
+            "bottoms": "#1D3557",
+            "shoes": "#1A1A1A",
+            "hat": "cap",
+            "hatColor": "#E63946",
+            "accessory": "chain",
+            "accessoryColor": "#F2C14E",
+            "face": "cheeky",
+            "height": 1
+          }
+        },
+        {
+          "id": "ch_milo",
+          "name": "Milo",
+          "appearance": {
+            "skin": "#F2C9A0",
+            "hair": "short",
+            "hairColor": "#3B2A20",
+            "top": "#F2643D",
+            "topAccent": "#FFD9C7",
+            "bottoms": "#2B2F3A",
+            "shoes": "#1A1A1A",
+            "hat": "headphones",
+            "hatColor": "#202020",
+            "accessory": "none",
+            "accessoryColor": "#111111",
+            "face": "grin",
+            "height": 1
+          }
+        }
+      ]
+    },
+    "previews": [
+      "/samples/sample-minecraft-everyone-gets-richer-every-time-they-tel-scene-0.jpg",
+      "/samples/sample-minecraft-everyone-gets-richer-every-time-they-tel-scene-1.jpg",
+      "/samples/sample-minecraft-everyone-gets-richer-every-time-they-tel-scene-2.jpg",
+      "/samples/sample-minecraft-everyone-gets-richer-every-time-they-tel-scene-3.jpg",
+      "/samples/sample-minecraft-everyone-gets-richer-every-time-they-tel-scene-4.jpg"
+    ]
+  },
+  {
+    "id": "sample-roblox-your-dreams-appear-on-a-screen-above-you",
+    "title": "Dream Screen",
+    "prompt": "In my world, your dreams appear on a screen above your bed.",
+    "style": "roblox",
+    "category": "Strange",
+    "durationSec": 23.5,
+    "width": 720,
+    "height": 1280,
+    "video": "/samples/sample-roblox-your-dreams-appear-on-a-screen-above-you.mp4",
+    "thumb": "/samples/sample-roblox-your-dreams-appear-on-a-screen-above-you.jpg",
+    "createdAt": "2026-11-19T02:46:14.496Z",
+    "story": {
+      "source": "dev-template",
+      "scenes": [
+        {
+          "narration": "In my world, your dreams appear on a screen above your bed.",
+          "description": "Juno stands in the middle of the world, looking straight at us.",
+          "environment": "bedroom"
+        },
+        {
+          "narration": "Every night, a screen lights up over your bed and shows exactly what you're dreaming.",
+          "description": "People pass by as Juno watches, unconvinced.",
+          "environment": "town_street"
+        },
+        {
+          "narration": "My neighbours watch mine like a TV show. Last night it was a giant trophy.",
+          "description": "Milo doubles over laughing as a crowd gathers.",
+          "environment": "school_hall"
+        },
+        {
+          "narration": "Then Dot's screen started showing everyone else's secrets.",
+          "description": "Dot celebrates on a stage while Juno sulks.",
+          "environment": "stage"
+        },
+        {
+          "narration": "So I said mine out loud. The screen went quiet. Best sleep of my life. That's my world.",
+          "description": "Juno and Milo celebrate as confetti falls.",
+          "environment": "park"
+        }
+      ],
+      "cast": [
+        {
+          "id": "ch_juno",
+          "name": "Juno",
+          "appearance": {
+            "skin": "#8D5A3B",
+            "hair": "bun",
+            "hairColor": "#16110E",
+            "top": "#7A5CFA",
+            "topAccent": "#EDE6FF",
+            "bottoms": "#E9E4DA",
+            "shoes": "#1A1A1A",
+            "hat": "none",
+            "hatColor": "#B9F36A",
+            "accessory": "none",
+            "accessoryColor": "#111111",
+            "face": "cheeky",
+            "height": 1
+          }
+        },
+        {
+          "id": "ch_milo",
+          "name": "Milo",
+          "appearance": {
+            "skin": "#F2C9A0",
+            "hair": "short",
+            "hairColor": "#3B2A20",
+            "top": "#F2643D",
+            "topAccent": "#FFD9C7",
+            "bottoms": "#2B2F3A",
+            "shoes": "#1A1A1A",
+            "hat": "headphones",
+            "hatColor": "#202020",
+            "accessory": "none",
+            "accessoryColor": "#111111",
+            "face": "grin",
+            "height": 1
+          }
+        },
+        {
+          "id": "ch_dot",
+          "name": "Dot",
+          "appearance": {
+            "skin": "#A86B4C",
+            "hair": "short",
+            "hairColor": "#2A1B12",
+            "top": "#2A9D8F",
+            "topAccent": "#E9C46A",
+            "bottoms": "#264653",
+            "shoes": "#1A1A1A",
+            "hat": "beanie",
+            "hatColor": "#E76F51",
+            "accessory": "backpack",
+            "accessoryColor": "#E9C46A",
+            "face": "smile",
+            "height": 0.95
+          }
+        }
+      ]
+    },
+    "previews": [
+      "/samples/sample-roblox-your-dreams-appear-on-a-screen-above-you-scene-0.jpg",
+      "/samples/sample-roblox-your-dreams-appear-on-a-screen-above-you-scene-1.jpg",
+      "/samples/sample-roblox-your-dreams-appear-on-a-screen-above-you-scene-2.jpg",
+      "/samples/sample-roblox-your-dreams-appear-on-a-screen-above-you-scene-3.jpg",
+      "/samples/sample-roblox-your-dreams-appear-on-a-screen-above-you-scene-4.jpg"
+    ]
+  },
+  {
+    "id": "sample-minecraft-nobody-can-tell-a-lie",
+    "title": "Nobody can tell a lie",
+    "prompt": "In my world, nobody can tell a lie.",
+    "style": "minecraft",
+    "category": "Funny",
+    "durationSec": 24.3,
+    "width": 720,
+    "height": 1280,
+    "video": "/samples/sample-minecraft-nobody-can-tell-a-lie.mp4",
+    "thumb": "/samples/sample-minecraft-nobody-can-tell-a-lie.jpg",
+    "createdAt": "2026-11-19T02:46:14.484Z",
+    "story": {
+      "source": "dev-template",
+      "scenes": [
+        {
+          "narration": "In my world, nobody can tell a lie.",
+          "description": "Pixel stands in the middle of the world, looking straight at us.",
+          "environment": "school_hall"
+        },
+        {
+          "narration": "Try to lie and your mouth just says the truth instead. Loudly.",
+          "description": "People pass by as Pixel watches, unconvinced.",
+          "environment": "park"
+        },
+        {
+          "narration": "My teacher asked if I did my homework. My mouth said: no, I played games for six hours.",
+          "description": "The rule visibly kicks in on Pixel.",
+          "environment": "city_plaza"
+        },
+        {
+          "narration": "Then Dot found a loophole. If you never talk, you never get caught.",
+          "description": "Dot celebrates on a stage while Pixel sulks.",
+          "environment": "stage"
+        },
+        {
+          "narration": "So now we just say the nice true stuff first. It works surprisingly well. That's my world.",
+          "description": "Pixel and Milo celebrate as confetti falls.",
+          "environment": "park"
+        }
+      ],
+      "cast": [
+        {
+          "id": "ch_pixel",
+          "name": "Pixel",
+          "appearance": {
+            "skin": "#FFD7B0",
+            "hair": "spiky",
+            "hairColor": "#B9F36A",
+            "top": "#151515",
+            "topAccent": "#B9F36A",
+            "bottoms": "#151515",
+            "shoes": "#1A1A1A",
+            "hat": "none",
+            "hatColor": "#B9F36A",
+            "accessory": "shades",
+            "accessoryColor": "#111111",
+            "face": "grin",
+            "height": 0.88
+          }
+        },
+        {
+          "id": "ch_milo",
+          "name": "Milo",
+          "appearance": {
+            "skin": "#F2C9A0",
+            "hair": "short",
+            "hairColor": "#3B2A20",
+            "top": "#F2643D",
+            "topAccent": "#FFD9C7",
+            "bottoms": "#2B2F3A",
+            "shoes": "#1A1A1A",
+            "hat": "headphones",
+            "hatColor": "#202020",
+            "accessory": "none",
+            "accessoryColor": "#111111",
+            "face": "grin",
+            "height": 1
+          }
+        },
+        {
+          "id": "ch_dot",
+          "name": "Dot",
+          "appearance": {
+            "skin": "#A86B4C",
+            "hair": "short",
+            "hairColor": "#2A1B12",
+            "top": "#2A9D8F",
+            "topAccent": "#E9C46A",
+            "bottoms": "#264653",
+            "shoes": "#1A1A1A",
+            "hat": "beanie",
+            "hatColor": "#E76F51",
+            "accessory": "backpack",
+            "accessoryColor": "#E9C46A",
+            "face": "smile",
+            "height": 0.95
+          }
+        }
+      ]
+    },
+    "previews": [
+      "/samples/sample-minecraft-nobody-can-tell-a-lie-scene-0.jpg",
+      "/samples/sample-minecraft-nobody-can-tell-a-lie-scene-1.jpg",
+      "/samples/sample-minecraft-nobody-can-tell-a-lie-scene-2.jpg",
+      "/samples/sample-minecraft-nobody-can-tell-a-lie-scene-3.jpg",
+      "/samples/sample-minecraft-nobody-can-tell-a-lie-scene-4.jpg"
+    ]
+  },
+  {
+    "id": "sample-minecraft-everyone-has-a-number-above-their-head",
+    "title": "The Number Above Your Head",
+    "prompt": "In my world, everyone has a number above their head.",
+    "style": "minecraft",
+    "category": "Mystery",
+    "durationSec": 27.4,
+    "width": 720,
+    "height": 1280,
+    "video": "/samples/sample-minecraft-everyone-has-a-number-above-their-head.mp4",
+    "thumb": "/samples/sample-minecraft-everyone-has-a-number-above-their-head.jpg",
+    "createdAt": "2026-11-19T02:46:14.468Z",
+    "story": {
+      "source": "dev-template",
+      "scenes": [
+        {
+          "narration": "In my world, everyone has a number above their head.",
+          "description": "Dot stands in the middle of the world, looking straight at us.",
+          "environment": "park"
+        },
+        {
+          "narration": "Nobody knows what the number means. Not even the people with big ones.",
+          "description": "Rex explains the rule with big hand gestures.",
+          "environment": "school_hall"
+        },
+        {
+          "narration": "Mine said seven. Every time I did something brave, it went up.",
+          "description": "The rule visibly kicks in on Dot.",
+          "environment": "beach"
+        },
+        {
+          "narration": "Then Nova showed up with nine hundred and ninety-nine. People followed him everywhere.",
+          "description": "Nova struts in, smug, and the music changes.",
+          "environment": "city_plaza"
+        },
+        {
+          "narration": "Nova hit zero by lunch. I hit a thousand. All I did was say thank you. That's my world.",
+          "description": "Dot and Rex celebrate as confetti falls.",
+          "environment": "park"
+        }
+      ],
+      "cast": [
+        {
+          "id": "ch_dot",
+          "name": "Dot",
+          "appearance": {
+            "skin": "#A86B4C",
+            "hair": "short",
+            "hairColor": "#2A1B12",
+            "top": "#2A9D8F",
+            "topAccent": "#E9C46A",
+            "bottoms": "#264653",
+            "shoes": "#1A1A1A",
+            "hat": "beanie",
+            "hatColor": "#E76F51",
+            "accessory": "backpack",
+            "accessoryColor": "#E9C46A",
+            "face": "smile",
+            "height": 0.95
+          }
+        },
+        {
+          "id": "ch_rex",
+          "name": "Rex",
+          "appearance": {
+            "skin": "#6E4630",
+            "hair": "short",
+            "hairColor": "#0E0B09",
+            "top": "#FFFFFF",
+            "topAccent": "#E63946",
+            "bottoms": "#1D3557",
+            "shoes": "#1A1A1A",
+            "hat": "cap",
+            "hatColor": "#E63946",
+            "accessory": "chain",
+            "accessoryColor": "#F2C14E",
+            "face": "cheeky",
+            "height": 1
+          }
+        },
+        {
+          "id": "ch_nova",
+          "name": "Nova",
+          "appearance": {
+            "skin": "#F5D0B5",
+            "hair": "curly",
+            "hairColor": "#C2410C",
+            "top": "#14213D",
+            "topAccent": "#FCA311",
+            "bottoms": "#14213D",
+            "shoes": "#1A1A1A",
+            "hat": "crown",
+            "hatColor": "#FCA311",
+            "accessory": "cape",
+            "accessoryColor": "#9D0208",
+            "face": "determined",
+            "height": 1
+          }
+        }
+      ]
+    },
+    "previews": [
+      "/samples/sample-minecraft-everyone-has-a-number-above-their-head-scene-0.jpg",
+      "/samples/sample-minecraft-everyone-has-a-number-above-their-head-scene-1.jpg",
+      "/samples/sample-minecraft-everyone-has-a-number-above-their-head-scene-2.jpg",
+      "/samples/sample-minecraft-everyone-has-a-number-above-their-head-scene-3.jpg",
+      "/samples/sample-minecraft-everyone-has-a-number-above-their-head-scene-4.jpg"
+    ]
+  },
+  {
+    "id": "sample-roblox-everyone-grows-taller-every-time-they-he",
+    "title": "Growing Up, Literally",
+    "prompt": "In my world, everyone grows taller every time they help someone.",
+    "style": "roblox",
+    "category": "Wholesome",
+    "durationSec": 26.3,
+    "width": 720,
+    "height": 1280,
+    "video": "/samples/sample-roblox-everyone-grows-taller-every-time-they-he.mp4",
+    "thumb": "/samples/sample-roblox-everyone-grows-taller-every-time-they-he.jpg",
+    "createdAt": "2026-11-19T02:46:14.465Z",
+    "story": {
+      "source": "dev-template",
+      "scenes": [
+        {
+          "narration": "In my world, everyone grows taller every time they help someone.",
+          "description": "Bricks stands in the middle of the world, looking straight at us.",
+          "environment": "town_street"
+        },
+        {
+          "narration": "Help someone carry their bags? You grow an inch. Hold a door? Another inch.",
+          "description": "People pass by as Bricks watches, unconvinced.",
+          "environment": "beach"
+        },
+        {
+          "narration": "Bricks helped one old lady cross the road and shot up like a rocket.",
+          "description": "Bricks gets to work, determined.",
+          "environment": "town_street"
+        },
+        {
+          "narration": "Then Rex started helping people just to get taller. Fake helping. For clout.",
+          "description": "Rex struts in, smug, and the music changes.",
+          "environment": "city_plaza"
+        },
+        {
+          "narration": "Now the tallest person in town is the one who never asks for anything back. That's my world.",
+          "description": "Bricks and Sage celebrate as confetti falls.",
+          "environment": "park"
+        }
+      ],
+      "cast": [
+        {
+          "id": "ch_bricks",
+          "name": "Bricks",
+          "appearance": {
+            "skin": "#C68B5E",
+            "hair": "none",
+            "hairColor": "#3B2A20",
+            "top": "#F5C518",
+            "topAccent": "#F2F2F2",
+            "bottoms": "#365A9E",
+            "shoes": "#1A1A1A",
+            "hat": "helmet",
+            "hatColor": "#FF9F1C",
+            "accessory": "none",
+            "accessoryColor": "#111111",
+            "face": "determined",
+            "height": 1.12
+          }
+        },
+        {
+          "id": "ch_sage",
+          "name": "Sage",
+          "appearance": {
+            "skin": "#E8B48F",
+            "hair": "long",
+            "hairColor": "#D8D3CC",
+            "top": "#2F4F46",
+            "topAccent": "#C9B67A",
+            "bottoms": "#22302B",
+            "shoes": "#1A1A1A",
+            "hat": "none",
+            "hatColor": "#B9F36A",
+            "accessory": "glasses",
+            "accessoryColor": "#C9B67A",
+            "face": "calm",
+            "height": 1.06
+          }
+        },
+        {
+          "id": "ch_rex",
+          "name": "Rex",
+          "appearance": {
+            "skin": "#6E4630",
+            "hair": "short",
+            "hairColor": "#0E0B09",
+            "top": "#FFFFFF",
+            "topAccent": "#E63946",
+            "bottoms": "#1D3557",
+            "shoes": "#1A1A1A",
+            "hat": "cap",
+            "hatColor": "#E63946",
+            "accessory": "chain",
+            "accessoryColor": "#F2C14E",
+            "face": "cheeky",
+            "height": 1
+          }
+        }
+      ]
+    },
+    "previews": [
+      "/samples/sample-roblox-everyone-grows-taller-every-time-they-he-scene-0.jpg",
+      "/samples/sample-roblox-everyone-grows-taller-every-time-they-he-scene-1.jpg",
+      "/samples/sample-roblox-everyone-grows-taller-every-time-they-he-scene-2.jpg",
+      "/samples/sample-roblox-everyone-grows-taller-every-time-they-he-scene-3.jpg",
+      "/samples/sample-roblox-everyone-grows-taller-every-time-they-he-scene-4.jpg"
+    ]
+  }
+]

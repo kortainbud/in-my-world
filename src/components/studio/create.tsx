@@ -177,7 +177,7 @@ export function CreateScreen() {
 
         <div className="mt-8 divide-y divide-line-soft rounded-[14px] border border-line bg-bg-2">
           <Row label="Visual style" hint="Changes the characters, worlds and textures.">
-            <div role="radiogroup" aria-label="Visual style" className="grid grid-cols-2 gap-2">
+            <div role="radiogroup" aria-label="Visual style" className="grid grid-cols-1 gap-2 min-[480px]:grid-cols-2">
               {(["roblox", "minecraft"] as const).map((s) => {
                 const on = style === s;
                 return (
