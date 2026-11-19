@@ -40,7 +40,7 @@ export function StorySheetPanel({ sheet }: { sheet: StorySheet }) {
     ["I", "Continuation", sheet.continuation],
   ];
   return (
-    <section className="rounded-[12px] border border-line-soft bg-bg-2">
+    <section className="rounded-[16px] border border-line-soft bg-[var(--card)]">
       <div className="flex items-center justify-between border-b border-line-soft px-4 py-3">
         <h2 className="text-body font-semibold">Story sheet</h2>
         <Button
@@ -71,7 +71,7 @@ export function StorySheetPanel({ sheet }: { sheet: StorySheet }) {
 export function ChecklistPanel({ items, source, revised }: { items: ChecklistItem[]; source?: string; revised?: boolean }) {
   const passed = items.filter((i) => i.pass === true).length;
   return (
-    <section className="rounded-[12px] border border-line-soft bg-bg-2">
+    <section className="rounded-[16px] border border-line-soft bg-[var(--card)]">
       <div className="flex items-center justify-between border-b border-line-soft px-4 py-3">
         <h2 className="text-body font-semibold">Editorial checklist</h2>
         <span className="text-caption text-fg-3">
@@ -113,7 +113,7 @@ export function MetricsPanel({ m, isPublic }: { m: Metrics; isPublic: boolean })
     ["Returning viewers", String(m.returningViewers), "Watched another of your videos"],
   ];
   return (
-    <section className="rounded-[12px] border border-line-soft bg-bg-2">
+    <section className="rounded-[16px] border border-line-soft bg-[var(--card)]">
       <div className="border-b border-line-soft px-4 py-3">
         <h2 className="text-body font-semibold">Performance</h2>
         <p className="mt-0.5 text-caption text-fg-3">Plays inside In My World (share page and Explore). Your own plays and plays on other platforms aren’t counted.</p>
@@ -145,7 +145,7 @@ export function SeriesStrip({ episodes, current }: { episodes: { id: string; epi
           key={e.id}
           href={`/studio/projects/${e.id}`}
           aria-current={e.id === current ? "page" : undefined}
-          className={`inline-flex h-8 items-center gap-1.5 rounded-[8px] border px-2.5 text-caption ${e.id === current ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
+          className={`inline-flex h-8 items-center gap-1.5 rounded-[12px] border px-2.5 text-caption ${e.id === current ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
         >
           Part {e.episode}
           {e.status !== "completed" && <Tag>{e.status === "failed" ? "failed" : "in progress"}</Tag>}

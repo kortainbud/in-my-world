@@ -78,7 +78,7 @@ export function Explore({ context }: { context: "public" | "studio" }) {
               role="tab"
               aria-selected={style === s.id}
               onClick={() => set("style", s.id)}
-              className={`h-9 whitespace-nowrap rounded-[8px] px-3.5 text-small font-medium transition-colors ${style === s.id ? "bg-fg text-bg" : "text-fg-2 hover:bg-bg-3 hover:text-fg"}`}
+              className={`h-9 whitespace-nowrap rounded-[12px] px-3.5 text-small font-medium transition-colors ${style === s.id ? "bg-fg text-bg" : "text-fg-2 hover:bg-bg-3 hover:text-fg"}`}
             >
               {s.label}
             </button>
@@ -107,7 +107,7 @@ export function Explore({ context }: { context: "public" | "studio" }) {
             key={c}
             onClick={() => set("category", c)}
             aria-pressed={category === c}
-            className={`h-7 rounded-[7px] border px-2.5 text-caption transition-colors ${category === c ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
+            className={`h-7 rounded-[10px] border px-2.5 text-caption transition-colors ${category === c ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
           >
             {c === "all" ? "All categories" : c}
           </button>
@@ -123,11 +123,11 @@ export function Explore({ context }: { context: "public" | "studio" }) {
         </div>
         {!data && !error && (
           <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {Array.from({ length: 5 }, (_, i) => <div key={i} className="aspect-[9/16] animate-pulse rounded-[12px] bg-bg-2" />)}
+            {Array.from({ length: 5 }, (_, i) => <div key={i} className="aspect-[9/16] animate-pulse rounded-[16px] bg-bg-2" />)}
           </div>
         )}
         {data && data.items.length === 0 && (
-          <div className="rounded-[12px] border border-dashed border-line px-6 py-14 text-center">
+          <div className="rounded-[16px] border border-line px-6 py-14 text-center">
             <p className="text-body font-medium">{data.total === 0 ? "No public stories yet" : "No stories match these filters"}</p>
             <p className="mt-1.5 text-small text-fg-2">{data.total === 0 ? "Finished videos that creators share will show up here." : "Try another style or category."}</p>
           </div>
@@ -154,7 +154,7 @@ export function Explore({ context }: { context: "public" | "studio" }) {
         <div className="mt-16 grid gap-12 lg:grid-cols-3">
           <section aria-label="Popular prompts">
             <h2 className="mb-4 text-lead font-semibold tracking-[-0.02em]">Popular prompts</h2>
-            <ul className="divide-y divide-line-soft rounded-[12px] border border-line-soft">
+            <ul className="divide-y divide-line-soft rounded-[16px] border border-line-soft">
               {data.prompts.map((p) => (
                 <li key={p.id}>
                   <Link href={createHref(p.prompt)} className="flex items-center justify-between gap-3 px-4 py-3 text-small hover:bg-bg-2">
@@ -174,7 +174,7 @@ export function Explore({ context }: { context: "public" | "studio" }) {
             </div>
             <div className="grid grid-cols-4 gap-2">
               {data.characters.map((c) => (
-                <Link key={c.id} href={charHref} className="rounded-[10px] border border-line-soft bg-bg-2 p-1.5 text-center hover:border-line">
+                <Link key={c.id} href={charHref} className="rounded-[12px] border border-line-soft bg-[var(--card)] p-1.5 text-center hover:border-line">
                   <Portrait appearance={c.appearance} className="mx-auto h-16 w-14" />
                   <span className="mt-1 block truncate text-caption">{c.name}</span>
                 </Link>
@@ -188,7 +188,7 @@ export function Explore({ context }: { context: "public" | "studio" }) {
             ) : (
               <ul className="space-y-2">
                 {data.creators.map((c) => (
-                  <li key={c.handle} className="flex items-center justify-between rounded-[10px] border border-line-soft px-3.5 py-2.5">
+                  <li key={c.handle} className="flex items-center justify-between rounded-[12px] border border-line-soft px-3.5 py-2.5">
                     <span className="min-w-0">
                       <span className="block truncate text-small font-medium">{c.displayName}</span>
                       <span className="text-caption text-fg-3">{c.isSample ? "Sample content" : `@${c.handle}`}</span>

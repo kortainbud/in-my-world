@@ -41,10 +41,13 @@ export async function planFor(userId: string): Promise<Plan> {
 export async function accountSnapshot(userId: string) {
   const sub = await rollPeriods(userId);
   const plan: Plan = getPlan(sub?.planId);
-  const ledger = await findDocs<CreditTransaction>("credits", (q) => q.eq("user_id", userId).order("ts", { ascending: false }).limit(200));
+  const [ledger, payments, balance] = await Promise.all([
+    findDocs<CreditTransaction>("credits", (q) => q.eq("user_id", userId).order("ts", { ascending: false }).limit(200)),
+    findDocs<Payment>("payments", (q) => q.eq("user_id", userId).order("ts", { ascending: false }).limit(50)),
+    creditBalance(userId),
+  ]);
   const used =
     -ledger.filter((c) => c.kind === "debit_generation").reduce((a, c) => a + c.amount, 0) -
     ledger.filter((c) => c.kind === "refund_generation").reduce((a, c) => a + c.amount, 0);
-  const payments = await findDocs<Payment>("payments", (q) => q.eq("user_id", userId).order("ts", { ascending: false }).limit(50));
-  return { balance: await creditBalance(userId), used, plan, subscription: sub, ledger: ledger.slice(0, 100), payments };
+  return { balance, used, plan, subscription: sub, ledger: ledger.slice(0, 100), payments };
 }

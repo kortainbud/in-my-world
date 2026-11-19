@@ -41,7 +41,7 @@ export default function Docs() {
       <h2>Credits</h2>
       <p>See <Link href="/pricing#credits">how credits work</Link>. Cost depends on length, narration and export quality.</p>
       <h2>Wallets</h2>
-      <p>You can sign in with or link a Phantom or MetaMask wallet. This only proves you own the wallet by signing a one-time message. It never authorises a transaction, and we will never ask for your seed phrase or private key. Paying with crypto is a separate option at checkout.</p>
+      <p>You can sign in with or link a Solana wallet such as Phantom, Solflare or Backpack. This only proves you own the wallet by signing a one-time message. It never authorises a transaction, and we will never ask for your seed phrase or private key. Paying with crypto is a separate option at checkout.</p>
     </Prose>
   );
 }

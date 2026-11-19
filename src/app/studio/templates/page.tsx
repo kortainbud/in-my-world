@@ -10,7 +10,7 @@ const FORMAT_LABEL = { strange_world: "Strange world", mystery_series: "Mystery 
 
 export default function TemplatesPage() {
   return (
-    <div className="mx-auto w-full max-w-[1080px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
+    <div className="mx-auto w-full max-w-[1200px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
       <h1 className="text-page font-semibold">Templates</h1>
       <p className="mt-1 max-w-2xl text-body text-fg-2">
         Every story needs a rule, a reason to care, something that threatens the rule, and a twist that changes everything.

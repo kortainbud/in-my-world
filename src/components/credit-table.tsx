@@ -4,7 +4,7 @@ import { DURATIONS } from "@/lib/engine/types";
 /** Credit cost table, computed from the same config the server charges with. */
 export function CreditTable() {
   return (
-    <div className="overflow-x-auto rounded-[12px] border border-line-soft">
+    <div className="overflow-x-auto rounded-[16px] border border-line-soft">
       <table className="w-full min-w-[460px] text-left text-small">
         <thead className="bg-bg-2 text-caption text-fg-3">
           <tr>

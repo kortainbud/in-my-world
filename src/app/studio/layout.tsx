@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { StudioShell } from "@/components/studio/shell";
+import { THEME_SCRIPT } from "@/components/site/fx";
 
 export const metadata: Metadata = { title: "Studio", robots: { index: false } };
 
@@ -9,8 +10,11 @@ export const instant = false;
 
 export default function StudioLayout({ children }: LayoutProps<"/studio">) {
   return (
-    <Suspense fallback={null}>
-      <StudioShell>{children}</StudioShell>
-    </Suspense>
+    <div className="theme-light min-h-screen">
+      <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      <Suspense fallback={null}>
+        <StudioShell>{children}</StudioShell>
+      </Suspense>
+    </div>
   );
 }

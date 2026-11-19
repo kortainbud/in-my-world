@@ -67,7 +67,7 @@ export function BillingScreen() {
   const paymentsReady = methods.card || methods.crypto.length > 0;
 
   return (
-    <div className="mx-auto w-full max-w-[1080px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
+    <div className="mx-auto w-full max-w-[1200px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
       <PageHeader title="Credits & billing" sub="Every video has a credit cost shown before you create it. Failed videos are refunded automatically." />
       {msg && <Notice tone={msg.tone} className="mb-6">{msg.text}</Notice>}
 
@@ -79,7 +79,13 @@ export function BillingScreen() {
 
       {!paymentsReady && (
         <Notice tone="warn" className="mt-6">
-          Payments aren’t set up yet — add Stripe keys for cards and/or a Solana receiving address for USDC and SOL. Prices below are placeholders from <code className="font-mono text-caption">src/config/plans.ts</code>.
+          {providers?.mode === "development" ? (
+            <>
+              Payments aren’t set up yet — add Stripe keys for cards and/or a Solana receiving address for USDC and SOL. Prices below are placeholders from <code className="font-mono text-caption">src/config/plans.ts</code>.
+            </>
+          ) : (
+            "Upgrades and credit packs open soon. Your free credits refresh every month."
+          )}
         </Notice>
       )}
 
@@ -88,7 +94,7 @@ export function BillingScreen() {
         {PLANS.map((p) => {
           const current = p.id === s.plan.id;
           return (
-            <div key={p.id} className={`flex flex-col rounded-[12px] border p-5 ${current ? "border-accent" : "border-line-soft"} bg-bg-2`}>
+            <div key={p.id} className={`flex flex-col rounded-[16px] border p-5 ${current ? "border-accent" : "border-line-soft"} bg-[var(--card)]`}>
               <div className="flex items-center justify-between">
                 <h3 className="text-lead font-semibold">{p.name}</h3>
                 {current && <Tag tone="accent">Current</Tag>}
@@ -127,7 +133,7 @@ export function BillingScreen() {
       <h2 className="mb-3 mt-10 text-lead font-semibold tracking-[-0.02em]">Credit packs</h2>
       <div className="grid gap-3 sm:grid-cols-2">
         {CREDIT_PACKS.map((c) => (
-          <div key={c.id} className="flex items-center justify-between rounded-[12px] border border-line-soft bg-bg-2 p-4">
+          <div key={c.id} className="flex items-center justify-between rounded-[16px] border border-line-soft bg-[var(--card)] p-4">
             <div>
               <p className="text-body font-medium">{c.credits} credits</p>
               <p className="text-small text-fg-2">{formatPrice(c.priceCents)} one-off · never expire</p>
@@ -152,14 +158,14 @@ export function BillingScreen() {
           </div>
         ))}
       </div>
-      <p className="mt-3 text-caption text-fg-3">Plans renew monthly by card. Credit packs can be paid by card, or with USDC or SOL from a Phantom wallet. Credits are added only after the payment is confirmed on our server.</p>
+      <p className="mt-3 text-caption text-fg-2">Plans renew monthly by card. Credit packs can be paid by card, or with USDC or SOL from any Solana wallet (Phantom, Solflare, Backpack…). Credits are added only after the payment is confirmed on our server.</p>
       <CryptoCheckout pack={crypto?.pack ?? null} token={crypto?.token ?? "USDC"} onClose={() => setCrypto(null)} onPaid={() => { void load(); void refresh(); }} />
 
       <h2 className="mb-3 mt-10 text-lead font-semibold tracking-[-0.02em]">How credits work</h2>
       <CreditTable />
 
       {providers?.mode === "development" && (
-        <div className="mt-10 rounded-[12px] border border-dashed border-[var(--warn-line)] p-5">
+        <div className="mt-10 rounded-[16px] border border-dashed border-[var(--warn-line)] p-5">
           <p className="text-body font-medium text-warn">Development tools</p>
           <p className="mt-1 text-caption text-fg-2">Only available in development mode. Dev credits are labelled in the ledger and can’t exist in production.</p>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -178,7 +184,7 @@ export function BillingScreen() {
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
         <section>
           <h2 className="mb-3 text-lead font-semibold tracking-[-0.02em]">Credit ledger</h2>
-          <div className="overflow-hidden rounded-[12px] border border-line-soft">
+          <div className="overflow-hidden rounded-[16px] border border-line-soft">
             <table className="w-full text-left text-small">
               <thead className="bg-bg-2 text-caption text-fg-3">
                 <tr>
@@ -208,7 +214,7 @@ export function BillingScreen() {
             {s.history.length === 0 ? (
               <p className="text-small text-fg-3">No videos yet.</p>
             ) : (
-              <ul className="divide-y divide-line-soft rounded-[12px] border border-line-soft">
+              <ul className="divide-y divide-line-soft rounded-[16px] border border-line-soft">
                 {s.history.map((h) => (
                   <li key={h.jobId} className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-small">
                     <Link href={`/studio/projects/${h.projectId}`} className="min-w-0 truncate hover:underline">
@@ -227,7 +233,7 @@ export function BillingScreen() {
             {s.payments.length === 0 ? (
               <p className="text-small text-fg-3">No purchases yet.</p>
             ) : (
-              <ul className="divide-y divide-line-soft rounded-[12px] border border-line-soft">
+              <ul className="divide-y divide-line-soft rounded-[16px] border border-line-soft">
                 {s.payments.map((p) => (
                   <li key={p.id} className="flex justify-between px-3.5 py-2.5 text-small">
                     <span>
@@ -249,7 +255,7 @@ export function BillingScreen() {
 
 function Stat({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="rounded-[12px] border border-line-soft bg-bg-2 p-5">
+    <div className="rounded-[16px] border border-line-soft bg-[var(--card)] p-5">
       <p className="text-caption text-fg-2">{label}</p>
       <p className="mt-1 text-page font-semibold">{value}</p>
       {sub && <p className="text-caption text-fg-3">{sub}</p>}

@@ -21,9 +21,9 @@ export function SettingsScreen() {
   if (!me) return null;
 
   return (
-    <div className="mx-auto w-full max-w-[800px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
+    <div className="mx-auto w-full max-w-[1200px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12 [&>*]:max-w-[760px]">
       <PageHeader title="Settings" />
-      <section className="rounded-[12px] border border-line-soft bg-bg-2 p-5">
+      <section className="rounded-[16px] border border-line-soft bg-[var(--card)] p-5">
         <h2 className="text-body font-semibold">Profile</h2>
         <form
           className="mt-4 space-y-4"
@@ -58,22 +58,22 @@ export function SettingsScreen() {
         </form>
       </section>
 
-      <section className="mt-4 rounded-[12px] border border-line-soft bg-bg-2 p-5">
+      <section className="mt-4 rounded-[16px] border border-line-soft bg-[var(--card)] p-5">
         <h2 className="text-body font-semibold">Account</h2>
         <p className="mt-2 text-small text-fg-2">{me.email ? `Signed in as ${me.email}` : "This account signs in with a wallet."}</p>
       </section>
 
-      <section className="mt-4 rounded-[12px] border border-line-soft bg-bg-2 p-5">
+      <section className="mt-4 rounded-[16px] border border-line-soft bg-[var(--card)] p-5">
         <h2 className="text-body font-semibold">Wallets</h2>
         <p className="mt-1 text-small leading-relaxed text-fg-2">
           Link a wallet to sign in with it. Linking only proves ownership — it can’t move funds, and we’ll never ask for a seed phrase or private key. Paying with crypto is separate and happens at checkout.
         </p>
         {me.wallets.length > 0 && (
-          <ul className="mt-4 divide-y divide-line-soft rounded-[10px] border border-line-soft">
+          <ul className="mt-4 divide-y divide-line-soft rounded-[12px] border border-line-soft">
             {me.wallets.map((w) => (
               <li key={w.id} className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-small">
                 <span className="min-w-0">
-                  <span className="block font-medium">{w.chain === "solana" ? "Solana (Phantom)" : "Ethereum (MetaMask)"}</span>
+                  <span className="block font-medium">{w.chain === "solana" ? "Solana wallet" : "Ethereum wallet"}</span>
                   <span className="block truncate font-mono text-caption text-fg-3">{w.address}</span>
                 </span>
                 <Button
@@ -100,7 +100,7 @@ export function SettingsScreen() {
       </section>
 
       {providers && (
-        <section className="mt-4 rounded-[12px] border border-line-soft bg-bg-2 p-5">
+        <section className="mt-4 rounded-[16px] border border-line-soft bg-[var(--card)] p-5">
           <h2 className="text-body font-semibold">Generation engine</h2>
           <dl className="mt-3 grid grid-cols-[120px_1fr] gap-y-2 text-small">
             <dt className="text-fg-3">Mode</dt>

@@ -11,12 +11,13 @@ export const GET = route(async () => {
   const user = await currentUser();
   const providers = providerSummary();
   if (!user) return json({ user: null, providers, voices: narratorVoices() });
-  const sub = await rollPeriods(user.id);
-  const [profile, balance, wallets] = await Promise.all([
+  const [sub, profile, wallets] = await Promise.all([
+    rollPeriods(user.id),
     getDoc<Profile>("profiles", user.id),
-    creditBalance(user.id),
     findDocs<Wallet>("wallets", (q) => q.eq("user_id", user.id)),
   ]);
+  // After rollPeriods, so a new month's allowance is included.
+  const balance = await creditBalance(user.id);
   return json({
     user: {
       id: user.id,

@@ -18,12 +18,19 @@ export type StoryProviderId = "anthropic" | "dev-template";
 export type VoiceProviderId = "macos-say" | "none";
 export type RenderProviderId = "browser";
 
+/**
+ * Production can opt in to the template story engine (labelled "not AI" in
+ * the UI) with ALLOW_TEMPLATE_STORIES=true, so videos work before an
+ * Anthropic key is added.
+ */
+const TEMPLATE_OK = MODE === "development" || process.env.ALLOW_TEMPLATE_STORIES === "true";
+
 function storyProvider(): StoryProviderId | null {
   const explicit = process.env.STORY_PROVIDER as StoryProviderId | undefined;
   if (explicit === "anthropic") return "anthropic";
-  if (explicit === "dev-template") return MODE === "development" ? "dev-template" : null;
+  if (explicit === "dev-template") return TEMPLATE_OK ? "dev-template" : null;
   if (process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN) return "anthropic";
-  return MODE === "development" ? "dev-template" : null;
+  return TEMPLATE_OK ? "dev-template" : null;
 }
 
 function voiceProvider(): VoiceProviderId {
@@ -49,7 +56,7 @@ export function providerSummary() {
   return {
     mode: MODE,
     story: PROVIDERS.story
-      ? { id: PROVIDERS.story, label: PROVIDERS.story === "anthropic" ? `Claude (${STORY_MODEL})` : "Template engine (dev only, not AI)", ai: PROVIDERS.story === "anthropic" }
+      ? { id: PROVIDERS.story, label: PROVIDERS.story === "anthropic" ? `Claude (${STORY_MODEL})` : "Template engine (not AI)", ai: PROVIDERS.story === "anthropic" }
       : { id: null, label: "Not configured", ai: false },
     voice: { id: PROVIDERS.voice, label: PROVIDERS.voice === "macos-say" ? "macOS system voices (dev only)" : "No narration provider" },
     render: { id: PROVIDERS.render, label: "In-browser renderer (WebCodecs)" },

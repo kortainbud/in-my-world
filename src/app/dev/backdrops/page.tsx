@@ -13,7 +13,7 @@ import { rng } from "@/lib/engine/rng";
 import type { VisualStyle } from "@/lib/engine/types";
 
 type Spec = { name: string; w: number; h: number; style: VisualStyle; kind: "hills" | "ocean" | "lineup" | "meadow" | "night" | "sunset" | "island" | "finale" | "obj";
-  obj?: "tree" | "tree-round" | "house" | "cloud" | "chunk" | "tower"; clouds?: "all" | "edges" | "none"; dark?: boolean; transparent?: boolean };
+  obj?: "tree" | "tree-round" | "house" | "cloud" | "chunk" | "tower" | "car" | "rock" | "car-blue"; clouds?: "all" | "edges" | "none"; dark?: boolean; transparent?: boolean };
 
 const SPECS: Spec[] = [
   { name: "hero", w: 2560, h: 1300, style: "minecraft", kind: "hills" },
@@ -29,7 +29,7 @@ const SPECS: Spec[] = [
   { name: "finale", w: 2560, h: 1800, style: "minecraft", kind: "finale", clouds: "edges" },
   { name: "finale-night", w: 2560, h: 1800, style: "minecraft", kind: "finale", clouds: "none", dark: true },
   { name: "lineup-night", w: 2400, h: 1000, style: "roblox", kind: "lineup", dark: true, clouds: "none" },
-  ...(["tree", "tree-round", "house", "cloud", "chunk", "tower"] as const).map((o) => ({ name: `obj-${o}`, w: 420, h: 420, style: (o === "tree-round" || o === "tower" ? "roblox" : "minecraft") as VisualStyle, kind: "obj" as const, obj: o, transparent: true, clouds: "none" as const })),
+  ...(["tree", "tree-round", "house", "cloud", "chunk", "tower", "car", "car-blue", "rock"] as const).map((o) => ({ name: `obj-${o}`, w: 420, h: 420, style: (o === "tree-round" || o === "tower" || o.startsWith("car") ? "roblox" : "minecraft") as VisualStyle, kind: "obj" as const, obj: o, transparent: true, clouds: "none" as const })),
 ];
 
 function render(spec: Spec): string {
@@ -121,12 +121,26 @@ function render(spec: Spec): string {
       box(2.4, 6, 2.4, "#9aa5b1", 0, 0, 0, "noise");
       for (let y = 1; y < 6; y += 1.4) for (const x of [-0.6, 0.6]) box(0.5, 0.7, 0.05, "#cfe9ff", x, y, 1.22, "glass");
       box(2.8, 0.4, 2.8, "#e63946", 0, 6, 0, "plain");
+    } else if (o === "car" || o === "car-blue") {
+      const body = o === "car" ? "#e63946" : "#2f7de1";
+      box(5.2, 1.3, 2.6, body, 0, 0.55, 0, "plain");
+      box(3, 1.1, 2.3, body, -0.3, 1.85, 0, "plain");
+      box(0.05, 0.8, 2.0, "#cfe9ff", 1.21, 2.0, 0, "glass");
+      box(2.6, 0.8, 0.05, "#cfe9ff", -0.3, 2.0, 1.16, "glass");
+      box(0.08, 0.35, 0.5, "#fff3b0", 2.62, 1.1, 0.8, "plain");
+      box(0.08, 0.35, 0.5, "#fff3b0", 2.62, 1.1, -0.8, "plain");
+      for (const x of [-1.6, 1.6]) for (const z of [-1.3, 1.3]) box(1.1, 1.1, 0.5, "#222222", x, 0, z, "plain");
+    } else if (o === "rock") {
+      box(3, 1.6, 2.6, "#8a8f96", 0, 0, 0, "stone");
+      box(2, 1.2, 1.8, "#9aa0a8", -0.3, 1.6, 0.1, "stone");
+      box(1.4, 0.9, 1.4, "#7c8189", 1.4, 0, 1.2, "stone");
+      box(0.6, 0.3, 0.6, "#6cc04a", -0.8, 2.8, 0.2, "grass");
     }
     sun.position.set(10, 20, 14);
     camera.fov = 26;
-    const size = o === "cloud" ? 9 : o === "chunk" ? 5 : o === "tower" ? 9 : 10;
+    const size = o === "cloud" ? 9 : o === "chunk" ? 5 : o === "tower" ? 9 : o.startsWith("car") ? 8 : o === "rock" ? 6 : 10;
     camera.position.set(size * 1.3, size * 1.0, size * 1.7);
-    camera.lookAt(0, o === "chunk" ? -0.5 : o === "cloud" ? 0.3 : size * 0.33, 0);
+    camera.lookAt(0, o === "chunk" ? -0.5 : o === "cloud" ? 0.3 : o.startsWith("car") ? 1.2 : o === "rock" ? 1.2 : size * 0.33, 0);
     camera.updateProjectionMatrix();
   } else if (spec.kind === "island") {
     // A floating voxel island: grass top, dirt, a tapering stone underside.

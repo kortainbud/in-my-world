@@ -90,7 +90,7 @@ export const FAQS: { q: string; a: string }[] = [
   { q: "Can I reuse characters?", a: "Yes. Save characters from any story or build your own, then cast them in future videos. They keep the same look every time." },
   { q: "How do credits work?", a: "Each plan includes a monthly credit allowance. A video’s cost depends on its length, narration and export quality, and you see it before you create. If a generation fails, the credits are refunded automatically." },
   { q: "Do I own the videos I make?", a: "You own the videos you create, subject to our Terms and the rights of anyone else involved — for example, featured personalities are licensed for use inside the product. Final terms will be published before launch." },
-  { q: "Do you accept crypto payments?", a: "Crypto payments are planned as a separate payment option alongside cards. You can already link a Phantom or MetaMask wallet to sign in — linking never moves funds, and we never ask for seed phrases or private keys." },
+  { q: "Do you accept crypto payments?", a: "Yes — credit packs can be paid with USDC or SOL from any Solana wallet (Phantom, Solflare, Backpack and others), once payments are switched on. You can also sign in with a Solana wallet; signing in never moves funds, and we never ask for seed phrases or private keys." },
 ];
 
 export function FAQ() {

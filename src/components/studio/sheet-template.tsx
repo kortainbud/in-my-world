@@ -39,7 +39,7 @@ Then I received a message saying ______.`;
 export function SheetTemplate() {
   const [copied, setCopied] = useState(false);
   return (
-    <div className="rounded-[12px] border border-line-soft bg-bg-2">
+    <div className="rounded-[16px] border border-line-soft bg-[var(--card)]">
       <div className="flex items-center justify-between border-b border-line-soft px-4 py-3">
         <div>
           <h2 className="text-body font-semibold">Story development sheet</h2>

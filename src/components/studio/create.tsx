@@ -146,7 +146,7 @@ export function CreateScreen() {
 
   return (
     <div className="mx-auto w-full max-w-[800px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
-      <h1 className="display text-center text-display-sm sm:text-display">What happens in your world?</h1>
+      <h1 className="display text-center text-display-sm sm:text-display">what happens in your world?</h1>
       <p className="mx-auto mt-3 max-w-md text-center text-body text-fg-2">One sentence is enough. We’ll write it, cast it, animate it, narrate it and cut it.</p>
 
       <form
@@ -156,7 +156,7 @@ export function CreateScreen() {
           void submit();
         }}
       >
-        <div className="rounded-[14px] border border-line bg-bg-2 transition-colors focus-within:border-[var(--line-strong)]">
+        <div className="rounded-[20px] border border-line bg-[var(--card)] transition-colors focus-within:border-fg">
           <label htmlFor="prompt" className="sr-only">
             Your idea
           </label>
@@ -171,7 +171,7 @@ export function CreateScreen() {
             }}
             placeholder="In my world, everyone gets richer every time they tell a lie..."
             rows={4}
-            className="block min-h-[132px] w-full resize-y rounded-[14px] bg-transparent px-5 pt-4 text-title leading-relaxed text-fg outline-none placeholder:text-fg-3 sm:text-title"
+            className="block min-h-[132px] w-full resize-y rounded-[20px] bg-transparent px-5 pt-4 text-title leading-relaxed text-fg outline-none placeholder:text-fg-3 sm:text-title"
           />
           <div className="flex items-center justify-between px-5 pb-3 text-caption text-fg-3">
             <span>{tooShort ? "Keep going — a few more words." : isOnlyStarter ? "Finish the sentence." : "Tip: ⌘/Ctrl + Enter to create"}</span>
@@ -181,7 +181,7 @@ export function CreateScreen() {
 
         <div className="mt-3 flex flex-wrap gap-1.5" aria-label="Prompt starters">
           {PROMPT_STARTERS.map((s) => (
-            <button key={s} type="button" onClick={() => insertStarter(s)} className="h-8 rounded-[8px] border border-line-soft bg-bg px-3 text-small text-fg-2 transition-colors hover:border-line hover:text-fg">
+            <button key={s} type="button" onClick={() => insertStarter(s)} className="h-8 rounded-full border border-line bg-[var(--card)] px-3.5 text-small text-fg-2 transition-colors hover:border-[var(--line-strong)] hover:text-fg">
               {s}
             </button>
           ))}
@@ -218,7 +218,7 @@ export function CreateScreen() {
                       setFormat(pr.format);
                       ta.current?.focus();
                     }}
-                    className="rounded-[12px] border border-line-soft bg-bg-2 p-3.5 text-left transition-colors hover:border-line"
+                    className="rounded-[16px] border border-line-soft bg-[var(--card)] p-3.5 text-left transition-colors hover:border-line"
                   >
                     <span className="block text-body font-medium leading-snug">{pr.premise}</span>
                     <span className="mt-1 block text-caption leading-snug text-fg-2">{pr.rule}</span>
@@ -233,7 +233,7 @@ export function CreateScreen() {
           )}
         </div>
 
-        <div className="mt-8 divide-y divide-line-soft rounded-[14px] border border-line bg-bg-2">
+        <div className="mt-8 divide-y divide-line rounded-[20px] border border-line bg-[var(--card)]">
           <Row label="Story format" hint="How the story is shaped and how it ends.">
             <div role="radiogroup" aria-label="Story format" className="grid gap-2 sm:grid-cols-3">
               {FORMATS.map((f) => {
@@ -245,7 +245,7 @@ export function CreateScreen() {
                     role="radio"
                     aria-checked={on}
                     onClick={() => setFormat(f)}
-                    className={`rounded-[10px] border p-2.5 text-left transition-colors ${on ? "border-accent bg-[var(--accent-soft)]" : "border-line-soft bg-bg hover:border-line"}`}
+                    className={`rounded-[12px] border p-2.5 text-left transition-colors ${on ? "border-fg bg-bg-2" : "border-line bg-[var(--card)] hover:border-[var(--line-strong)]"}`}
                   >
                     <span className="block text-small font-medium">{FORMAT_INFO[f].label}</span>
                     <span className="mt-0.5 block text-micro leading-snug text-fg-2">{FORMAT_INFO[f].blurb}</span>
@@ -265,7 +265,7 @@ export function CreateScreen() {
                     role="radio"
                     aria-checked={on}
                     onClick={() => setStyle(s)}
-                    className={`relative flex items-center gap-3 rounded-[10px] border p-2 pr-3 text-left transition-colors ${on ? "border-accent bg-[var(--accent-soft)]" : "border-line-soft bg-bg hover:border-line"}`}
+                    className={`relative flex items-center gap-3 rounded-[12px] border p-2 pr-3 text-left transition-colors ${on ? "border-fg bg-bg-2" : "border-line bg-[var(--card)] hover:border-[var(--line-strong)]"}`}
                   >
                     <Portrait appearance={MILO} style={s} className="h-14 w-12 shrink-0" />
                     <span className="min-w-0">
@@ -275,7 +275,7 @@ export function CreateScreen() {
                       </span>
                       <span className="mt-0.5 block text-caption leading-snug text-fg-2">{STYLE_LABELS[s].blurb}</span>
                     </span>
-                    <span className={`absolute right-2.5 top-2.5 h-3.5 w-3.5 rounded-full border-2 ${on ? "border-accent bg-accent" : "border-line"}`} aria-hidden />
+                    <span className={`absolute right-2.5 top-2.5 h-3.5 w-3.5 rounded-full border-2 ${on ? "border-fg bg-fg" : "border-[var(--line-strong)]"}`} aria-hidden />
                   </button>
                 );
               })}
@@ -284,7 +284,7 @@ export function CreateScreen() {
 
           <Row label="Video length" hint={`Your ${me?.plan.name ?? "Free"} plan goes up to ${maxDur} seconds.`}>
             <div className="flex flex-wrap items-center gap-2">
-              <div role="radiogroup" aria-label="Video length" className="inline-flex rounded-[9px] border border-line bg-bg p-0.5">
+              <div role="radiogroup" aria-label="Video length" className="inline-flex rounded-full border border-line bg-bg-2 p-0.5">
                 {DURATIONS.map((d) => {
                   const locked = d > maxDur;
                   return (
@@ -295,7 +295,7 @@ export function CreateScreen() {
                       aria-checked={duration === d}
                       disabled={locked}
                       onClick={() => setDuration(d)}
-                      className={`h-8 rounded-[7px] px-3.5 text-small font-medium transition-colors disabled:cursor-not-allowed ${duration === d ? "bg-fg text-bg" : locked ? "text-fg-3" : "text-fg-2 hover:text-fg"}`}
+                      className={`h-8 rounded-full px-3.5 text-small font-medium transition-colors disabled:cursor-not-allowed ${duration === d ? "bg-fg text-bg" : locked ? "text-fg-3" : "text-fg-2 hover:text-fg"}`}
                     >
                       {d}s{locked && <LockIcon />}
                     </button>
@@ -312,8 +312,8 @@ export function CreateScreen() {
 
           <Row label="Aspect ratio">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex h-8 items-center gap-2 rounded-[8px] border border-accent bg-[var(--accent-soft)] px-3 text-small font-medium">
-                <span className="h-3.5 w-2 rounded-[2px] border-[1.5px] border-accent" aria-hidden />
+              <span className="inline-flex h-8 items-center gap-2 rounded-full border border-fg bg-bg-2 px-3.5 text-small font-medium">
+                <span className="h-3.5 w-2 rounded-[2px] border-[1.5px] border-fg" aria-hidden />
                 9:16 vertical
               </span>
               <span className="text-caption text-fg-3">More ratios later</span>
@@ -322,11 +322,11 @@ export function CreateScreen() {
 
           <Row label="Creation mode">
             <div className="flex flex-wrap gap-2">
-              <span className="inline-flex h-8 items-center rounded-[8px] border border-accent bg-[var(--accent-soft)] px-3 text-small font-medium">Fully automatic</span>
+              <span className="inline-flex h-8 items-center rounded-full border border-fg bg-bg-2 px-3.5 text-small font-medium">Fully automatic</span>
               {["Guided creation", "Advanced editing"].map((m) => (
-                <span key={m} aria-disabled="true" className="inline-flex h-8 cursor-not-allowed items-center gap-2 rounded-[8px] border border-dashed border-line px-3 text-small text-fg-3">
+                <span key={m} aria-disabled="true" className="inline-flex h-8 cursor-not-allowed items-center gap-2 rounded-full border border-line px-3.5 text-small text-fg-2">
                   {m}
-                  <span className="rounded-[4px] bg-bg-3 px-1.5 py-px font-mono text-micro uppercase tracking-wide text-fg-2">Coming soon</span>
+                  <span className="rounded-full bg-bg-3 px-2 py-px text-micro text-fg-2">soon</span>
                 </span>
               ))}
             </div>
@@ -336,7 +336,7 @@ export function CreateScreen() {
             <div className="flex flex-wrap items-center gap-2">
               {castChars.length === 0 && <span className="text-small text-fg-2">Auto-cast from the library</span>}
               {castChars.map((c, i) => (
-                <span key={c!.id} className="inline-flex h-8 items-center gap-1.5 rounded-[8px] border border-line bg-bg pl-1 pr-2 text-small">
+                <span key={c!.id} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-[var(--card)] pl-1 pr-2.5 text-small">
                   <Portrait appearance={c!.appearance} style={style} className="h-6 w-6" />
                   {c!.name}
                   {i === 0 && <span className="text-micro text-fg-3">lead</span>}
@@ -361,7 +361,7 @@ export function CreateScreen() {
                     role="radio"
                     aria-checked={voice === v.id}
                     onClick={() => setVoice(v.id)}
-                    className={`h-8 rounded-[8px] border px-3 text-small transition-colors ${voice === v.id ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft bg-bg text-fg-2 hover:text-fg"}`}
+                    className={`h-8 rounded-full border px-3.5 text-small transition-colors ${voice === v.id ? "border-fg bg-bg-2 text-fg" : "border-line bg-[var(--card)] text-fg-2 hover:text-fg"}`}
                   >
                     {v.label} <span className="text-fg-3">· {v.accent}</span>
                   </button>
@@ -378,7 +378,10 @@ export function CreateScreen() {
             <strong className="font-medium">Development mode.</strong> Story: {providers.story.label}. Voice: {providers.voice.label}. Rendering happens in this browser tab with WebCodecs — keep the tab open until your video finishes.
           </Notice>
         )}
-        {providers && !providers.story.id && <Notice tone="danger" className="mt-4">Video generation is unavailable: no story provider is configured.</Notice>}
+        {providers && !providers.story.id && <Notice tone="danger" className="mt-4">Video creation isn’t switched on yet. Check back soon.</Notice>}
+        {providers?.mode === "production" && providers.story.id && !providers.story.ai && (
+          <p className="mt-4 text-caption text-fg-2">Stories are currently written by our template engine, not AI. Keep this tab open while your video renders.</p>
+        )}
 
         {error && (
           <Notice tone="danger" className="mt-4">

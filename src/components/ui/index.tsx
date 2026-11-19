@@ -16,16 +16,18 @@ export function LinkButton({ variant = "secondary", size = "md", className = "",
   return <Link {...p} className={btn(variant, size, className)} />;
 }
 
+/** The site's logo: a little blocky face over grass. */
 export function Logo({ className = "" }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 font-semibold tracking-[-0.03em] ${className}`}>
-      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden>
-        <rect x="1" y="1" width="20" height="20" rx="4" fill="#B9F36A" />
-        <rect x="6" y="6" width="4" height="4" fill="#101010" />
-        <rect x="12" y="6" width="4" height="4" fill="#101010" />
-        <rect x="6" y="13" width="10" height="3" fill="#101010" />
+    <span className={`inline-flex items-center gap-2 text-lead font-semibold tracking-[-0.02em] ${className}`}>
+      <svg width="26" height="26" viewBox="0 0 22 22" aria-hidden>
+        <rect x="1" y="1" width="20" height="20" rx="5" fill="#29A9F2" />
+        <rect x="1" y="14" width="20" height="7" fill="#7FD14F" />
+        <rect x="6" y="5" width="3.5" height="3.5" fill="#131316" />
+        <rect x="12.5" y="5" width="3.5" height="3.5" fill="#131316" />
+        <rect x="6" y="10.5" width="10" height="2.2" fill="#131316" />
       </svg>
-      In My World
+      in my world
     </span>
   );
 }
@@ -46,7 +48,7 @@ export function Tag({ children, tone = "default", className = "" }: { children: 
     warn: "border-[var(--warn-line)] text-warn bg-[var(--warn-bg)]",
     danger: "border-[var(--danger-line)] text-danger bg-[var(--danger-bg)]",
   };
-  return <span className={`inline-flex items-center gap-1 rounded-[5px] border px-1.5 py-0.5 text-micro font-medium ${tones[tone]} ${className}`}>{children}</span>;
+  return <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-micro font-medium ${tones[tone]} ${className}`}>{children}</span>;
 }
 
 export function Spinner({ className = "" }: { className?: string }) {
@@ -60,7 +62,7 @@ export function Notice({ tone = "default", children, className = "" }: { tone?: 
     warn: "border-[var(--warn-line)] bg-[var(--warn-bg)] text-[var(--warn-fg)]",
     accent: "border-[var(--accent-line)] bg-[var(--accent-soft)] text-[var(--accent-text)]",
   };
-  return <div role={tone === "danger" ? "alert" : undefined} className={`rounded-[10px] border px-3.5 py-2.5 text-small leading-relaxed ${tones[tone]} ${className}`}>{children}</div>;
+  return <div role={tone === "danger" ? "alert" : undefined} className={`rounded-[12px] border px-3.5 py-2.5 text-small leading-relaxed ${tones[tone]} ${className}`}>{children}</div>;
 }
 
 export function Segmented<T extends string | number>({
@@ -73,7 +75,7 @@ export function Segmented<T extends string | number>({
   className?: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className={`inline-flex rounded-[9px] border border-line bg-bg-2 p-0.5 ${className}`}>
+    <div role="radiogroup" aria-label={label} className={`inline-flex rounded-full border border-line bg-bg-2 p-0.5 ${className}`}>
       {options.map((o) => {
         const on = o.value === value;
         return (
@@ -85,7 +87,7 @@ export function Segmented<T extends string | number>({
             disabled={o.disabled}
             title={o.hint}
             onClick={() => onChange(o.value)}
-            className={`h-8 rounded-[7px] px-3 text-small font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${on ? "bg-fg text-bg" : "text-fg-2 hover:text-fg"}`}
+            className={`h-8 rounded-full px-3.5 text-small font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${on ? "bg-fg text-bg" : "text-fg-2 hover:text-fg"}`}
           >
             {o.label}
           </button>
@@ -118,7 +120,7 @@ export function Modal({ open, onClose, children, label, className = "" }: { open
 
 export function Empty({ title, body, action }: { title: string; body?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-[12px] border border-dashed border-line px-6 py-16 text-center">
+    <div className="flex flex-col items-center justify-center rounded-[16px] border border-line bg-[var(--card)] px-6 py-16 text-center">
       <p className="text-body font-medium">{title}</p>
       {body && <p className="mt-1.5 max-w-sm text-small text-fg-2">{body}</p>}
       {action && <div className="mt-5">{action}</div>}
@@ -137,4 +139,4 @@ export function Field({ label, hint, children }: { label: string; hint?: ReactNo
 }
 
 export const inputCls =
-  "h-10 w-full rounded-[8px] border border-line bg-bg-2 px-3 text-sm text-fg placeholder:text-fg-3 outline-none transition-colors focus:border-[var(--line-strong)]";
+  "h-11 w-full rounded-[12px] border border-line bg-[var(--card)] px-3.5 text-body text-fg placeholder:text-fg-3 outline-none transition-colors hover:border-[var(--line-strong)] focus:border-fg";

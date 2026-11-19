@@ -21,7 +21,7 @@ function Swatches({ value, onChange, colors, name }: { value: string; onChange: 
           aria-checked={value.toLowerCase() === c.toLowerCase()}
           aria-label={c}
           onClick={() => onChange(c)}
-          className={`h-7 w-7 rounded-[7px] border-2 transition-transform hover:scale-105 ${value.toLowerCase() === c.toLowerCase() ? "border-fg" : "border-transparent"}`}
+          className={`h-7 w-7 rounded-[10px] border-2 transition-transform hover:scale-105 ${value.toLowerCase() === c.toLowerCase() ? "border-fg" : "border-transparent"}`}
           style={{ background: c, boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.12)" }}
         />
       ))}
@@ -39,7 +39,7 @@ function Chips<T extends string>({ value, onChange, options, name }: { value: T;
           role="radio"
           aria-checked={value === o}
           onClick={() => onChange(o)}
-          className={`h-8 rounded-[7px] border px-2.5 text-caption transition-colors ${value === o ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
+          className={`h-8 rounded-[10px] border px-2.5 text-caption transition-colors ${value === o ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
         >
           {label(o)}
         </button>
@@ -108,14 +108,14 @@ export function Builder({ id }: { id?: string }) {
   if (!loaded) return <div className="flex min-h-[50vh] items-center justify-center text-small text-fg-3">Loading…</div>;
 
   return (
-    <div className="mx-auto w-full max-w-[1080px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
+    <div className="mx-auto w-full max-w-[1200px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
       <Link href="/studio/characters" className="text-small text-fg-2 hover:text-fg">
         ← Characters
       </Link>
       <h1 className="mt-3 text-page font-semibold">{id ? `Edit ${name || "character"}` : "New character"}</h1>
       <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,420px)_1fr]">
         <div className="lg:sticky lg:top-6 lg:self-start">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[14px] border border-line bg-bg-2">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-[16px] border border-line bg-[var(--card)]">
             <CharacterPreview appearance={ap} style={preview} className="absolute inset-0" />
             <div className="absolute left-3 top-3">
               <Segmented label="Preview style" value={preview} onChange={setPreview} options={[{ value: "roblox", label: "Roblox" }, { value: "minecraft", label: "Minecraft" }]} />

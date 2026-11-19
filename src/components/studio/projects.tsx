@@ -86,7 +86,7 @@ export function ProjectsScreen() {
 
       {notice && <Notice tone={notice.tone} className="mb-4">{notice.text}</Notice>}
       {error && <Notice tone="danger">{error}</Notice>}
-      {!data && !error && <Grid>{Array.from({ length: 8 }, (_, i) => <div key={i} className="aspect-[9/16] animate-pulse rounded-[12px] bg-bg-2" />)}</Grid>}
+      {!data && !error && <Grid>{Array.from({ length: 8 }, (_, i) => <div key={i} className="aspect-[9/16] animate-pulse rounded-[16px] bg-bg-2" />)}</Grid>}
       {data && data.projects.length === 0 && (
         <Empty
           title={tab === "all" ? "Nothing here yet" : `No ${tab} videos`}
@@ -98,7 +98,7 @@ export function ProjectsScreen() {
         <Grid>
           {data.projects.map((p) => (
             <article key={p.id} className="group min-w-0">
-              <Link href={`/studio/projects/${p.id}`} className="relative block aspect-[9/16] overflow-hidden rounded-[12px] border border-line-soft bg-bg-2">
+              <Link href={`/studio/projects/${p.id}`} className="relative block aspect-[9/16] overflow-hidden rounded-[16px] border border-line-soft bg-[var(--card)]">
                 {p.thumb ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={p.thumb} alt="" loading="lazy" className={`absolute inset-0 h-full w-full object-cover ${p.status !== "completed" ? "opacity-50" : ""}`} />
@@ -145,7 +145,7 @@ export function ProjectsScreen() {
       />
       <Modal open={!!confirm} onClose={() => setConfirm(null)} label="Delete video">
         {confirm && (
-          <div className="w-[min(420px,92vw)] rounded-[14px] border border-line bg-bg-2 p-5">
+          <div className="w-[min(420px,92vw)] rounded-[16px] border border-line bg-[var(--card)] p-5">
             <h2 className="text-lg font-semibold tracking-[-0.02em]">Delete “{confirm.title}”?</h2>
             <p className="mt-2 text-small text-fg-2">
               {confirm.status === "awaiting_render" ? "It hasn’t rendered yet, so its credits will be refunded. " : ""}This can’t be undone.
@@ -214,14 +214,14 @@ function Menu({ items }: { items: { label: string; href?: string; download?: boo
         <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden><circle cx="3.5" cy="8" r="1.3" fill="currentColor" /><circle cx="8" cy="8" r="1.3" fill="currentColor" /><circle cx="12.5" cy="8" r="1.3" fill="currentColor" /></svg>
       </button>
       {open && (
-        <div role="menu" className="absolute right-0 top-8 z-20 w-48 rounded-[10px] border border-line bg-bg-2 p-1 shadow-2xl shadow-black/60">
+        <div role="menu" className="absolute right-0 top-8 z-20 w-48 rounded-[12px] border border-line bg-[var(--card)] p-1 shadow-2xl shadow-black/60">
           {items.map((it) =>
             it.href ? (
-              <a key={it.label} role="menuitem" href={it.href} download={it.download || undefined} className="block rounded-[7px] px-2.5 py-1.5 text-small text-fg-2 hover:bg-bg-3 hover:text-fg">
+              <a key={it.label} role="menuitem" href={it.href} download={it.download || undefined} className="block rounded-[10px] px-2.5 py-1.5 text-small text-fg-2 hover:bg-bg-3 hover:text-fg">
                 {it.label}
               </a>
             ) : (
-              <button key={it.label} role="menuitem" onClick={it.onClick} className={`block w-full rounded-[7px] px-2.5 py-1.5 text-left text-small hover:bg-bg-3 ${it.danger ? "text-[var(--danger-fg)]" : "text-fg-2 hover:text-fg"}`}>
+              <button key={it.label} role="menuitem" onClick={it.onClick} className={`block w-full rounded-[10px] px-2.5 py-1.5 text-left text-small hover:bg-bg-3 ${it.danger ? "text-[var(--danger-fg)]" : "text-fg-2 hover:text-fg"}`}>
                 {it.label}
               </button>
             ),

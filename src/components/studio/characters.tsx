@@ -61,7 +61,7 @@ export function CharactersScreen() {
           {mineCount} of {me.plan.privateCharacters} saved characters on the {me.plan.name} plan.
         </p>
       )}
-      {!chars && <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{Array.from({ length: 10 }, (_, i) => <div key={i} className="h-72 animate-pulse rounded-[12px] bg-bg-2" />)}</div>}
+      {!chars && <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{Array.from({ length: 10 }, (_, i) => <div key={i} className="h-72 animate-pulse rounded-[16px] bg-bg-2" />)}</div>}
       {chars && chars.length === 0 && (
         <Empty
           title={tab === "mine" ? "No characters yet" : "Nothing here"}
@@ -72,8 +72,8 @@ export function CharactersScreen() {
       {chars && chars.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {chars.map((c) => (
-            <article key={c.id} className="flex flex-col rounded-[12px] border border-line-soft bg-bg-2 p-3">
-              <div className="relative rounded-[9px] bg-bg">
+            <article key={c.id} className="flex flex-col rounded-[16px] border border-line-soft bg-[var(--card)] p-3">
+              <div className="relative rounded-[12px] bg-bg">
                 <Portrait appearance={c.appearance} full pose="wave" className="mx-auto h-44 w-36" alt={c.name} />
                 <span className="absolute left-2 top-2">{c.isMine ? <Tag>{c.visibility === "public" ? "Yours · public" : "Yours · private"}</Tag> : <CharacterSourceTag source={c.source} />}</span>
               </div>
@@ -89,7 +89,7 @@ export function CharactersScreen() {
                     Cast in a story
                   </LinkButton>
                 ) : (
-                  <span className="flex h-8 flex-1 items-center justify-center rounded-[7px] border border-dashed border-line px-2 text-center text-micro leading-tight text-fg-3" title={c.cast.reason}>
+                  <span className="flex h-8 flex-1 items-center justify-center rounded-[10px] border border-line px-2 text-center text-micro leading-tight text-fg-3" title={c.cast.reason}>
                     {c.reusePolicy === "paid_plans" ? (
                       <Link href="/studio/billing" className="hover:text-fg">
                         Creator & Pro
@@ -116,7 +116,7 @@ export function CharactersScreen() {
       )}
       <Modal open={!!del} onClose={() => setDel(null)} label="Delete character">
         {del && (
-          <div className="w-[min(420px,92vw)] rounded-[14px] border border-line bg-bg-2 p-5">
+          <div className="w-[min(420px,92vw)] rounded-[16px] border border-line bg-[var(--card)] p-5">
             <h2 className="text-lg font-semibold tracking-[-0.02em]">Delete {del.name}?</h2>
             <p className="mt-2 text-small text-fg-2">Videos already made with {del.name} stay as they are. You just won’t be able to cast them again.</p>
             <div className="mt-5 flex justify-end gap-2">

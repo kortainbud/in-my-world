@@ -41,7 +41,7 @@ export function VideoCard({ item, onOpen, footer, size = "md" }: { item: VideoIt
         onFocus={() => setHover(true)}
         onBlur={() => setHover(false)}
         aria-label={`Play “${item.title}”`}
-        className="relative block aspect-[9/16] w-full overflow-hidden rounded-[12px] border border-line-soft bg-bg-3"
+        className="relative block aspect-[9/16] w-full overflow-hidden rounded-[16px] border border-line-soft bg-bg-3"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={item.thumb} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
@@ -86,7 +86,7 @@ export function VideoModal({ item, onClose, actions }: { item: VideoItem | null;
   return (
     <Modal open={!!item} onClose={onClose} label={item?.title ?? "Video"}>
       {item && (
-        <div className="flex max-h-[94vh] w-[min(920px,96vw)] flex-col overflow-hidden rounded-[14px] border border-line bg-bg-2 md:flex-row">
+        <div className="flex max-h-[94vh] w-[min(920px,96vw)] flex-col overflow-hidden rounded-[16px] border border-line bg-[var(--card)] md:flex-row">
           <div className="flex items-center justify-center bg-black md:w-[min(420px,50vh)]">
             <TrackedVideo
               target={item.id}
@@ -118,7 +118,7 @@ export function VideoModal({ item, onClose, actions }: { item: VideoItem | null;
                 <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden><path d="M3.5 3.5l9 9m0-9l-9 9" stroke="currentColor" strokeWidth="1.6" /></svg>
               </button>
             </div>
-            <div className="rounded-[10px] border border-line-soft bg-bg p-3.5">
+            <div className="rounded-[12px] border border-line-soft bg-bg p-3.5">
               <p className="eyebrow mb-1.5">The idea</p>
               <p className="text-body leading-snug">{item.prompt}</p>
             </div>

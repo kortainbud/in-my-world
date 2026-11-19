@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/client/api";
 import { Button, Modal, Notice, Spinner } from "@/components/ui";
+import { WalletPicker } from "@/components/wallet";
+import { base58, canPay, connectWallet, signAndSend, walletError, type StandardWallet } from "@/lib/client/wallets";
 
 type Token = "USDC" | "SOL";
 interface Quote {
@@ -18,25 +20,13 @@ interface Quote {
   usd: number;
   usdRate?: number;
 }
-type PhantomProvider = {
-  isPhantom?: boolean;
-  publicKey?: { toString(): string; toBase58(): string };
-  connect(): Promise<{ publicKey: { toString(): string } }>;
-  signAndSendTransaction(tx: unknown): Promise<{ signature: string }>;
-};
-
-function phantom(): PhantomProvider | undefined {
-  const w = window as unknown as { phantom?: { solana?: PhantomProvider }; solana?: PhantomProvider };
-  return w.phantom?.solana ?? (w.solana?.isPhantom ? w.solana : undefined);
-}
-
 const fmt = (amount: string, decimals: number, token: Token) => {
   const n = Number(amount) / 10 ** decimals;
   return `${token === "SOL" ? n.toFixed(4) : n.toFixed(2)} ${token}`;
 };
 
 /**
- * Pay for a credit pack with USDC or SOL from Phantom. The wallet only signs
+ * Pay for a credit pack with USDC or SOL from any Solana wallet. The wallet only signs
  * this one payment; credits arrive after our server confirms it on-chain.
  */
 export function CryptoCheckout({ pack, token, onClose, onPaid }: { pack: { id: string; credits: number } | null; token: Token; onClose: () => void; onPaid: () => void }) {
@@ -45,7 +35,7 @@ export function CryptoCheckout({ pack, token, onClose, onPaid }: { pack: { id: s
   const [error, setError] = useState<string | null>(null);
   const [sig, setSig] = useState<string | null>(null);
   const [left, setLeft] = useState(0);
-  const hasPhantom = typeof window !== "undefined" && !!phantom();
+  const [walletName, setWalletName] = useState("your wallet");
 
   useEffect(() => {
     if (!pack) return;
@@ -70,18 +60,18 @@ export function CryptoCheckout({ pack, token, onClose, onPaid }: { pack: { id: s
     return () => clearInterval(t);
   }, [quote]);
 
-  const pay = async () => {
+  const pay = async (w: StandardWallet) => {
     if (!quote) return;
-    const w = phantom();
-    if (!w) return;
+    setWalletName(w.name);
     setError(null);
     setStep("signing");
     try {
-      const { publicKey } = await w.connect();
+      const account = await connectWallet(w);
       const [{ PublicKey }, { buildPaymentTransaction }] = await Promise.all([import("@solana/web3.js"), import("@/lib/solana-pay")]);
       const bh = await api<{ blockhash: string; lastValidBlockHeight: number }>("/api/billing/solana/blockhash");
-      const txn = buildPaymentTransaction(quote, new PublicKey(publicKey.toString()), bh.blockhash, bh.lastValidBlockHeight);
-      const { signature } = await w.signAndSendTransaction(txn);
+      const txn = buildPaymentTransaction(quote, new PublicKey(account.address), bh.blockhash, bh.lastValidBlockHeight);
+      const bytes = txn.serialize({ requireAllSignatures: false, verifySignatures: false });
+      const signature = base58(await signAndSend(w, account, new Uint8Array(bytes), quote.cluster));
       setSig(signature);
       setStep("confirming");
       for (let i = 0; i < 40; i++) {
@@ -95,7 +85,7 @@ export function CryptoCheckout({ pack, token, onClose, onPaid }: { pack: { id: s
       }
       setError("The payment was sent but hasn't confirmed yet. It will be credited as soon as it does — you can close this.");
     } catch (e) {
-      const m = e instanceof ApiError ? e.message : e instanceof Error && /reject|cancel|denied/i.test(e.message) ? "You cancelled the payment in Phantom." : e instanceof Error ? e.message : "The payment didn't go through.";
+      const m = e instanceof ApiError ? e.message : walletError(e, "The payment didn't go through.");
       setError(m);
       setStep("ready");
     }
@@ -103,13 +93,13 @@ export function CryptoCheckout({ pack, token, onClose, onPaid }: { pack: { id: s
 
   return (
     <Modal open={!!pack} onClose={onClose} label={`Buy credits with ${token}`}>
-      <div className="w-[min(440px,92vw)] rounded-[14px] border border-line bg-bg-2 p-5">
+      <div className="w-[min(440px,92vw)] rounded-[16px] border border-line bg-[var(--card)] p-5">
         <h2 className="text-title font-semibold">
           {pack?.credits} credits with {token}
         </h2>
-        <p className="mt-1 text-small text-fg-2">Paid from your Phantom wallet straight to In My World. Credits are added once the payment confirms on Solana.</p>
+        <p className="mt-1 text-small text-fg-2">Paid from your Solana wallet straight to In My World. Credits are added once the payment confirms on Solana.</p>
 
-        <div className="mt-5 rounded-[10px] border border-line-soft bg-bg p-4">
+        <div className="mt-5 rounded-[12px] border border-line-soft bg-bg p-4">
           {step === "quoting" && (
             <p className="flex items-center gap-2 text-small text-fg-2">
               <Spinner /> Getting a quote…
@@ -139,20 +129,22 @@ export function CryptoCheckout({ pack, token, onClose, onPaid }: { pack: { id: s
           </p>
         )}
 
-        <div className="mt-5 flex justify-end gap-2">
+        <div className="mt-5 flex flex-wrap items-start justify-end gap-2">
           <Button onClick={onClose}>{step === "done" ? "Close" : "Cancel"}</Button>
           {step !== "done" &&
-            (hasPhantom ? (
-              <Button variant="primary" onClick={pay} disabled={!quote || left === 0 || step === "signing" || step === "confirming"}>
-                {step === "signing" ? <><Spinner /> Approve in Phantom…</> : step === "confirming" ? <><Spinner /> Confirming…</> : left === 0 && quote ? "Quote expired" : "Pay with Phantom"}
+            (step === "signing" || step === "confirming" ? (
+              <Button variant="primary" disabled>
+                <Spinner /> {step === "signing" ? `Approve in ${walletName}…` : "Confirming…"}
               </Button>
-            ) : (
-              <a href="https://phantom.com/download" target="_blank" rel="noreferrer" className="inline-flex h-10 items-center rounded-[var(--btn-radius)] bg-accent px-4 text-body font-medium text-accent-ink">
-                Get Phantom
-              </a>
-            ))}
+            ) : left === 0 && quote ? (
+              <Button variant="primary" disabled>
+                Quote expired
+              </Button>
+            ) : quote ? (
+              <WalletPicker label="Pay with a wallet" onPick={pay} filter={canPay} className="min-w-[220px]" />
+            ) : null)}
         </div>
-        <p className="mt-4 text-micro text-fg-3">We never ask for your seed phrase or private key. Your wallet only approves this one payment.</p>
+        <p className="mt-4 text-micro text-fg-2">We never ask for your seed phrase or private key. Your wallet only approves this one payment.</p>
       </div>
     </Modal>
   );

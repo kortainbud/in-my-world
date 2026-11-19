@@ -130,6 +130,57 @@ export function FloatingBricks() {
   );
 }
 
+/* ---------------- Auth-page world ---------------- */
+
+type Piece = { top: number; side: "l" | "r"; x: number; d: number } & ({ kind: "brick"; s: number; c: number; r: number } | { kind: "img"; src: string; w: number; tilt?: number });
+
+/** Bits of world arranged around the sign-in / sign-up form. */
+const AUTH_PIECES: Piece[] = [
+  { kind: "img", src: "obj-cloud", w: 150, top: 6, side: "l", x: 6, d: 0 },
+  { kind: "img", src: "obj-tree", w: 130, top: 30, side: "l", x: 14, d: 0.6 },
+  { kind: "brick", s: 30, c: 1, r: 28, top: 22, side: "l", x: 28, d: 1.2 },
+  { kind: "img", src: "obj-car", w: 150, top: 58, side: "l", x: 4, d: 0.3, tilt: -4 },
+  { kind: "brick", s: 22, c: 4, r: -18, top: 80, side: "l", x: 24, d: 1.8 },
+  { kind: "img", src: "obj-rock", w: 110, top: 78, side: "l", x: 12, d: 0.9 },
+  { kind: "img", src: "obj-house", w: 140, top: 9, side: "r", x: 10, d: 0.4 },
+  { kind: "brick", s: 26, c: 2, r: -30, top: 36, side: "r", x: 30, d: 1.5 },
+  { kind: "img", src: "obj-tree-round", w: 120, top: 42, side: "r", x: 6, d: 1.1 },
+  { kind: "img", src: "obj-car-blue", w: 140, top: 66, side: "r", x: 20, d: 0.2, tilt: 4 },
+  { kind: "img", src: "obj-chunk", w: 96, top: 84, side: "r", x: 6, d: 1.4 },
+  { kind: "brick", s: 18, c: 6, r: 40, top: 58, side: "r", x: 4, d: 2 },
+];
+
+export function AuthWorld() {
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+      {AUTH_PIECES.map((p, i) => (
+        <span
+          key={i}
+          className={`absolute ${i % 3 === 2 ? "hidden lg:block" : "hidden md:block"}`}
+          style={{
+            top: `${p.top}%`,
+            [p.side === "l" ? "left" : "right"]: `${p.x / 1.6}vw`,
+            perspective: "600px",
+            animation: `bob ${5 + (i % 4)}s ease-in-out ${p.d}s infinite`,
+          }}
+        >
+          {p.kind === "brick" ? (
+            <span className="block" style={{ transformStyle: "preserve-3d", transform: `rotateX(-28deg) rotateY(${35 + p.r}deg)` }}>
+              <Brick size={p.s} color={BRICK_COLORS[p.c]} style={{ position: "relative" }} />
+            </span>
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={`/scenes/${p.src}.png`} alt="" width={p.w} height={p.w} className="block drop-shadow-[0_14px_18px_rgba(0,0,0,0.12)]" style={{ transform: `rotate(${p.tilt ?? 0}deg)` }} />
+          )}
+        </span>
+      ))}
+      {/* A strip of grass and sand along the bottom, like the site footer. */}
+      <span className="absolute inset-x-0 bottom-0 h-[72px] bg-[#7fd14f] [html[data-site-theme=dark]_&]:bg-[#2f5a2a]" />
+      <span className="absolute inset-x-0 bottom-[72px] h-[10px] bg-[#6cc04a] [html[data-site-theme=dark]_&]:bg-[#3d7a35]" />
+    </div>
+  );
+}
+
 /* ---------------- World-builder loader ---------------- */
 
 const LOADER_BRICKS: { x: number; y: number; c: number }[] = [

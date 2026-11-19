@@ -5,6 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { MeProvider, useMe } from "@/lib/client/me";
 import { api } from "@/lib/client/api";
 import { btn, Logo } from "@/components/ui";
+import { ThemeToggle } from "@/components/site/fx";
 import { RenderAgentProvider, useRenderAgent } from "./render-agent";
 
 const NAV = [
@@ -39,9 +40,9 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             href={n.href}
             onClick={onNavigate}
             aria-current={on ? "page" : undefined}
-            className={`flex h-9 items-center gap-2.5 rounded-[8px] px-2.5 text-body transition-colors ${on ? "bg-bg-3 text-fg" : "text-fg-2 hover:bg-bg-3/60 hover:text-fg"}`}
+            className={`flex h-10 items-center gap-3 rounded-full px-3.5 text-body transition-colors ${on ? "bg-[var(--pill-bg)] font-medium text-[var(--pill-fg)]" : "text-fg-2 hover:bg-bg-2 hover:text-fg"}`}
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden className={on && n.label === "Create" ? "text-accent" : ""}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={on ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               {ICONS[n.label]}
             </svg>
             {n.label}
@@ -57,14 +58,14 @@ function AgentBadge() {
   if (!a.jobId) return null;
   const pct = a.framesTotal ? Math.floor((a.framesDone / a.framesTotal) * 100) : 0;
   return (
-    <Link href={`/studio/projects/${a.projectId}`} className="block rounded-[10px] border border-line bg-bg-2 p-3 text-caption hover:border-[var(--line-strong)]">
+    <Link href={`/studio/projects/${a.projectId}`} className="block rounded-[16px] border border-line bg-[var(--card)] p-3 text-caption hover:border-[var(--line-strong)]">
       <span className="flex items-center gap-2 font-medium text-fg">
-        <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-accent" />
+        <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-[#2fa84f]" />
         Rendering in this tab
       </span>
       <span className="mt-1 block text-fg-2">{a.phase === "frames" ? `${a.framesDone} / ${a.framesTotal} frames · ${pct}%` : a.phase === "uploading" ? "Uploading MP4" : "Preparing"}</span>
-      <span className="mt-2 block h-1 overflow-hidden rounded-full bg-bg-3">
-        <span className="block h-full bg-accent transition-[width]" style={{ width: `${pct}%` }} />
+      <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-bg-3">
+        <span className="block h-full rounded-full bg-fg transition-[width]" style={{ width: `${pct}%` }} />
       </span>
     </Link>
   );
@@ -77,24 +78,33 @@ function Account() {
   return (
     <div className="space-y-2">
       <AgentBadge />
-      <Link href="/studio/billing" className="block rounded-[10px] border border-line bg-bg-2 p-3 hover:border-[var(--line-strong)]">
-        <span className="flex items-baseline justify-between">
+      <div className="rounded-[16px] border border-line bg-[var(--card)] p-3.5">
+        <span className="flex items-center justify-between">
           <span className="text-caption text-fg-2">{me.plan.name} plan</span>
-          <span className="font-mono text-micro text-fg-3">credits</span>
+          <Link href="/studio/billing" className="text-caption font-medium text-fg underline decoration-line underline-offset-4 hover:decoration-fg">
+            Top up
+          </Link>
         </span>
-        <span className="mt-0.5 block text-title font-semibold tracking-[-0.03em]">{me.balance}</span>
-      </Link>
+        <span className="mt-1 flex items-baseline gap-1.5">
+          <span className="text-heading font-semibold tracking-[-0.03em]">{me.balance}</span>
+          <span className="text-small text-fg-2">credits</span>
+        </span>
+      </div>
       {providers?.mode === "development" && (
-        <p className="rounded-[8px] border border-[var(--warn-line)] bg-[var(--warn-bg)] px-2.5 py-1.5 text-micro leading-snug text-[var(--warn-fg)]">
-          Development mode · {providers.story.ai ? "AI story" : "template stories"}, {providers.voice.id === "macos-say" ? "system voices" : "no narration"}, in-browser rendering
+        <p className="px-1 text-micro leading-snug text-fg-3">
+          Dev mode · {providers.story.ai ? "AI stories" : "template stories"} · {providers.voice.id === "macos-say" ? "system voices" : "no narration"}
         </p>
       )}
-      <div className="flex items-center justify-between px-1 pt-1">
-        <Link href="/studio/settings" className="min-w-0 truncate text-small text-fg-2 hover:text-fg">
-          {me.displayName}
+      <div className="flex items-center gap-1 border-t border-line-soft pt-2">
+        <Link href="/studio/settings" className="flex min-w-0 flex-1 items-center gap-2 rounded-full py-1 pl-1 pr-2 hover:bg-bg-2">
+          <span aria-hidden className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-bg-3 text-caption font-semibold text-fg">
+            {me.displayName.slice(0, 1).toUpperCase()}
+          </span>
+          <span className="truncate text-small font-medium text-fg">{me.displayName}</span>
         </Link>
+        <ThemeToggle className="!h-8 !w-8 shrink-0" />
         <button
-          className="text-caption text-fg-3 hover:text-fg"
+          className="shrink-0 rounded-full px-2 py-1.5 text-caption text-fg-2 hover:bg-bg-2 hover:text-fg"
           onClick={async () => {
             await api("/api/auth/signout", { method: "POST" });
             router.replace("/");
@@ -132,8 +142,8 @@ function Frame({ children }: { children: ReactNode }) {
   return (
     <RenderAgentProvider enabled={!!me}>
       <div className="flex min-h-screen">
-        <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col border-r border-line-soft bg-bg px-3 py-4 lg:flex">
-          <Link href="/" className="mb-6 px-2">
+        <aside className="sticky top-0 hidden h-screen w-[260px] shrink-0 flex-col border-r border-line bg-bg px-4 py-5 lg:flex">
+          <Link href="/" className="mb-7 px-2">
             <Logo />
           </Link>
           <NavLinks />
@@ -142,14 +152,14 @@ function Frame({ children }: { children: ReactNode }) {
           </div>
         </aside>
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line-soft bg-bg/90 px-4 backdrop-blur lg:hidden">
+          <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-line bg-bg/90 px-4 backdrop-blur lg:hidden">
             <Link href="/">
               <Logo />
             </Link>
             <div className="flex items-center gap-2">
               {me && (
-                <Link href="/studio/billing" className="font-mono text-caption text-fg-2">
-                  {me.balance} cr
+                <Link href="/studio/billing" className="rounded-full border border-line px-3 py-1.5 text-caption font-medium text-fg">
+                  {me.balance} credits
                 </Link>
               )}
               <button className={btn("secondary", "sm")} onClick={() => setOpen(true)} aria-expanded={open} aria-controls="studio-drawer">
@@ -159,7 +169,7 @@ function Frame({ children }: { children: ReactNode }) {
           </header>
           {open && (
             <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" id="studio-drawer">
-              <button className="absolute inset-0 bg-black/70" aria-label="Close menu" onClick={() => setOpen(false)} />
+              <button className="absolute inset-0 bg-black/40" aria-label="Close menu" onClick={() => setOpen(false)} />
               <div className="absolute inset-y-0 right-0 flex w-[min(300px,85vw)] flex-col border-l border-line bg-bg p-4">
                 <NavLinks onNavigate={() => setOpen(false)} />
                 <div className="mt-auto">
@@ -168,7 +178,7 @@ function Frame({ children }: { children: ReactNode }) {
               </div>
             </div>
           )}
-          <main className="min-w-0 flex-1">
+          <main className="min-w-0 flex-1 bg-bg">
             <Gate>{children}</Gate>
           </main>
         </div>
@@ -189,7 +199,7 @@ export function PageHeader({ title, sub, actions }: { title: string; sub?: React
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-page font-semibold">{title}</h1>
+        <h1 className="display text-page lowercase sm:text-[2.5rem]">{title}</h1>
         {sub && <p className="mt-1 text-body text-fg-2">{sub}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}

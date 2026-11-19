@@ -5,6 +5,7 @@ import { useState } from "react";
 import { api, ApiError } from "@/lib/client/api";
 import { Button, Field, inputCls, Notice, Spinner } from "@/components/ui";
 import { SiteLogo } from "./site/chrome";
+import { AuthWorld, THEME_SCRIPT, ThemeToggle } from "./site/fx";
 import { WalletButtons } from "./wallet";
 
 function safeNext(n: string | null) {
@@ -37,17 +38,20 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
 
   const other = mode === "sign-in" ? "/sign-up" : "/sign-in";
   return (
-    <div className="theme-light flex min-h-screen flex-col px-4">
-      <header className="mx-auto flex h-16 w-full max-w-[1200px] items-center">
+    <div className="theme-light relative isolate flex min-h-screen flex-col px-4">
+      <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      <AuthWorld />
+      <header className="mx-auto flex h-[75px] w-full max-w-[1200px] items-center justify-between">
         <Link href="/">
           <SiteLogo />
         </Link>
+        <ThemeToggle />
       </header>
-      <div className="flex flex-1 items-center justify-center pb-20">
-        <div className="w-full max-w-[380px]">
+      <div className="flex flex-1 items-center justify-center pb-28 pt-4">
+        <div className="w-full max-w-[420px] rounded-[24px] border border-line bg-[var(--card)] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)] sm:p-8">
           <h1 className="display text-display-sm">{mode === "sign-in" ? "welcome back." : "start your world."}</h1>
           <p className="mt-3 text-body text-fg-2">{mode === "sign-in" ? "Sign in to your studio." : "Free plan includes monthly credits. No card needed."}</p>
-          <form onSubmit={submit} className="mt-8 space-y-4">
+          <form onSubmit={submit} className="mt-7 space-y-4">
             {mode === "sign-up" && (
               <Field label="Name">
                 <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required maxLength={40} />
@@ -64,12 +68,12 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
               {busy && <Spinner />} {mode === "sign-in" ? "Sign in" : "Create account"}
             </Button>
           </form>
-          <div className="my-6 flex items-center gap-3 text-caption text-fg-3">
-            <span className="h-px flex-1 bg-line-soft" /> or continue with a wallet <span className="h-px flex-1 bg-line-soft" />
+          <div className="my-6 flex items-center gap-3 text-caption text-fg-2">
+            <span className="h-px flex-1 bg-line" /> or <span className="h-px flex-1 bg-line" />
           </div>
           <WalletButtons purpose="signin" onDone={() => { router.replace(next); router.refresh(); }} />
-          <p className="mt-3 text-micro leading-relaxed text-fg-3">Optional. Signing proves you own the wallet — it never moves funds, and we never ask for seed phrases or private keys.</p>
-          <p className="mt-8 text-small text-fg-2">
+          <p className="mt-3 text-caption leading-relaxed text-fg-2">Phantom, Solflare, Backpack and other Solana wallets. Signing only proves you own the wallet. It never moves funds, and we never ask for seed phrases or private keys.</p>
+          <p className="mt-7 border-t border-line pt-5 text-small text-fg-2">
             {mode === "sign-in" ? "New here? " : "Already have an account? "}
             <Link href={`${other}${params.get("next") ? `?next=${encodeURIComponent(next)}` : ""}`} className="text-fg underline decoration-line underline-offset-4">
               {mode === "sign-in" ? "Create an account" : "Sign in"}

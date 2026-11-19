@@ -77,7 +77,7 @@ export function ProjectScreen({ id }: { id: string }) {
   if (!p) return <div className="flex min-h-[50vh] items-center justify-center text-small text-fg-3">Loading…</div>;
 
   return (
-    <div className="mx-auto w-full max-w-[1080px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
+    <div className="mx-auto w-full max-w-[1200px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
       <Link href="/studio/projects" className="text-small text-fg-2 hover:text-fg">
         ← My Studio
       </Link>
@@ -235,11 +235,11 @@ function InProgress({ p, onRetry }: { p: ProjectView; onRetry: () => void }) {
             <div className="grid grid-cols-3 gap-2">
               {job.previews.map((pv) => (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img key={pv.scene} src={pv.url} alt={`Scene ${pv.scene + 1}`} className="rise aspect-[9/16] w-full rounded-[8px] border border-line-soft object-cover" />
+                <img key={pv.scene} src={pv.url} alt={`Scene ${pv.scene + 1}`} className="rise aspect-[9/16] w-full rounded-[12px] border border-line-soft object-cover" />
               ))}
             </div>
           ) : (
-            <p className="rounded-[10px] border border-dashed border-line px-4 py-8 text-center text-caption text-fg-3">Stills of each scene appear here as the renderer reaches them.</p>
+            <p className="rounded-[12px] border border-line px-4 py-8 text-center text-caption text-fg-3">Stills of each scene appear here as the renderer reaches them.</p>
           )}
         </div>
         {p.story && (
@@ -285,10 +285,10 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
   };
 
   return (
-    <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,420px)_1fr]">
-      <div className="mx-auto w-full max-w-[420px]">
-        <video src={v.url} poster={v.thumb} controls playsInline className="aspect-[9/16] w-full rounded-[14px] border border-line bg-black" />
-        <p className="mt-2 text-center font-mono text-micro text-fg-3">
+    <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,420px)_1fr] lg:items-start">
+      <div className="mx-auto w-full max-w-[420px] lg:sticky lg:top-8">
+        <video src={v.url} poster={v.thumb} controls playsInline className="aspect-[9/16] w-full rounded-[16px] border border-line bg-black" />
+        <p className="mt-2 text-center font-mono text-micro text-fg-2">
           {v.width}×{v.height} · {fmtDuration(v.durationSec)} · {(v.sizeBytes / 1e6).toFixed(1)} MB · H.264 MP4
         </p>
       </div>
@@ -368,7 +368,7 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
         {msg && <Notice tone={msg.tone}>{msg.text}</Notice>}
 
         {generated.length > 0 && (
-          <div className="rounded-[12px] border border-line bg-bg-2 p-4">
+          <div className="rounded-[16px] border border-line bg-[var(--card)] p-4">
             <p className="text-body font-medium">New characters in this story</p>
             <p className="mt-1 text-small text-fg-2">{generated.map((c) => c.name).join(", ")} were designed for this video. Save them to reuse in future stories.</p>
             <Button
@@ -396,7 +396,7 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
         {p.story && (
           <div>
             <p className="eyebrow mb-3">
-              Script · {p.story.source === "anthropic" ? `written by ${p.story.model}` : "template engine (dev mode)"}
+              Script · {p.story.source === "anthropic" ? `written by ${p.story.model}` : "template engine (not AI)"}
             </p>
             <ol className="space-y-2.5">
               {p.story.scenes.map((s, i) => (
@@ -417,7 +417,7 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
       </div>
 
       <Modal open={shareOpen} onClose={() => setShareOpen(false)} label="Share this video">
-        <div className="w-[min(440px,92vw)] rounded-[14px] border border-line bg-bg-2 p-5">
+        <div className="w-[min(440px,92vw)] rounded-[16px] border border-line bg-[var(--card)] p-5">
           <h2 className="text-lg font-semibold tracking-[-0.02em]">Make this video public?</h2>
           <p className="mt-2 text-small text-fg-2">Anyone with the link will be able to watch and download it, and it can appear in Explore. You can make it private again at any time.</p>
           <div className="mt-5 flex justify-end gap-2">
@@ -442,7 +442,7 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
         </div>
       </Modal>
       <Modal open={del} onClose={() => setDel(false)} label="Delete video">
-        <div className="w-[min(420px,92vw)] rounded-[14px] border border-line bg-bg-2 p-5">
+        <div className="w-[min(420px,92vw)] rounded-[16px] border border-line bg-[var(--card)] p-5">
           <h2 className="text-lg font-semibold tracking-[-0.02em]">Delete “{p.title}”?</h2>
           <p className="mt-2 text-small text-fg-2">The video, its script and its previews are removed permanently. Share links stop working.</p>
           <div className="mt-5 flex justify-end gap-2">
