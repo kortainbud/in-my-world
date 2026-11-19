@@ -68,7 +68,7 @@ export function Pricing() {
             </div>
             <div>
               <dt className="font-semibold">length & quality</dt>
-              <dd className="mt-1 text-fg-2">free makes 30-second, 720p videos with a small watermark. creator goes to 60s, pro to 90s, both at 1080p.</dd>
+              <dd className="mt-1 text-fg-2">every plan makes stories from about 30 seconds to a minute and a half. free exports at 720p with a small watermark; creator and pro export at 1080p with no watermark.</dd>
             </div>
           </dl>
         </div>
@@ -85,7 +85,7 @@ export const FAQS: { q: string; a: string }[] = [
   },
   { q: "Which animation styles are supported?", a: "Two today: a smooth, blocky avatar style (Roblox-inspired) and a voxel, pixel-textured style (Minecraft-inspired). Both are rendered from original assets. More styles are planned." },
   { q: "Do I need animation or editing experience?", a: "No. Creation is fully automatic: there’s nothing to keyframe, cut or caption. Guided creation and advanced editing are coming later for people who want more control." },
-  { q: "How long does a video take to generate?", a: "Usually a minute or two for a 30-second video. Writing the story and recording narration take seconds; rendering depends on length and quality. The progress screen shows each real step as it happens." },
+  { q: "How long does a video take to generate?", a: "Usually two to four minutes for a one-minute video. The narration is recorded in your browser (the first video also downloads the voice once), then the video renders there too, so keep the tab open. The progress screen shows each real step as it happens." },
   { q: "Can I download my videos?", a: "Yes. Every finished video downloads as a vertical H.264 MP4 with narration and captions, ready for TikTok, Reels and Shorts." },
   { q: "Can I reuse characters?", a: "Yes. Save characters from any story or build your own, then cast them in future videos. They keep the same look every time." },
   { q: "How do credits work?", a: "Each plan includes a monthly credit allowance. A video’s cost depends on its length, narration and export quality, and you see it before you create. If a generation fails, the credits are refunded automatically." },

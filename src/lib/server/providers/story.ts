@@ -179,13 +179,16 @@ function mapError(e: unknown): never {
 type Parsed = z.infer<typeof PlanSchema>;
 
 async function write(input: StoryInput, revisionNotes?: { draft: Parsed; notes: string }) {
-  const sceneCount = { 30: "5 to 6", 60: "9 to 11", 90: "12 to 15" }[input.duration];
-  const words = Math.round(input.duration * WORDS_PER_SECOND * 0.82);
+  const sceneCount = { 30: "5 to 6", 60: "10 to 12", 90: "14 to 17" }[input.duration];
+  const words = Math.round(input.duration * WORDS_PER_SECOND * 0.92);
   const library = input.library.map((c) => ({ id: c.id, name: c.name, description: c.description, personality: c.personality }));
   const parts = [
     `Idea: ${input.prompt}`,
     `Format: ${input.format}.`,
-    `Target length: ${input.duration} seconds — ${sceneCount} scenes, about ${words} narration words in total.`,
+    `Target length: about ${input.duration} seconds — ${sceneCount} scenes, about ${words} narration words in total. It's fine to run a little over; never pad.`,
+    input.duration > 30
+      ? "Use the extra time to develop the story, not to repeat it: show the protagonist testing or bending the rule, a setback that raises the stakes, a moment with the friend that makes the loss hurt, a clue the audience can catch before the twist, and a confrontation before the reveal. Every scene must change something."
+      : "Keep it tight: hook, rule, one escalation, twist, cliffhanger.",
     `Visual style: ${input.style} (rendering only).`,
     input.cast.length ? `Must cast (protagonist first): ${input.cast.map((c) => `${c.name} (${c.id})`).join(", ")}.` : "No characters were requested; choose from the library or design new ones.",
     `Character library (JSON): ${JSON.stringify(library)}`,

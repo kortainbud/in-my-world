@@ -149,6 +149,42 @@ function sceneFrom(k: KitScene, R: Roles, r: ReturnType<typeof rng>, fallbackEnv
   };
 }
 
+/**
+ * Longer videos get development scenes, so the story deepens instead of
+ * stretching: testing the rule, a setback, the friend, a confrontation.
+ * Generic stories get four at 60s and eight at 90s; hand-written kits (which
+ * already have their own 90s extras) get two at 60s and four at 90s.
+ */
+function addDevelopment(scenes: ScenePlan[], duration: DurationPreset, R: Roles, r: ReturnType<typeof rng>, fallbackEnv: EnvironmentKind, kind: "generic" | "kit") {
+  if (duration === 30) return;
+  {
+    const extra = (after: Beat, k: Omit<KitScene, "beat" | "env"> & { env?: EnvironmentKind }) => {
+      const i = scenes.map((s) => s.beat).lastIndexOf(after);
+      if (i < 0) return;
+      scenes.splice(i + 1, 0, sceneFrom({ beat: after, time: scenes[i].timeOfDay, ...k, env: k.env ?? scenes[i].environment, line: fill(k.line, R) }, R, r, fallbackEnv));
+    };
+    const DEV: { after: Beat; long?: boolean; k: Omit<KitScene, "beat" | "env"> }[] = [
+      { after: "rule", long: true, k: { line: r.pick(["Last year somebody tried to break it. For a week, nobody would even say their name.", "My grandma says the rule is older than the town. Nobody remembers who made it."]), cast: [{ who: "A", action: "idle", expression: "smug" }] } },
+      { after: "character", k: { line: r.pick(["{F} is the only one who ever laughed about it. That's why I trusted {F}.", "{F} and I made a promise when we were seven. Never test the rule. Never."]), cast: [{ who: "F", action: "wave", expression: "happy" }, { who: "P", action: "idle", expression: "happy" }], dialogue: { who: "F", line: "Promise me you won't." } } },
+      { after: "escalation_1", k: { line: r.pick(["So I decided to test it. Just once. Just to see what would happen.", "I told myself I'd only bend the rule a little. Nobody would notice a little."]), cast: [{ who: "P", action: "walk_across", expression: "neutral" }], sfx: ["footsteps"] } },
+      { after: "escalation_1", long: true, k: { line: r.pick(["Nothing happened. For about ten minutes, I thought I'd won.", "At first, it worked. That was the worst part."]), cast: [{ who: "P", action: "shrug", expression: "happy" }] } },
+      { after: "escalation_2", k: { line: r.pick(["{A} was waiting outside my door. Smiling, like {A} already knew.", "When I got home, {A} was sitting in my kitchen."]), cast: [{ who: "A", action: "point", expression: "smug" }, { who: "P", action: "shocked", expression: "shocked" }], dialogue: { who: "A", line: "You know what happens now." }, sfx: ["knock"] } },
+      { after: "escalation_3", long: true, k: { line: r.pick(["{F} stopped answering my messages. Then {F}'s house went dark.", "Nobody else noticed. Or they were pretending not to."]), cast: [{ who: "P", action: "sad", expression: "sad" }], props: ["flicker_lights"] } },
+      { after: "discovery", long: true, k: { line: r.pick(["There was one more line on the back. Written in my own handwriting.", "Whoever wrote it knew exactly where I'd be standing when I read it."]), cast: [{ who: "P", action: "look_up", expression: "shocked" }], props: ["letter"] } },
+      { after: "discovery", k: { line: r.pick(["So I went to {A}'s office at midnight. The door was already open.", "I found {A} where it all started. {A} wasn't surprised to see me."]), time: "night", cast: [{ who: "P", action: "walk_across", expression: "angry" }, { who: "A", action: "idle", expression: "neutral" }], props: ["open_door"], sfx: ["door_creak"] } },
+    ];
+    // Hand-written kits name their own villains and friends, so their added
+    // scenes don't name anyone.
+    const KIT_DEV: { after: Beat; long?: boolean; k: Omit<KitScene, "beat" | "env"> }[] = [
+      { after: "escalation_1", k: { line: "So I decided to test it. Just once. Just to see what would happen.", cast: [{ who: "P", action: "walk_across", expression: "neutral" }], sfx: ["footsteps"] } },
+      { after: "escalation_1", long: true, k: { line: "At first, it worked. That was the worst part.", cast: [{ who: "P", action: "shrug", expression: "happy" }] } },
+      { after: "escalation_2", long: true, k: { line: "Nobody else noticed. Or they were pretending not to.", cast: [{ who: "P", action: "sad", expression: "sad" }], props: ["flicker_lights"] } },
+      { after: "discovery", k: { line: "I had to see it for myself. So I went back at midnight. The door was already open.", time: "night", cast: [{ who: "P", action: "walk_across", expression: "angry" }], props: ["open_door"], sfx: ["door_creak"] } },
+    ];
+    for (const d of kind === "kit" ? KIT_DEV : DEV) if (!d.long || duration === 90) extra(d.after, d.k);
+  }
+}
+
 function fromKit(kit: StoryKit, duration: DurationPreset, R: Roles, r: ReturnType<typeof rng>, format: StoryFormat): StoryPlan {
   const list: KitScene[] = (duration === 30 ? kit.scenes.filter((s) => s.core) : kit.scenes).map((s) => ({ ...s }));
   if (duration === 90) {
@@ -162,6 +198,7 @@ function fromKit(kit: StoryKit, duration: DurationPreset, R: Roles, r: ReturnTyp
     cl.choice = { question: "What do I do now?", options: ["Run", "Stay and find out"] };
   }
   const scenes = list.map((k) => sceneFrom(k, R, r, "town_street"));
+  addDevelopment(scenes, duration, R, r, "town_street", "kit");
   const sheet: StorySheet = {
     ...kit.sheet,
     beneficiary: fill(kit.sheet.beneficiary, R),
@@ -300,15 +337,7 @@ function generic(opts: { prompt: string; duration: DurationPreset; R: Roles; r: 
       R, r, env[0],
     ),
   );
-  if (opts.duration === 90) {
-    const extra = (after: Beat, line: string, c: KitScene["cast"]) => {
-      const i = scenes.findIndex((s) => s.beat === after);
-      scenes.splice(i + 1, 0, sceneFrom({ beat: after, line, env: scenes[i].environment, time: scenes[i].timeOfDay, cast: c }, R, r, env[0]));
-    };
-    extra("character", "Everyone says I worry too much. They haven't seen what I've seen.", [{ who: "P", action: "shrug", expression: "sad" }]);
-    extra("escalation_2", "Nobody else noticed. Or they were pretending not to.", [{ who: "P", action: "walk_across", expression: "shocked" }]);
-    extra("discovery", "Whoever wrote it knew exactly where I'd be standing when I read it.", [{ who: "P", action: "look_up", expression: "shocked" }]);
-  }
+  addDevelopment(scenes, opts.duration, R, r, env[0], "generic");
   if (grow) {
     let s = 1;
     for (const sc of scenes) if (sc.beat?.startsWith("escalation")) for (const c of sc.characters) if (c.ref === R.P.ref) c.scaleTo = s = Math.min(2.2, s + 0.35);

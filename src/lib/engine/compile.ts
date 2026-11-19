@@ -78,25 +78,10 @@ export function compileTimeline(opts: {
   const sfx: SfxCue[] = [];
   const narrated = opts.audio.some((a) => a.narration);
 
-  // Caption-only videos have no measured speech, so their pacing is an
-  // estimate. Tighten it to fit the chosen length, but never past ~30%
-  // faster, so captions stay comfortable to read.
-  let pace = 1;
-  if (!narrated) {
-    let fixed = INTRO + 0.6;
-    let speech = 0;
-    for (const plan of opts.plan.scenes) {
-      const sp = estimateSpeech(plan.narration, plan.delivery) + (plan.dialogue ? estimateSpeech(plan.dialogue.line) + 0.2 : 0);
-      fixed += (plan.pauseBefore ? REVEAL_PAUSE : 0) + SCENE_PAD;
-      speech += sp;
-    }
-    if (fixed + speech > opts.targetDuration && speech > 0) pace = Math.max(0.7, (opts.targetDuration - fixed) / speech);
-  }
-
   opts.plan.scenes.forEach((plan, index) => {
     const a = opts.audio[index] ?? {};
-    const narrDur = a.narration?.duration ?? estimateSpeech(plan.narration, plan.delivery) * pace;
-    const dlgDur = plan.dialogue ? (a.dialogue?.duration ?? estimateSpeech(plan.dialogue.line) * pace) : 0;
+    const narrDur = a.narration?.duration ?? estimateSpeech(plan.narration, plan.delivery);
+    const dlgDur = plan.dialogue ? (a.dialogue?.duration ?? estimateSpeech(plan.dialogue.line)) : 0;
     const gap = plan.dialogue ? 0.2 : 0;
     // A beat of silence before major revelations.
     const pause = plan.pauseBefore ? REVEAL_PAUSE : 0;

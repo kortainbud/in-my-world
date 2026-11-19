@@ -33,11 +33,11 @@ export const PLANS: Plan[] = [
     tagline: "Try it. Make something weird.",
     priceMonthlyCents: 0,
     monthlyCredits: 40,
-    maxDurationSec: 30,
+    maxDurationSec: 90,
     exportHeight: 720,
     watermark: true,
     privateCharacters: 3,
-    features: ["30-second videos", "720p vertical export", "Both visual styles", "3 saved characters", "Small watermark"],
+    features: ["Videos up to 1½ minutes", "720p vertical export", "Both visual styles", "3 saved characters", "Small watermark"],
   },
   {
     id: "creator",
@@ -45,11 +45,11 @@ export const PLANS: Plan[] = [
     tagline: "For people who post every week.",
     priceMonthlyCents: 1200,
     monthlyCredits: 300,
-    maxDurationSec: 60,
+    maxDurationSec: 90,
     exportHeight: 1080,
     watermark: false,
     privateCharacters: 25,
-    features: ["Up to 60-second videos", "1080p vertical export", "No watermark", "25 saved characters", "Featured characters"],
+    features: ["Videos up to 1½ minutes", "1080p vertical export", "No watermark", "25 saved characters", "Featured characters"],
     highlighted: true,
   },
   {
@@ -62,7 +62,7 @@ export const PLANS: Plan[] = [
     exportHeight: 1080,
     watermark: false,
     privateCharacters: 200,
-    features: ["Up to 90-second videos", "1080p vertical export", "No watermark", "200 saved characters", "Priority rendering queue"],
+    features: ["Videos up to 1½ minutes", "1080p vertical export", "No watermark", "200 saved characters", "Priority rendering queue"],
   },
 ];
 

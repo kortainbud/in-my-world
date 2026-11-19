@@ -45,7 +45,7 @@ export function CreateScreen() {
   const [format, setFormat] = useState<StoryFormat>("strange_world");
   const [ideas, setIdeas] = useState<{ list: Premise[]; source: string } | null>(null);
   const [ideasBusy, setIdeasBusy] = useState(false);
-  const [duration, setDuration] = useState<DurationPreset>(30);
+  const [duration, setDuration] = useState<DurationPreset>(60);
   const [cast, setCast] = useState<string[]>([]);
   const [voice, setVoice] = useState<string>("");
   const [picker, setPicker] = useState(false);
@@ -282,7 +282,7 @@ export function CreateScreen() {
             </div>
           </Row>
 
-          <Row label="Video length" hint={`Your ${me?.plan.name ?? "Free"} plan goes up to ${maxDur} seconds.`}>
+          <Row label="Video length" hint="About this long. Stories run their natural length, so they may come out a little over.">
             <div className="flex flex-wrap items-center gap-2">
               <div role="radiogroup" aria-label="Video length" className="inline-flex rounded-full border border-line bg-bg-2 p-0.5">
                 {DURATIONS.map((d) => {
@@ -297,16 +297,12 @@ export function CreateScreen() {
                       onClick={() => setDuration(d)}
                       className={`h-8 rounded-full px-3.5 text-small font-medium transition-colors disabled:cursor-not-allowed ${duration === d ? "bg-fg text-bg" : locked ? "text-fg-3" : "text-fg-2 hover:text-fg"}`}
                     >
-                      {d}s{locked && <LockIcon />}
+                      {d === 30 ? "30 sec" : d === 60 ? "1 min" : "1½ min"}{locked && <LockIcon />}
                     </button>
                   );
                 })}
               </div>
-              {maxDur < 90 && (
-                <Link href="/studio/billing" className="text-caption text-fg-2 underline decoration-line underline-offset-4 hover:text-fg">
-                  Longer videos on paid plans
-                </Link>
-              )}
+
             </div>
           </Row>
 
