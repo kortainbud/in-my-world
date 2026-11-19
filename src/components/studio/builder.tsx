@@ -39,7 +39,7 @@ function Chips<T extends string>({ value, onChange, options, name }: { value: T;
           role="radio"
           aria-checked={value === o}
           onClick={() => onChange(o)}
-          className={`h-8 rounded-[7px] border px-2.5 text-[12.5px] transition-colors ${value === o ? "border-accent bg-[#161d0f] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
+          className={`h-8 rounded-[7px] border px-2.5 text-[12.5px] transition-colors ${value === o ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
         >
           {label(o)}
         </button>

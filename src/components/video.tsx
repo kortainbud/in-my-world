@@ -48,13 +48,13 @@ export function VideoCard({ item, onOpen, footer, size = "md" }: { item: VideoIt
         {hover && <video ref={vref} src={item.video} muted playsInline loop preload="none" className="absolute inset-0 h-full w-full object-cover" />}
         <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between p-2">
           <StyleTag style={item.style} />
-          {item.isSample && <span className="rounded-[5px] bg-black/60 px-1.5 py-0.5 font-mono text-[10.5px] uppercase tracking-wide text-fg-2 backdrop-blur">Sample</span>}
+          {item.isSample && <span className="rounded-[5px] bg-black/60 px-1.5 py-0.5 font-mono text-[10.5px] uppercase tracking-wide text-white/80 backdrop-blur">Sample</span>}
         </div>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/70 to-transparent p-2.5 pt-10">
-          <span className={`flex items-center justify-center rounded-full bg-fg text-bg transition-transform group-hover:scale-105 ${size === "lg" ? "h-11 w-11" : "h-9 w-9"}`}>
+          <span className={`flex items-center justify-center rounded-full bg-white text-[#131316] transition-transform group-hover:scale-105 ${size === "lg" ? "h-11 w-11" : "h-9 w-9"}`}>
             <PlayIcon />
           </span>
-          <span className="rounded-[5px] bg-black/60 px-1.5 py-0.5 font-mono text-[11px] text-fg">{fmtDuration(item.durationSec)}</span>
+          <span className="rounded-[5px] bg-black/60 px-1.5 py-0.5 font-mono text-[11px] text-white">{fmtDuration(item.durationSec)}</span>
         </div>
       </button>
       <div className="mt-2.5">

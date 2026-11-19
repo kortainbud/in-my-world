@@ -3,7 +3,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { api, ApiError } from "@/lib/client/api";
-import { Button, Field, inputCls, Logo, Notice, Spinner } from "@/components/ui";
+import { Button, Field, inputCls, Notice, Spinner } from "@/components/ui";
+import { SiteLogo } from "./site/chrome";
 import { WalletButtons } from "./wallet";
 
 function safeNext(n: string | null) {
@@ -36,15 +37,15 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
 
   const other = mode === "sign-in" ? "/sign-up" : "/sign-in";
   return (
-    <div className="flex min-h-screen flex-col px-4">
+    <div className="theme-light flex min-h-screen flex-col px-4">
       <header className="mx-auto flex h-16 w-full max-w-[1200px] items-center">
         <Link href="/">
-          <Logo />
+          <SiteLogo />
         </Link>
       </header>
       <div className="flex flex-1 items-center justify-center pb-20">
         <div className="w-full max-w-[380px]">
-          <h1 className="display text-[40px]">{mode === "sign-in" ? "Welcome back." : "Start your world."}</h1>
+          <h1 className="display text-[40px]">{mode === "sign-in" ? "welcome back." : "start your world."}</h1>
           <p className="mt-3 text-[14px] text-fg-2">{mode === "sign-in" ? "Sign in to your studio." : "Free plan includes monthly credits. No card needed."}</p>
           <form onSubmit={submit} className="mt-8 space-y-4">
             {mode === "sign-up" && (

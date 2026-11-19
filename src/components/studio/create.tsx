@@ -156,7 +156,7 @@ export function CreateScreen() {
           void submit();
         }}
       >
-        <div className="rounded-[14px] border border-line bg-bg-2 transition-colors focus-within:border-[#4a4a4a]">
+        <div className="rounded-[14px] border border-line bg-bg-2 transition-colors focus-within:border-[var(--line-strong)]">
           <label htmlFor="prompt" className="sr-only">
             Your idea
           </label>
@@ -245,7 +245,7 @@ export function CreateScreen() {
                     role="radio"
                     aria-checked={on}
                     onClick={() => setFormat(f)}
-                    className={`rounded-[10px] border p-2.5 text-left transition-colors ${on ? "border-accent bg-[#161d0f]" : "border-line-soft bg-bg hover:border-line"}`}
+                    className={`rounded-[10px] border p-2.5 text-left transition-colors ${on ? "border-accent bg-[var(--accent-soft)]" : "border-line-soft bg-bg hover:border-line"}`}
                   >
                     <span className="block text-[13.5px] font-medium">{FORMAT_INFO[f].label}</span>
                     <span className="mt-0.5 block text-[11.5px] leading-snug text-fg-2">{FORMAT_INFO[f].blurb}</span>
@@ -265,7 +265,7 @@ export function CreateScreen() {
                     role="radio"
                     aria-checked={on}
                     onClick={() => setStyle(s)}
-                    className={`relative flex items-center gap-3 rounded-[10px] border p-2 pr-3 text-left transition-colors ${on ? "border-accent bg-[#161d0f]" : "border-line-soft bg-bg hover:border-line"}`}
+                    className={`relative flex items-center gap-3 rounded-[10px] border p-2 pr-3 text-left transition-colors ${on ? "border-accent bg-[var(--accent-soft)]" : "border-line-soft bg-bg hover:border-line"}`}
                   >
                     <Portrait appearance={MILO} style={s} className="h-14 w-12 shrink-0" />
                     <span className="min-w-0">
@@ -312,7 +312,7 @@ export function CreateScreen() {
 
           <Row label="Aspect ratio">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex h-8 items-center gap-2 rounded-[8px] border border-accent bg-[#161d0f] px-3 text-[13px] font-medium">
+              <span className="inline-flex h-8 items-center gap-2 rounded-[8px] border border-accent bg-[var(--accent-soft)] px-3 text-[13px] font-medium">
                 <span className="h-3.5 w-2 rounded-[2px] border-[1.5px] border-accent" aria-hidden />
                 9:16 vertical
               </span>
@@ -322,7 +322,7 @@ export function CreateScreen() {
 
           <Row label="Creation mode">
             <div className="flex flex-wrap gap-2">
-              <span className="inline-flex h-8 items-center rounded-[8px] border border-accent bg-[#161d0f] px-3 text-[13px] font-medium">Fully automatic</span>
+              <span className="inline-flex h-8 items-center rounded-[8px] border border-accent bg-[var(--accent-soft)] px-3 text-[13px] font-medium">Fully automatic</span>
               {["Guided creation", "Advanced editing"].map((m) => (
                 <span key={m} aria-disabled="true" className="inline-flex h-8 cursor-not-allowed items-center gap-2 rounded-[8px] border border-dashed border-line px-3 text-[13px] text-fg-3">
                   {m}
@@ -361,7 +361,7 @@ export function CreateScreen() {
                     role="radio"
                     aria-checked={voice === v.id}
                     onClick={() => setVoice(v.id)}
-                    className={`h-8 rounded-[8px] border px-3 text-[13px] transition-colors ${voice === v.id ? "border-accent bg-[#161d0f] text-fg" : "border-line-soft bg-bg text-fg-2 hover:text-fg"}`}
+                    className={`h-8 rounded-[8px] border px-3 text-[13px] transition-colors ${voice === v.id ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft bg-bg text-fg-2 hover:text-fg"}`}
                   >
                     {v.label} <span className="text-fg-3">· {v.accent}</span>
                   </button>

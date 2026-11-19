@@ -32,7 +32,7 @@ export function Logo({ className = "" }: { className?: string }) {
 
 export function StyleTag({ style, className = "" }: { style: VisualStyle; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-[5px] bg-black/60 px-1.5 py-0.5 font-mono text-[10.5px] uppercase tracking-wide text-fg backdrop-blur ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-[5px] bg-black/60 px-1.5 py-0.5 font-mono text-[10.5px] uppercase tracking-wide text-white backdrop-blur ${className}`}>
       <span className={`h-1.5 w-1.5 ${style === "minecraft" ? "bg-[#7FC34A]" : "rounded-full bg-accent"}`} />
       {STYLE_LABELS[style].label}
     </span>
@@ -42,9 +42,9 @@ export function StyleTag({ style, className = "" }: { style: VisualStyle; classN
 export function Tag({ children, tone = "default", className = "" }: { children: ReactNode; tone?: "default" | "accent" | "warn" | "danger"; className?: string }) {
   const tones = {
     default: "border-line text-fg-2",
-    accent: "border-[#4c6630] text-accent bg-[#1a2210]",
-    warn: "border-[#5a4a10] text-warn bg-[#211c08]",
-    danger: "border-[#4a2a26] text-danger bg-[#211110]",
+    accent: "border-[var(--accent-line)] text-accent bg-[var(--accent-soft)]",
+    warn: "border-[var(--warn-line)] text-warn bg-[var(--warn-bg)]",
+    danger: "border-[var(--danger-line)] text-danger bg-[var(--danger-bg)]",
   };
   return <span className={`inline-flex items-center gap-1 rounded-[5px] border px-1.5 py-0.5 text-[11px] font-medium ${tones[tone]} ${className}`}>{children}</span>;
 }
@@ -56,9 +56,9 @@ export function Spinner({ className = "" }: { className?: string }) {
 export function Notice({ tone = "default", children, className = "" }: { tone?: "default" | "danger" | "warn" | "accent"; children: ReactNode; className?: string }) {
   const tones = {
     default: "border-line bg-bg-2 text-fg-2",
-    danger: "border-[#4a2a26] bg-[#1a1110] text-[#ffb3a9]",
-    warn: "border-[#4a3e12] bg-[#1a170b] text-[#f2dc8a]",
-    accent: "border-[#3d5226] bg-[#141a0d] text-[#d6f5ae]",
+    danger: "border-[var(--danger-line)] bg-[var(--danger-bg)] text-[var(--danger-fg)]",
+    warn: "border-[var(--warn-line)] bg-[var(--warn-bg)] text-[var(--warn-fg)]",
+    accent: "border-[var(--accent-line)] bg-[var(--accent-soft)] text-[var(--accent-text)]",
   };
   return <div role={tone === "danger" ? "alert" : undefined} className={`rounded-[10px] border px-3.5 py-2.5 text-[13px] leading-relaxed ${tones[tone]} ${className}`}>{children}</div>;
 }
@@ -137,4 +137,4 @@ export function Field({ label, hint, children }: { label: string; hint?: ReactNo
 }
 
 export const inputCls =
-  "h-10 w-full rounded-[8px] border border-line bg-bg-2 px-3 text-sm text-fg placeholder:text-fg-3 outline-none transition-colors focus:border-[#5a5a5a]";
+  "h-10 w-full rounded-[8px] border border-line bg-bg-2 px-3 text-sm text-fg placeholder:text-fg-3 outline-none transition-colors focus:border-[var(--line-strong)]";

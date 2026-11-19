@@ -145,7 +145,7 @@ export function SeriesStrip({ episodes, current }: { episodes: { id: string; epi
           key={e.id}
           href={`/studio/projects/${e.id}`}
           aria-current={e.id === current ? "page" : undefined}
-          className={`inline-flex h-8 items-center gap-1.5 rounded-[8px] border px-2.5 text-[12.5px] ${e.id === current ? "border-accent bg-[#161d0f] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
+          className={`inline-flex h-8 items-center gap-1.5 rounded-[8px] border px-2.5 text-[12.5px] ${e.id === current ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
         >
           Part {e.episode}
           {e.status !== "completed" && <Tag>{e.status === "failed" ? "failed" : "in progress"}</Tag>}

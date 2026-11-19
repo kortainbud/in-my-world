@@ -135,7 +135,7 @@ export function BillingScreen() {
       <CreditTable />
 
       {providers?.mode === "development" && (
-        <div className="mt-10 rounded-[12px] border border-dashed border-[#5a4a10] p-5">
+        <div className="mt-10 rounded-[12px] border border-dashed border-[var(--warn-line)] p-5">
           <p className="text-[14px] font-medium text-warn">Development tools</p>
           <p className="mt-1 text-[12.5px] text-fg-2">Only available in development mode. Dev credits are labelled in the ledger and can’t exist in production.</p>
           <div className="mt-4 flex flex-wrap gap-2">

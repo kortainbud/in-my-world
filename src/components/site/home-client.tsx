@@ -97,7 +97,7 @@ export function HeroDemo({ samples }: { samples: SampleEntry[] }) {
           </div>
         </div>
         <div className="relative mx-auto w-[min(300px,72vw)]">
-          <div className="relative aspect-[9/16] overflow-hidden rounded-[26px] border-[6px] border-[#262626] bg-black shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
+          <div className="relative aspect-[9/16] overflow-hidden rounded-[26px] border-[6px] border-[var(--frame)] bg-black shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={s.thumb} alt="" className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${phase === "playing" ? "opacity-0" : "opacity-30 blur-[2px]"}`} />
             <video
@@ -284,7 +284,7 @@ export function CharacterShowcase() {
               key={x.id}
               onClick={() => setSel(x.id)}
               aria-pressed={sel === x.id}
-              className={`rounded-[12px] border p-2 text-center transition-colors ${sel === x.id ? "border-accent bg-[#161d0f]" : "border-line-soft bg-bg-2 hover:border-line"}`}
+              className={`rounded-[12px] border p-2 text-center transition-colors ${sel === x.id ? "border-accent bg-[var(--accent-soft)]" : "border-line-soft bg-bg-2 hover:border-line"}`}
             >
               <Portrait appearance={x.appearance} className="mx-auto h-24 w-20" alt="" />
               <span className="mt-1 block truncate text-[13px] font-medium">{x.name}</span>

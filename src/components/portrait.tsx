@@ -13,5 +13,5 @@ export function Portrait({ appearance, style = "roblox", full, pose, className =
     };
   }, [appearance, style, full, pose]);
   // eslint-disable-next-line @next/next/no-img-element
-  return src ? <img src={src} alt={alt} className={`object-contain ${className}`} /> : <div aria-hidden className={`animate-pulse rounded-[8px] bg-bg-3/60 ${className}`} />;
+  return src ? <img src={src} alt={alt} className={`object-contain ${className}`} /> : <span aria-hidden className={`inline-block animate-pulse rounded-[8px] bg-bg-3/60 ${className}`} />;
 }

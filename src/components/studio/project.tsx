@@ -135,7 +135,7 @@ function InProgress({ p, onRetry }: { p: ProjectView; onRetry: () => void }) {
         <ol className="relative">
           {job.stages.map((s, i) => (
             <li key={s.key} className="relative flex gap-4 pb-6 last:pb-0">
-              {i < job.stages.length - 1 && <span aria-hidden className={`absolute left-[11px] top-7 h-[calc(100%-28px)] w-px ${s.status === "done" || s.status === "skipped" ? "bg-[#4c6630]" : "bg-line"}`} />}
+              {i < job.stages.length - 1 && <span aria-hidden className={`absolute left-[11px] top-7 h-[calc(100%-28px)] w-px ${s.status === "done" || s.status === "skipped" ? "bg-[var(--accent-line)]" : "bg-line"}`} />}
               <StageIcon status={s.status} />
               <div className="min-w-0 flex-1 pt-0.5">
                 <p className={`text-[15px] font-medium ${s.status === "pending" ? "text-fg-3" : "text-fg"}`}>
@@ -143,7 +143,7 @@ function InProgress({ p, onRetry }: { p: ProjectView; onRetry: () => void }) {
                   {s.status === "skipped" && <span className="ml-2 text-[12px] font-normal text-fg-3">skipped</span>}
                 </p>
                 {s.detail && (
-                  <p className={`mt-0.5 text-[13px] ${s.status === "failed" ? "text-[#ffb3a9]" : "text-fg-2"}`}>
+                  <p className={`mt-0.5 text-[13px] ${s.status === "failed" ? "text-[var(--danger-fg)]" : "text-fg-2"}`}>
                     {s.key === "render" && s.status === "running" && renderingHere && agent.phase ? PHASE_LABEL[agent.phase] ?? s.detail : s.detail}
                   </p>
                 )}
@@ -344,7 +344,7 @@ function Finished({ p, onChange, onRegenerate }: { p: ProjectView; onChange: () 
             </>
           )}
           <span className="text-fg-3">·</span>
-          <button className="text-[#ff8a7d] underline decoration-[#4a2a26] underline-offset-4 hover:text-danger" onClick={() => setDel(true)}>
+          <button className="text-[var(--danger-fg)] underline decoration-[var(--danger-line)] underline-offset-4 hover:text-danger" onClick={() => setDel(true)}>
             Delete
           </button>
         </div>

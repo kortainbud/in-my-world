@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 export function Prose({ title, lead, children }: { title: string; lead?: ReactNode; children: ReactNode }) {
   return (
     <article className="mx-auto max-w-[760px] px-4 pb-24 pt-12 sm:px-6">
-      <h1 className="display text-[44px] sm:text-[60px]">{title}</h1>
+      <h1 className="display text-[44px] lowercase sm:text-[60px]">{title}.</h1>
       {lead && <p className="mt-4 text-[16px] leading-relaxed text-fg-2">{lead}</p>}
       <div className="mt-10 space-y-5 text-[15px] leading-relaxed text-fg-2 [&_a]:text-fg [&_a]:underline [&_a]:decoration-line [&_a]:underline-offset-4 [&_h2]:mt-10 [&_h2]:text-[20px] [&_h2]:font-semibold [&_h2]:tracking-[-0.02em] [&_h2]:text-fg [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-fg">
         {children}
@@ -14,7 +14,7 @@ export function Prose({ title, lead, children }: { title: string; lead?: ReactNo
 
 export function DraftNotice() {
   return (
-    <p className="rounded-[10px] border border-[#4a3e12] bg-[#1a170b] px-4 py-3 text-[13px] text-[#f2dc8a]">
+    <p className="rounded-[10px] border border-[var(--warn-line)] bg-[var(--warn-bg)] px-4 py-3 text-[13px] text-[var(--warn-fg)]">
       Draft. This page is a placeholder outline and is not yet legally binding. Final terms will be reviewed and published before launch.
     </p>
   );

@@ -2,61 +2,63 @@ import Link from "next/link";
 import { CREDIT_PACKS, formatPrice, PLANS } from "@/config/plans";
 import { CreditTable } from "@/components/credit-table";
 
+const TOPS = ["/scenes/card-day.jpg", "/scenes/card-sunset.jpg", "/scenes/card-night.jpg"];
+
 export function Pricing() {
   return (
     <div>
-      <div className="grid gap-3 md:grid-cols-3">
-        {PLANS.map((p) => (
-          <div key={p.id} className={`flex flex-col rounded-[16px] border bg-bg-2 p-6 ${p.highlighted ? "border-accent" : "border-line-soft"}`}>
-            <div className="flex items-center justify-between">
-              <h3 className="text-[18px] font-semibold tracking-[-0.02em]">{p.name}</h3>
-              {p.highlighted && <span className="rounded-[5px] bg-accent px-1.5 py-0.5 font-mono text-[10.5px] uppercase tracking-wide text-accent-ink">Popular</span>}
+      <div className="grid gap-4 md:grid-cols-3">
+        {PLANS.map((p, i) => (
+          <div key={p.id} className="flex flex-col rounded-[24px] bg-bg-2 p-2.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={TOPS[i % TOPS.length]} alt="" className="h-[120px] w-full rounded-[16px] object-cover" />
+            <div className="flex flex-1 flex-col px-3.5 pb-3.5 pt-5">
+              <div className="flex items-center gap-2">
+                <h3 className="text-[22px] font-semibold tracking-[-0.03em]">{p.name.toLowerCase()}</h3>
+                {p.highlighted && <span className="rounded-full bg-white px-2 py-0.5 font-mono text-[11px] text-fg-2">most popular</span>}
+              </div>
+              <p className="mt-1 text-[15px] text-fg-2">{p.tagline.toLowerCase()}</p>
+              <p className="mt-6 flex items-baseline gap-2">
+                <span className="text-[44px] font-semibold leading-none tracking-[-0.05em]">{formatPrice(p.priceMonthlyCents)}</span>
+                <span className="text-[14px] text-fg-2">a month</span>
+              </p>
+              <p className="mt-2 text-[14px] font-medium">{p.monthlyCredits} credits every month</p>
+              <Link
+                href={`/sign-up?next=${encodeURIComponent(p.id === "free" ? "/studio" : "/studio/billing")}`}
+                className={`mt-5 inline-flex h-11 items-center justify-center rounded-full text-[15px] font-medium transition-colors ${p.highlighted ? "bg-fg text-white hover:bg-[#2c2c33]" : "bg-white text-fg hover:bg-[#fafaf8]"}`}
+              >
+                {p.id === "free" ? "start free" : `choose ${p.name.toLowerCase()}`}
+              </Link>
+              <ul className="mt-5 space-y-2 text-[14px] text-fg-2">
+                {p.features.map((f) => (
+                  <li key={f} className="flex gap-2">
+                    <svg width="14" height="14" viewBox="0 0 14 14" className="mt-[4px] shrink-0" aria-hidden><path d="M2.5 7.2l2.7 2.6 6.3-6.3" stroke="#131316" strokeWidth="1.8" fill="none" /></svg>
+                    {f.toLowerCase()}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <p className="mt-1 text-[13.5px] text-fg-2">{p.tagline}</p>
-            <p className="mt-6 text-[44px] font-semibold leading-none tracking-[-0.04em]">
-              {formatPrice(p.priceMonthlyCents)}
-              <span className="ml-1 text-[14px] font-normal tracking-normal text-fg-3">/month</span>
-            </p>
-            <p className="mt-2 text-[13px] text-fg">{p.monthlyCredits} credits every month</p>
-            <ul className="mt-5 space-y-2 border-t border-line-soft pt-5 text-[13.5px] text-fg-2">
-              {p.features.map((f) => (
-                <li key={f} className="flex gap-2">
-                  <svg width="14" height="14" viewBox="0 0 14 14" className="mt-[3px] shrink-0" aria-hidden><path d="M2.5 7.2l2.7 2.6 6.3-6.3" stroke="#B9F36A" strokeWidth="1.8" fill="none" /></svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link
-              href={`/sign-up?next=${encodeURIComponent(p.id === "free" ? "/studio" : "/studio/billing")}`}
-              className={`mt-6 inline-flex h-11 items-center justify-center rounded-[9px] text-[14px] font-medium transition-colors ${p.highlighted ? "bg-accent text-accent-ink hover:bg-[#c9f88a]" : "border border-line bg-bg-3 hover:border-[#444]"}`}
-            >
-              {p.id === "free" ? "Start free" : `Choose ${p.name}`}
-            </Link>
           </div>
         ))}
       </div>
-      <p className="mt-4 text-[12px] text-fg-3">
-        Pricing shown is placeholder configuration ({CREDIT_PACKS.map((c) => `${c.credits} credits for ${formatPrice(c.priceCents)}`).join(", ")} one-off packs) and will be finalised before launch.
+      <p className="mt-4 text-[13px] text-fg-3">
+        prices are placeholder configuration and will be finalised before launch. one-off packs: {CREDIT_PACKS.map((c) => `${c.credits} credits for ${formatPrice(c.priceCents)}`).join(", ")}.
       </p>
-      <div id="credits" className="mt-14 grid scroll-mt-24 gap-8 lg:grid-cols-[1fr_1.6fr]">
+      <div id="credits" className="mt-16 grid scroll-mt-24 gap-10 lg:grid-cols-[1fr_1.6fr]">
         <div>
-          <h3 className="text-[22px] font-semibold tracking-[-0.02em]">How credits work</h3>
-          <dl className="mt-5 space-y-4 text-[14px]">
+          <h3 className="text-[28px] font-semibold tracking-[-0.04em]">how credits work.</h3>
+          <dl className="mt-5 space-y-4 text-[15px]">
             <div>
-              <dt className="text-fg">Monthly allowance</dt>
-              <dd className="mt-1 text-fg-2">Every plan includes credits that refresh at the start of each billing period. Unused allowance doesn’t roll over.</dd>
+              <dt className="font-semibold">monthly allowance</dt>
+              <dd className="mt-1 text-fg-2">every plan includes credits that refresh each billing period. unused allowance doesn’t roll over.</dd>
             </div>
             <div>
-              <dt className="text-fg">Generation credits</dt>
-              <dd className="mt-1 text-fg-2">Each video costs credits based on length, narration and export quality. You see the exact cost before you create.</dd>
+              <dt className="font-semibold">generation credits</dt>
+              <dd className="mt-1 text-fg-2">each video costs credits based on length, narration and export quality. you see the cost before you create, and failed videos are refunded.</dd>
             </div>
             <div>
-              <dt className="text-fg">Video length</dt>
-              <dd className="mt-1 text-fg-2">Free makes 30-second videos. Creator goes up to 60 seconds, Pro up to 90.</dd>
-            </div>
-            <div>
-              <dt className="text-fg">Export quality</dt>
-              <dd className="mt-1 text-fg-2">Free exports 720×1280 with a small watermark. Paid plans export 1080×1920 with no watermark.</dd>
+              <dt className="font-semibold">length & quality</dt>
+              <dd className="mt-1 text-fg-2">free makes 30-second, 720p videos with a small watermark. creator goes to 60s, pro to 90s, both at 1080p.</dd>
             </div>
           </dl>
         </div>
@@ -83,16 +85,16 @@ export const FAQS: { q: string; a: string }[] = [
 
 export function FAQ() {
   return (
-    <div className="divide-y divide-line-soft rounded-[16px] border border-line-soft">
+    <div className="space-y-2.5">
       {FAQS.map((f) => (
-        <details key={f.q} className="group px-5 py-4 [&_summary::-webkit-details-marker]:hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-medium">
-            {f.q}
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-line text-fg-2 transition-transform group-open:rotate-45" aria-hidden>
+        <details key={f.q} className="group rounded-[18px] bg-bg-2 px-5 py-4 [&_summary::-webkit-details-marker]:hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[16px] font-semibold tracking-[-0.01em]">
+            {f.q.toLowerCase()}
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[17px] text-fg transition-transform group-open:rotate-45" aria-hidden>
               +
             </span>
           </summary>
-          <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-fg-2">{f.a}</p>
+          <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-fg-2">{f.a}</p>
         </details>
       ))}
     </div>

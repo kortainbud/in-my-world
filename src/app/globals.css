@@ -13,7 +13,58 @@
   --accent-ink: #101010;
   --danger: #ff6b5b;
   --warn: #f5c518;
+  --accent-hover: #c9f88a;
+  --accent-soft: #161d0f;
+  --accent-line: #4c6630;
+  --accent-text: #d6f5ae;
+  --line-strong: #4a4a4a;
+  --hover: #262626;
+  --frame: #262626;
+  --btn-radius: 8px;
+  --warn-bg: #1a170b;
+  --warn-fg: #f2dc8a;
+  --warn-line: #4a3e12;
+  --danger-bg: #1a1110;
+  --danger-fg: #ffb3a9;
+  --danger-line: #4a2a26;
   color-scheme: dark;
+}
+
+/* Public site + auth: light, after dusk.bot. The studio stays dark. */
+.theme-light {
+  --bg: #ffffff;
+  --bg-2: #f5f5f3;
+  --bg-3: #ececea;
+  --line: #e2e2de;
+  --line-soft: #ececea;
+  --fg: #131316;
+  --fg-2: #44444d;
+  --fg-3: #8b8b94;
+  --accent: #131316;
+  --accent-ink: #ffffff;
+  --accent-hover: #2c2c33;
+  --accent-soft: #f0f0ec;
+  --accent-line: #131316;
+  --accent-text: #131316;
+  --line-strong: #c9c9c4;
+  --hover: #ecece8;
+  --frame: #e6e6e2;
+  --btn-radius: 999px;
+  --danger: #d93a2b;
+  --warn: #9a6a00;
+  --warn-bg: #fff7e0;
+  --warn-fg: #6b4a00;
+  --warn-line: #f0dca0;
+  --danger-bg: #fff0ee;
+  --danger-fg: #a42719;
+  --danger-line: #f4c7c0;
+  color-scheme: light;
+  background: var(--bg);
+  color: var(--fg);
+}
+html:has(.theme-light),
+html:has(.theme-light) body {
+  background: #ffffff;
 }
 
 @theme inline {
@@ -58,9 +109,9 @@ body {
 }
 
 .display {
-  font-weight: 600;
-  letter-spacing: -0.045em;
-  line-height: 0.95;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.97;
 }
 
 .eyebrow {

@@ -41,7 +41,7 @@ export function CastPicker({ open, onClose, selected, onChange, style, library }
                 onClick={() => toggle(c.id)}
                 aria-pressed={on}
                 title={c.cast.ok ? undefined : c.cast.reason}
-                className={`relative flex flex-col items-center rounded-[10px] border p-2 pb-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${on ? "border-accent bg-[#161d0f]" : "border-line-soft bg-bg hover:border-line"}`}
+                className={`relative flex flex-col items-center rounded-[10px] border p-2 pb-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${on ? "border-accent bg-[var(--accent-soft)]" : "border-line-soft bg-bg hover:border-line"}`}
               >
                 {on && <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-accent-ink">{idx + 1}</span>}
                 <Portrait appearance={c.appearance} style={style} className="h-28 w-24" />

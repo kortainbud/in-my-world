@@ -184,7 +184,7 @@ function Status({ p }: { p: ProjectView }) {
   if (p.status === "failed") return <Tag tone="danger">Failed · credits refunded</Tag>;
   const label = p.status === "awaiting_render" ? "Waiting to render" : p.status === "rendering" ? "Rendering" : "Processing";
   return (
-    <Tag tone="warn" className="bg-[#211c08]/90">
+    <Tag tone="warn" className="bg-[var(--warn-bg)]">
       <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-warn" />
       {label}
     </Tag>
@@ -221,7 +221,7 @@ function Menu({ items }: { items: { label: string; href?: string; download?: boo
                 {it.label}
               </a>
             ) : (
-              <button key={it.label} role="menuitem" onClick={it.onClick} className={`block w-full rounded-[7px] px-2.5 py-1.5 text-left text-[13px] hover:bg-bg-3 ${it.danger ? "text-[#ff8a7d]" : "text-fg-2 hover:text-fg"}`}>
+              <button key={it.label} role="menuitem" onClick={it.onClick} className={`block w-full rounded-[7px] px-2.5 py-1.5 text-left text-[13px] hover:bg-bg-3 ${it.danger ? "text-[var(--danger-fg)]" : "text-fg-2 hover:text-fg"}`}>
                 {it.label}
               </button>
             ),

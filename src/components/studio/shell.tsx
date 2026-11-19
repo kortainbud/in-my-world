@@ -57,7 +57,7 @@ function AgentBadge() {
   if (!a.jobId) return null;
   const pct = a.framesTotal ? Math.floor((a.framesDone / a.framesTotal) * 100) : 0;
   return (
-    <Link href={`/studio/projects/${a.projectId}`} className="block rounded-[10px] border border-line bg-bg-2 p-3 text-[12.5px] hover:border-[#444]">
+    <Link href={`/studio/projects/${a.projectId}`} className="block rounded-[10px] border border-line bg-bg-2 p-3 text-[12.5px] hover:border-[var(--line-strong)]">
       <span className="flex items-center gap-2 font-medium text-fg">
         <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-accent" />
         Rendering in this tab
@@ -77,7 +77,7 @@ function Account() {
   return (
     <div className="space-y-2">
       <AgentBadge />
-      <Link href="/studio/billing" className="block rounded-[10px] border border-line bg-bg-2 p-3 hover:border-[#444]">
+      <Link href="/studio/billing" className="block rounded-[10px] border border-line bg-bg-2 p-3 hover:border-[var(--line-strong)]">
         <span className="flex items-baseline justify-between">
           <span className="text-[12px] text-fg-2">{me.plan.name} plan</span>
           <span className="font-mono text-[11px] text-fg-3">credits</span>
@@ -85,7 +85,7 @@ function Account() {
         <span className="mt-0.5 block text-[22px] font-semibold tracking-[-0.03em]">{me.balance}</span>
       </Link>
       {providers?.mode === "development" && (
-        <p className="rounded-[8px] border border-[#4a3e12] bg-[#1a170b] px-2.5 py-1.5 text-[11.5px] leading-snug text-[#f2dc8a]">
+        <p className="rounded-[8px] border border-[var(--warn-line)] bg-[var(--warn-bg)] px-2.5 py-1.5 text-[11.5px] leading-snug text-[var(--warn-fg)]">
           Development mode · {providers.story.ai ? "AI story" : "template stories"}, {providers.voice.id === "macos-say" ? "system voices" : "no narration"}, in-browser rendering
         </p>
       )}

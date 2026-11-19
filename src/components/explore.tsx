@@ -107,7 +107,7 @@ export function Explore({ context }: { context: "public" | "studio" }) {
             key={c}
             onClick={() => set("category", c)}
             aria-pressed={category === c}
-            className={`h-7 rounded-[7px] border px-2.5 text-[12.5px] transition-colors ${category === c ? "border-accent bg-[#161d0f] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
+            className={`h-7 rounded-[7px] border px-2.5 text-[12.5px] transition-colors ${category === c ? "border-accent bg-[var(--accent-soft)] text-fg" : "border-line-soft text-fg-2 hover:border-line hover:text-fg"}`}
           >
             {c === "all" ? "All categories" : c}
           </button>
