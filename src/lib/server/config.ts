@@ -41,7 +41,6 @@ export const PROVIDERS = {
    * A server-side render farm (Remotion/Blender) would be a second provider.
    */
   render: "browser" as RenderProviderId,
-  payments: (process.env.PAYMENTS_PROVIDER || "none") as "none" | string,
 };
 
 export const STORY_MODEL = process.env.STORY_MODEL || "claude-opus-5-5";
@@ -54,6 +53,6 @@ export function providerSummary() {
       : { id: null, label: "Not configured", ai: false },
     voice: { id: PROVIDERS.voice, label: PROVIDERS.voice === "macos-say" ? "macOS system voices (dev only)" : "No narration provider" },
     render: { id: PROVIDERS.render, label: "In-browser renderer (WebCodecs)" },
-    payments: { id: PROVIDERS.payments, configured: PROVIDERS.payments !== "none" },
+    payments: { card: !!process.env.STRIPE_SECRET_KEY && !!process.env.STRIPE_WEBHOOK_SECRET, crypto: !!process.env.SOLANA_RECEIVER_ADDRESS, configured: (!!process.env.STRIPE_SECRET_KEY && !!process.env.STRIPE_WEBHOOK_SECRET) || !!process.env.SOLANA_RECEIVER_ADDRESS },
   };
 }

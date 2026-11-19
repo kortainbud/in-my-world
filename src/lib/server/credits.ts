@@ -15,6 +15,8 @@ export function balanceOf(db: DB, userId: string) {
 export function rollPeriods(db: DB, userId: string): Subscription | undefined {
   const sub = db.subscriptions.find((s) => s.userId === userId);
   if (!sub) return undefined;
+  // Stripe-managed subscriptions renew (and grant credits) from the invoice.paid webhook.
+  if (sub.provider.startsWith("stripe:")) return sub;
   let guard = 0;
   while (new Date(sub.currentPeriodEnd) <= new Date() && guard++ < 24) {
     const plan = getPlan(sub.planId);

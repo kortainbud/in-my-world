@@ -45,7 +45,7 @@ Create ─▶ POST /api/generate ─▶ credit hold + job ─▶ server pipeline
 | Voice | macOS `say` voices, measured per clip | `none` (captions only) until a TTS adapter is added |
 | Rendering | In-browser render agent | Same, or a server agent using the same protocol |
 | Data | Local JSON store in `.data/` | Supabase (schema in `supabase/migrations`) |
-| Payments | None — plans visible, purchase disabled; dev-only credit grant and plan switch | Provider adapters in `src/lib/server/payments.ts` |
+| Payments | Whatever is configured (Stripe and/or Solana); dev-only credit grant and plan switch | Same |
 
 Dev-only endpoints (`/api/dev/*`) return 404 in production mode.
 
@@ -81,7 +81,8 @@ See `.env.example`. None are required for development.
 | `ANTHROPIC_API_KEY` | Enables Claude story generation |
 | `STORY_PROVIDER`, `STORY_MODEL` | Optional overrides |
 | `VOICE_PROVIDER` | `macos-say` or `none` |
-| `PAYMENTS_PROVIDER` | Comma-separated registered provider ids, or `none` |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Card payments: plans (monthly) and credit packs |
+| `SOLANA_RECEIVER_ADDRESS`, `SOLANA_CLUSTER`, `SOLANA_RPC_URL` | USDC/SOL credit-pack payments straight to your wallet, verified on-chain |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Production data layer (adapter not yet written — see below) |
 
 ## Database
@@ -104,7 +105,7 @@ The local store (`src/lib/server/db.ts`) mirrors the schema table for table. To 
 - **Story:** `src/lib/server/providers/story.ts` — implement `generateStory` for another LLM. It must return a `StoryPlan` drawn from the engine vocabularies.
 - **Voice:** `src/lib/server/providers/voice.ts` — implement `synthesize(text, voice, key)` returning a stored clip and its exact duration (ElevenLabs/OpenAI etc.).
 - **Render:** any process that speaks the `/api/render/*` lease protocol.
-- **Payments:** register a `PaymentProvider` in `src/lib/server/payments.ts` and add its webhook route. Apply credits and plan changes only from the verified webhook.
+- **Payments:** `src/lib/server/stripe.ts` (Checkout + signed webhook) and `src/lib/server/solana.ts` (quote with a unique reference key, on-chain verification of recipient/token/amount). Both fulfil through `fulfill()` in `payments.ts`, exactly once.
 
 ## Samples
 

@@ -6,6 +6,7 @@ import { api, ApiError, timeAgo } from "@/lib/client/api";
 import { useMe } from "@/lib/client/me";
 import { CreditTable } from "@/components/credit-table";
 import { Button, Notice, Tag } from "@/components/ui";
+import { CryptoCheckout } from "@/components/studio/crypto-checkout";
 import { PageHeader } from "@/components/studio/shell";
 
 interface Snapshot {
@@ -31,6 +32,14 @@ export function BillingScreen() {
   const [s, setS] = useState<Snapshot | null>(null);
   const [msg, setMsg] = useState<{ tone: "danger" | "accent" | "warn"; text: string } | null>(null);
   const { providers, refresh } = useMe();
+  const [methods, setMethods] = useState<{ card: boolean; crypto: ("USDC" | "SOL")[] }>({ card: false, crypto: [] });
+  const [crypto, setCrypto] = useState<{ pack: { id: string; credits: number }; token: "USDC" | "SOL" } | null>(null);
+  useEffect(() => {
+    api<{ card: boolean; crypto: ("USDC" | "SOL")[] }>("/api/billing/checkout").then(setMethods).catch(() => undefined);
+    const q = new URLSearchParams(window.location.search).get("checkout");
+    if (q === "success") setMsg({ tone: "accent", text: "Payment received. Your credits appear as soon as Stripe confirms it — usually within a few seconds." });
+    if (q === "cancelled") setMsg({ tone: "warn", text: "Checkout cancelled. Nothing was charged." });
+  }, []);
 
   const load = useCallback(async () => setS(await api<Snapshot>("/api/credits")), []);
   useEffect(() => {
@@ -55,7 +64,7 @@ export function BillingScreen() {
   };
 
   if (!s) return <div className="flex min-h-[50vh] items-center justify-center text-small text-fg-3">Loading…</div>;
-  const paymentsReady = !!providers?.payments.configured;
+  const paymentsReady = methods.card || methods.crypto.length > 0;
 
   return (
     <div className="mx-auto w-full max-w-[1080px] px-5 pb-24 pt-8 sm:px-8 lg:pt-12">
@@ -70,7 +79,7 @@ export function BillingScreen() {
 
       {!paymentsReady && (
         <Notice tone="warn" className="mt-6">
-          Payments aren’t set up yet — no card or crypto payment provider is configured, so plans and credit packs can’t be purchased. Prices below are placeholders from <code className="font-mono text-caption">src/config/plans.ts</code>.
+          Payments aren’t set up yet — add Stripe keys for cards and/or a Solana receiving address for USDC and SOL. Prices below are placeholders from <code className="font-mono text-caption">src/config/plans.ts</code>.
         </Notice>
       )}
 
@@ -105,7 +114,7 @@ export function BillingScreen() {
                     Free
                   </Button>
                 ) : (
-                  <Button className="w-full" variant={p.highlighted ? "primary" : "secondary"} onClick={() => checkout("subscription", p.id)} disabled={!paymentsReady} title={paymentsReady ? undefined : "Payments aren't configured yet"}>
+                  <Button className="w-full" variant={p.highlighted ? "primary" : "secondary"} onClick={() => checkout("subscription", p.id)} disabled={!methods.card} title={methods.card ? "Pay monthly by card" : "Card payments aren't set up yet"}>
                     Upgrade to {p.name}
                   </Button>
                 )}
@@ -123,13 +132,28 @@ export function BillingScreen() {
               <p className="text-body font-medium">{c.credits} credits</p>
               <p className="text-small text-fg-2">{formatPrice(c.priceCents)} one-off · never expire</p>
             </div>
-            <Button onClick={() => checkout("credits", c.id)} disabled={!paymentsReady}>
-              Buy
-            </Button>
+            <div className="flex flex-wrap justify-end gap-1.5">
+              {methods.card && (
+                <Button size="sm" onClick={() => checkout("credits", c.id)}>
+                  Card
+                </Button>
+              )}
+              {methods.crypto.map((t) => (
+                <Button key={t} size="sm" onClick={() => setCrypto({ pack: { id: c.id, credits: c.credits }, token: t })}>
+                  {t}
+                </Button>
+              ))}
+              {!paymentsReady && (
+                <Button size="sm" disabled>
+                  Buy
+                </Button>
+              )}
+            </div>
           </div>
         ))}
       </div>
-      <p className="mt-3 text-caption text-fg-3">Card and crypto payments plug in as separate providers. Credits are only added after the provider confirms payment on our server.</p>
+      <p className="mt-3 text-caption text-fg-3">Plans renew monthly by card. Credit packs can be paid by card, or with USDC or SOL from a Phantom wallet. Credits are added only after the payment is confirmed on our server.</p>
+      <CryptoCheckout pack={crypto?.pack ?? null} token={crypto?.token ?? "USDC"} onClose={() => setCrypto(null)} onPaid={() => { void load(); void refresh(); }} />
 
       <h2 className="mb-3 mt-10 text-lead font-semibold tracking-[-0.02em]">How credits work</h2>
       <CreditTable />

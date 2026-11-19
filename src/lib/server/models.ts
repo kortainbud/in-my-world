@@ -171,14 +171,18 @@ export interface Video {
 export interface Payment {
   id: string;
   userId: string;
-  provider: string;
+  provider: "stripe" | "solana";
   kind: "subscription" | "credits";
   itemId: string;
-  status: "pending" | "succeeded" | "failed";
+  status: "pending" | "succeeded" | "failed" | "expired";
   amountCents: number;
   currency: string;
   credits: number;
+  /** Stripe checkout session id, or the Solana transaction signature once paid. */
   providerRef?: string;
+  /** Solana: token, amount in base units, recipient, unique reference key, quote expiry. */
+  crypto?: { token: "USDC" | "SOL"; amount: string; decimals: number; mint?: string; receiver: string; reference: string; cluster: string; expiresAt: string; usdRate?: number };
+  fulfilledAt?: string;
   createdAt: string;
 }
 

@@ -20,7 +20,7 @@ export interface Providers {
   story: { id: string | null; label: string; ai: boolean };
   voice: { id: string; label: string };
   render: { id: string; label: string };
-  payments: { id: string; configured: boolean };
+  payments: { card: boolean; crypto: boolean; configured: boolean };
 }
 
 interface MeState {

@@ -112,7 +112,7 @@ export function SettingsScreen() {
             <dt className="text-fg-3">Rendering</dt>
             <dd>{providers.render.label}</dd>
             <dt className="text-fg-3">Payments</dt>
-            <dd>{providers.payments.configured ? providers.payments.id : "Not configured"}</dd>
+            <dd>{[providers.payments.card && "Card (Stripe)", providers.payments.crypto && "USDC + SOL (Solana)"].filter(Boolean).join(" · ") || "Not configured"}</dd>
           </dl>
         </section>
       )}
