@@ -246,3 +246,9 @@ export function emptyDB(): DB {
     viewerStats: [],
   };
 }
+
+export interface PasswordReset {
+  userId: string;
+  createdAt: string;
+  expiresAt: string;
+}

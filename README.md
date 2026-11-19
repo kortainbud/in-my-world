@@ -83,7 +83,9 @@ See `.env.example`. None are required for development.
 | `VOICE_PROVIDER` | `macos-say` or `none` |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Card payments: plans (monthly) and credit packs |
 | `SOLANA_RECEIVER_ADDRESS`, `SOLANA_CLUSTER`, `SOLANA_RPC_URL` | USDC/SOL credit-pack payments straight to your wallet, verified on-chain |
-| `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Database and media storage (required) |
+| `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`), `SUPABASE_SERVICE_ROLE_KEY` | Database and media storage (required) |
+| `RESEND_API_KEY`, `EMAIL_FROM`, `SITE_URL` | Password-reset emails via Resend (in development, emails print to the server console) |
+| `ALLOW_TEMPLATE_STORIES` | `true` lets production use the template story engine (labelled "not AI") |
 
 ## Database
 

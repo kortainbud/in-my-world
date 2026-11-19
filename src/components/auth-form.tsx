@@ -38,17 +38,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
 
   const other = mode === "sign-in" ? "/sign-up" : "/sign-in";
   return (
-    <div className="theme-light relative isolate flex min-h-screen flex-col px-4">
-      <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
-      <AuthWorld />
-      <header className="mx-auto flex h-[75px] w-full max-w-[1200px] items-center justify-between">
-        <Link href="/">
-          <SiteLogo />
-        </Link>
-        <ThemeToggle />
-      </header>
-      <div className="flex flex-1 items-center justify-center pb-28 pt-4">
-        <div className="w-full max-w-[420px] rounded-[24px] border border-line bg-[var(--card)] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)] sm:p-8">
+    <AuthShell>
           <h1 className="display text-display-sm">{mode === "sign-in" ? "welcome back." : "start your world."}</h1>
           <p className="mt-3 text-body text-fg-2">{mode === "sign-in" ? "Sign in to your studio." : "Free plan includes monthly credits. No card needed."}</p>
           <form onSubmit={submit} className="mt-7 space-y-4">
@@ -60,7 +50,18 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
             <Field label="Email">
               <input className={inputCls} type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
             </Field>
-            <Field label="Password" hint={mode === "sign-up" ? "At least 8 characters." : undefined}>
+            <Field
+              label="Password"
+              hint={
+                mode === "sign-up" ? (
+                  "At least 8 characters."
+                ) : (
+                  <Link href={`/forgot-password${email ? `?email=${encodeURIComponent(email)}` : ""}`} className="text-fg-2 underline decoration-line underline-offset-4 hover:text-fg">
+                    Forgot password?
+                  </Link>
+                )
+              }
+            >
               <input className={inputCls} type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === "sign-in" ? "current-password" : "new-password"} required minLength={mode === "sign-up" ? 8 : 1} />
             </Field>
             {error && <Notice tone="danger">{error}</Notice>}
@@ -79,7 +80,24 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
               {mode === "sign-in" ? "Create an account" : "Sign in"}
             </Link>
           </p>
-        </div>
+    </AuthShell>
+  );
+}
+
+/** The sign-in pages' frame: site header, floating world and a centred card. */
+export function AuthShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="theme-light relative isolate flex min-h-screen flex-col px-4">
+      <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      <AuthWorld />
+      <header className="mx-auto flex h-[75px] w-full max-w-[1200px] items-center justify-between">
+        <Link href="/">
+          <SiteLogo />
+        </Link>
+        <ThemeToggle />
+      </header>
+      <div className="flex flex-1 items-center justify-center pb-28 pt-4">
+        <div className="w-full max-w-[420px] rounded-[24px] border border-line bg-[var(--card)] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)] sm:p-8">{children}</div>
       </div>
     </div>
   );

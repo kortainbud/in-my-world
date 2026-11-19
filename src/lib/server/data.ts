@@ -11,7 +11,7 @@ import { HttpError } from "./auth-errors";
 
 export type Table =
   | "users" | "profiles" | "sessions" | "subscriptions" | "credits" | "projects" | "stories" | "jobs"
-  | "videos" | "characters" | "payments" | "wallets" | "wallet_nonces" | "viewer_stats" | "sample_views";
+  | "videos" | "characters" | "payments" | "wallets" | "wallet_nonces" | "viewer_stats" | "sample_views" | "password_resets";
 
 // Read at request time (not build time), and accept the common names, so a
 // key added in the host's dashboard works without depending on the build.
